@@ -279,7 +279,10 @@ function Newsletter() {
 
   return (
     <section className="mx-auto max-w-7xl px-4 lg:px-6 py-16">
-      <div className="bg-card border border-border rounded-xl p-8 lg:p-12 flex flex-col lg:flex-row gap-8 lg:items-center">
+      <div
+        className="border border-gold/30 rounded-xl p-8 lg:p-12 flex flex-col lg:flex-row gap-8 lg:items-center"
+        style={{ background: "var(--gradient-newsletter)" }}
+      >
         <div className="shrink-0 w-14 h-14 rounded-full bg-gold/15 text-gold flex items-center justify-center">
           <Mail className="w-6 h-6" />
         </div>
@@ -317,7 +320,7 @@ function PremiumUpsell() {
     <section className="mx-auto max-w-7xl px-4 lg:px-6 py-16">
       <div
         className="rounded-xl border border-gold/30 p-10 lg:p-14"
-        style={{ background: "var(--gradient-premium)" }}
+        style={{ background: "var(--gradient-premium-radial)" }}
       >
         <p className="label-eyebrow">Members Only</p>
         <h2 className="mt-3 font-display font-bold text-4xl sm:text-5xl">

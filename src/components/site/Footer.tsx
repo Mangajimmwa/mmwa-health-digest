@@ -43,7 +43,7 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-border">
-        <div className="mx-auto max-w-7xl px-4 lg:px-6 py-5 flex flex-col sm:flex-row justify-between gap-2 text-xs text-text-mute">
+        <div className="mx-auto max-w-7xl px-4 lg:px-6 py-5 flex flex-col items-center sm:flex-row sm:justify-between gap-1 text-xs text-text-mute">
           <p>© 2026 Joseph Mmwa. All rights reserved.</p>
           <p className="italic font-serif">If it's health, it's here.</p>
         </div>

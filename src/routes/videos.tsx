@@ -28,11 +28,12 @@ function VideosPage() {
           <div className="mx-auto w-14 h-14 rounded-full bg-gold/15 text-gold flex items-center justify-center">
             <Play className="w-6 h-6" />
           </div>
-          <h2 className="mt-5 font-display font-bold text-2xl">
+          <h2 className="mt-5 font-display font-bold text-2xl text-foreground">
             The newsroom is just getting started
           </h2>
           <p className="mt-3 text-text-body font-serif max-w-xl mx-auto">
-            Check back soon for verified global health video reporting.
+            No videos have been published yet. Check back soon for verified
+            global health video reporting.
           </p>
         </div>
       </section>

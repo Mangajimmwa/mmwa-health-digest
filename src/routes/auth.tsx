@@ -73,6 +73,9 @@ function AuthPage() {
         <div className="w-full max-w-md bg-card border border-border rounded-xl p-8">
           <div className="text-center">
             <Logo size="lg" />
+            <p className="mt-3 text-sm text-text-mute font-serif">
+              Access the Joseph Mmwa newsroom
+            </p>
           </div>
 
           <div className="mt-8 grid grid-cols-2 bg-surface-2 rounded-md p-1 text-sm">
@@ -104,7 +107,7 @@ function AuthPage() {
 
           <form onSubmit={submit} className="space-y-3">
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-mute" />
+              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gold" />
               <input
                 type="email"
                 required
@@ -115,7 +118,7 @@ function AuthPage() {
               />
             </div>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-mute" />
+              <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gold" />
               <input
                 type="password"
                 required

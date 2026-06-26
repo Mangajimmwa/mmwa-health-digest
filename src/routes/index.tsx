@@ -9,7 +9,6 @@ import {
   Clock,
   ChevronRight,
 } from "lucide-react";
-import heroImg from "@/assets/hero.jpg";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -88,27 +87,15 @@ function Home() {
 
 function Hero() {
   return (
-    <section className="relative overflow-hidden">
-      <div className="absolute inset-0">
-        <img
-          src={heroImg}
-          alt=""
-          className="w-full h-full object-cover opacity-55"
-          width={1920}
-          height={1280}
-        />
-        <div
-          className="absolute inset-0"
-          style={{ background: "var(--gradient-hero-fade)" }}
-        />
-      </div>
-      <div className="relative mx-auto max-w-7xl px-4 lg:px-6 py-24 lg:py-36">
+    <section className="relative bg-background">
+      <div className="relative mx-auto max-w-7xl px-4 lg:px-6 pt-24 pb-32 lg:pt-36 lg:pb-44">
         <span className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-4 py-1.5 text-xs font-sans font-semibold uppercase tracking-[0.2em] text-gold">
           Global Health Desk
         </span>
-        <h1 className="mt-6 font-display font-extrabold text-5xl sm:text-6xl lg:text-7xl leading-[1.02] tracking-tight max-w-4xl">
-          GLOBAL HEALTH NEWS<br />
-          YOU CAN <span className="text-gold">TRUST</span>
+        <h1 className="mt-6 font-display font-black text-5xl sm:text-6xl lg:text-7xl leading-[1.02] tracking-tight max-w-4xl">
+          <span className="text-foreground">GLOBAL HEALTH NEWS</span>
+          <br />
+          <span className="text-gold">YOU CAN TRUST</span>
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-text-body font-serif">
           Real-time medical news, outbreak updates, and global health reporting
@@ -118,13 +105,13 @@ function Hero() {
         <div className="mt-9 flex flex-wrap gap-3">
           <Link
             to="/news"
-            className="inline-flex items-center gap-2 bg-gold text-primary-foreground font-semibold px-6 py-3 rounded-md hover:bg-gold-hover transition-colors"
+            className="inline-flex items-center gap-2 bg-gold text-primary-foreground font-bold px-7 py-3.5 rounded-full hover:bg-gold-hover transition-colors"
           >
             Read Latest News <ArrowRight className="w-4 h-4" />
           </Link>
           <Link
             to="/premium"
-            className="inline-flex items-center gap-2 border border-gold text-gold font-semibold px-6 py-3 rounded-md hover:bg-gold/10 transition-colors"
+            className="inline-flex items-center gap-2 border border-gold text-gold font-semibold px-7 py-3.5 rounded-full hover:bg-gold/10 transition-colors"
           >
             <Lock className="w-4 h-4" /> Go Premium
           </Link>
@@ -206,7 +193,7 @@ function ArticleCard(props: {
   read: string;
 }) {
   return (
-    <article className="group bg-card border border-border rounded-lg overflow-hidden hover:border-gold/40 transition-colors">
+    <article className="group bg-card border border-border rounded-lg overflow-hidden card-lift">
       <div className="aspect-[16/10] bg-gradient-to-br from-surface-2 to-surface-1 relative">
         <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_30%_20%,rgba(245,166,35,0.15),transparent_60%)]" />
       </div>
@@ -240,9 +227,7 @@ function Coverage() {
         <ul className="mt-8 grid gap-4 md:grid-cols-2">
           {COVERAGE.map((c) => (
             <li key={c} className="flex items-start gap-3 text-text-body">
-              <span className="mt-1 shrink-0 w-5 h-5 rounded-full bg-gold/15 text-gold flex items-center justify-center">
-                <Check className="w-3 h-3" />
-              </span>
+              <Check className="mt-1 shrink-0 w-5 h-5 text-gold" strokeWidth={3} />
               <span className="font-serif">{c}</span>
             </li>
           ))}
@@ -294,7 +279,10 @@ function Newsletter() {
 
   return (
     <section className="mx-auto max-w-7xl px-4 lg:px-6 py-16">
-      <div className="bg-card border border-border rounded-xl p-8 lg:p-12 flex flex-col lg:flex-row gap-8 lg:items-center">
+      <div
+        className="border border-gold/30 rounded-xl p-8 lg:p-12 flex flex-col lg:flex-row gap-8 lg:items-center"
+        style={{ background: "var(--gradient-newsletter)" }}
+      >
         <div className="shrink-0 w-14 h-14 rounded-full bg-gold/15 text-gold flex items-center justify-center">
           <Mail className="w-6 h-6" />
         </div>
@@ -332,7 +320,7 @@ function PremiumUpsell() {
     <section className="mx-auto max-w-7xl px-4 lg:px-6 py-16">
       <div
         className="rounded-xl border border-gold/30 p-10 lg:p-14"
-        style={{ background: "var(--gradient-premium)" }}
+        style={{ background: "var(--gradient-premium-radial)" }}
       >
         <p className="label-eyebrow">Members Only</p>
         <h2 className="mt-3 font-display font-bold text-4xl sm:text-5xl">

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Clock, Search } from "lucide-react";
+import { Clock, Search, Newspaper } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -102,7 +102,7 @@ function NewsPage() {
             filtered.map((a) => (
               <article
                 key={a.id}
-                className="bg-card border border-border rounded-lg overflow-hidden hover:border-gold/40 transition-colors"
+                className="bg-card border border-border rounded-lg overflow-hidden card-lift"
               >
                 <div className="aspect-[16/10] bg-gradient-to-br from-surface-2 to-surface-1" />
                 <div className="p-6">
@@ -140,14 +140,20 @@ function NewsPage() {
 
 function EmptyState() {
   return (
-    <div className="col-span-full bg-card border border-border rounded-lg p-12 text-center">
-      <h3 className="font-display font-bold text-2xl">The newsroom is just getting started</h3>
-      <p className="mt-3 text-text-body font-serif">
-        Check back soon for verified global health reporting from Joseph Mmwa.
+    <div className="col-span-full bg-card border border-border rounded-xl p-12 text-center">
+      <div className="mx-auto w-14 h-14 rounded-full bg-gold/15 text-gold flex items-center justify-center">
+        <Newspaper className="w-6 h-6" />
+      </div>
+      <h3 className="mt-5 font-display font-bold text-2xl text-foreground">
+        The newsroom is just getting started
+      </h3>
+      <p className="mt-3 text-text-body font-serif max-w-xl mx-auto">
+        No articles have been published yet. Check back soon for verified global
+        health reporting.
       </p>
       <Link
         to="/"
-        className="mt-6 inline-flex items-center gap-2 border border-gold text-gold font-semibold px-5 py-2.5 rounded-md hover:bg-gold/10"
+        className="mt-6 inline-flex items-center gap-2 border border-gold text-gold font-semibold px-5 py-2.5 rounded-full hover:bg-gold/10"
       >
         Back to home
       </Link>

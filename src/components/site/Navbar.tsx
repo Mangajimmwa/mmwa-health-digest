@@ -1,6 +1,6 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { Menu, X, Mail, Phone } from "lucide-react";
-import { useState } from "react";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
+import { Menu, X, Mail, Phone, Search } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
 
 const NAV = [
@@ -15,7 +15,26 @@ const NAV = [
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [q, setQ] = useState("");
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSearchOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [searchOpen]);
+
+  function submitSearch(e: React.FormEvent) {
+    e.preventDefault();
+    setSearchOpen(false);
+    navigate({ to: "/news" });
+    setQ("");
+  }
 
   return (
     <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-md border-b border-border">
@@ -37,6 +56,13 @@ export function Navbar() {
               </Link>
             );
           })}
+          <button
+            aria-label="Search"
+            onClick={() => setSearchOpen(true)}
+            className="text-text-body hover:text-gold transition-colors"
+          >
+            <Search className="w-5 h-5" />
+          </button>
           <Link
             to="/auth"
             className="text-sm font-medium text-text-body hover:text-foreground"
@@ -51,14 +77,49 @@ export function Navbar() {
           </Link>
         </nav>
 
-        <button
-          aria-label="Open menu"
-          onClick={() => setOpen(true)}
-          className="lg:hidden text-foreground"
-        >
-          <Menu className="w-6 h-6" />
-        </button>
+        <div className="flex items-center gap-4 lg:hidden">
+          <button
+            aria-label="Search"
+            onClick={() => setSearchOpen(true)}
+            className="text-foreground"
+          >
+            <Search className="w-5 h-5" />
+          </button>
+          <button
+            aria-label="Open menu"
+            onClick={() => setOpen(true)}
+            className="text-foreground"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+        </div>
       </div>
+
+      {searchOpen && (
+        <div className="absolute left-0 right-0 top-full bg-[#111111] border-b border-gold/30 slide-down">
+          <form
+            onSubmit={submitSearch}
+            className="mx-auto max-w-7xl px-4 lg:px-6 py-5 flex items-center gap-3"
+          >
+            <Search className="w-5 h-5 text-gold shrink-0" />
+            <input
+              autoFocus
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search stories, topics, outbreaks..."
+              className="flex-1 bg-transparent border border-gold/60 rounded-md px-4 py-3 text-sm text-foreground placeholder:text-text-mute focus:outline-none focus:ring-2 focus:ring-gold"
+            />
+            <button
+              type="button"
+              aria-label="Close search"
+              onClick={() => setSearchOpen(false)}
+              className="text-text-mute hover:text-foreground shrink-0"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </form>
+        </div>
+      )}
 
       {open && (
         <div className="fixed inset-0 z-50 bg-background flex flex-col">
@@ -77,9 +138,7 @@ export function Navbar() {
                   to={n.to}
                   onClick={() => setOpen(false)}
                   className={`px-4 py-3 rounded-md text-lg font-medium ${
-                    active
-                      ? "bg-gold/15 text-gold"
-                      : "text-text-body hover:bg-surface-1"
+                    active ? "text-gold" : "text-text-body hover:bg-surface-1"
                   }`}
                 >
                   {n.label}
@@ -118,6 +177,9 @@ export function Navbar() {
             </a>
             <p className="text-xs text-text-mute pt-3">
               © 2026 Joseph Mmwa. All rights reserved.
+            </p>
+            <p className="text-xs italic font-serif text-text-mute">
+              If it's health, it's here.
             </p>
           </div>
         </div>

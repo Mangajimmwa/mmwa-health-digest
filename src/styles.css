@@ -51,7 +51,8 @@
 
   --shadow-gold: 0 10px 40px -10px oklch(0.78 0.16 75 / 0.35);
   --gradient-premium: linear-gradient(135deg, #1A1200 0%, #2A1F00 100%);
-  --gradient-hero-fade: linear-gradient(180deg, rgba(10,10,10,0.4) 0%, rgba(10,10,10,0.85) 70%, #0A0A0A 100%);
+  --gradient-newsletter: linear-gradient(135deg, #1A1200 0%, #2A1F00 100%);
+  --gradient-premium-radial: radial-gradient(circle at center, #1A0F00 0%, #0A0A0A 75%);
 }
 
 :root, .dark {
@@ -122,11 +123,11 @@
 
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.8); }
+  50% { opacity: 0.35; transform: scale(0.7); }
 }
 
 @utility pulse-dot {
-  animation: pulse-dot 1.4s ease-in-out infinite;
+  animation: pulse-dot 1.2s ease-in-out infinite;
 }
 
 @utility gold-link {
@@ -134,3 +135,20 @@
   transition: color 150ms ease;
 }
 .gold-link:hover { color: var(--gold-hover); }
+
+@utility card-lift {
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0 0 1px rgba(245, 166, 35, 0.30), 0 20px 40px -20px rgba(245, 166, 35, 0.15);
+}
+
+@keyframes slide-down {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@utility slide-down {
+  animation: slide-down 220ms ease-out;
+}

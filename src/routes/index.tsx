@@ -32,15 +32,8 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-const COVERAGE = [
-  "Breaking health and medical news from around the world",
-  "Outbreak alerts, epidemic monitoring and public health emergencies",
-  "Vaccine development, immunization programs and infectious disease reporting",
-  "Medical breakthroughs, clinical trials and emerging treatments",
-  "Public health policy, global health systems and healthcare access",
-  "Evidence-based health explainers for everyday readers",
-  "Global medical reporting with strong focus on accuracy, speed and public relevance",
-];
+
+
 
 const PLACEHOLDER_ARTICLES = [
   {

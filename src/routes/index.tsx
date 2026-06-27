@@ -67,11 +67,13 @@ function Home() {
     <SiteLayout>
       <Toaster theme="dark" position="top-right" />
       <Hero />
+      <SectionDivider />
       <Latest />
-      <Coverage />
-      <Standards />
+      <SectionDivider />
       <Newsletter />
+      <SectionDivider />
       <PremiumUpsell />
+      <SectionDivider />
       <CategoriesStrip />
     </SiteLayout>
   );
@@ -79,8 +81,19 @@ function Home() {
 
 function Hero() {
   return (
-    <section className="relative bg-background">
-      <div className="relative mx-auto max-w-7xl px-4 lg:px-6 pt-24 pb-32 lg:pt-36 lg:pb-44">
+    <section className="relative bg-background overflow-hidden min-h-[90vh] flex items-center">
+      {/* Flat world map background */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 flex items-center justify-center"
+      >
+        <img
+          src="/world-map.svg"
+          alt=""
+          className="w-[120%] max-w-none opacity-[0.10] md:opacity-[0.12] [filter:blur(3px)] max-md:opacity-[0.06]"
+        />
+      </div>
+      <div className="relative z-10 mx-auto max-w-7xl w-full px-4 lg:px-6 pt-28 pb-32 lg:pt-40 lg:pb-44">
         <span className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-4 py-1.5 text-xs font-sans font-semibold uppercase tracking-[0.2em] text-gold">
           Global Health Desk
         </span>
@@ -93,7 +106,7 @@ function Hero() {
           Real-time medical news, outbreak updates, and global health reporting
           from Joseph Mmwa.
         </p>
-        <p className="mt-3 italic font-serif text-text-mute">If it's health, it's here.</p>
+        <p className="mt-3 font-display italic text-white text-lg">If it's health, it's here.</p>
         <div className="mt-9 flex flex-wrap gap-3">
           <Link
             to="/news"

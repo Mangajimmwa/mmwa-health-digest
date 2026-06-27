@@ -15,10 +15,23 @@ const NAV = [
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [q, setQ] = useState("");
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
+
+  // Mount/unmount with animation
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      const t = setTimeout(() => setMounted(false), 280);
+      return () => clearTimeout(t);
+    }
+  }, [open]);
 
   useEffect(() => {
     if (!searchOpen) return;
@@ -36,6 +49,10 @@ export function Navbar() {
     setQ("");
   }
 
+  function closeAndGo() {
+    setOpen(false);
+  }
+
   return (
     <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-md border-b border-border">
       <div className="mx-auto max-w-7xl flex items-center justify-between px-4 lg:px-6 h-16">
@@ -48,7 +65,7 @@ export function Navbar() {
               <Link
                 key={n.to}
                 to={n.to}
-                className={`text-sm font-medium transition-colors ${
+                className={`nav-underline text-sm font-medium transition-colors ${
                   active ? "text-gold" : "text-text-body hover:text-foreground"
                 }`}
               >
@@ -65,13 +82,13 @@ export function Navbar() {
           </button>
           <Link
             to="/auth"
-            className="text-sm font-medium text-text-body hover:text-foreground"
+            className="nav-underline text-sm font-medium text-text-body hover:text-foreground"
           >
             Sign In
           </Link>
           <Link
             to="/premium"
-            className="text-sm font-semibold bg-gold text-primary-foreground px-4 py-2 rounded-md hover:bg-gold-hover transition-colors"
+            className="btn-glow text-sm font-semibold bg-gold text-primary-foreground px-4 py-2 rounded-md"
           >
             Subscribe
           </Link>
@@ -86,11 +103,21 @@ export function Navbar() {
             <Search className="w-5 h-5" />
           </button>
           <button
-            aria-label="Open menu"
-            onClick={() => setOpen(true)}
-            className="text-foreground"
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+            className="text-foreground relative w-6 h-6"
           >
-            <Menu className="w-6 h-6" />
+            <Menu
+              className={`w-6 h-6 absolute inset-0 transition-all duration-200 ${
+                open ? "opacity-0 rotate-90" : "opacity-100 rotate-0"
+              }`}
+            />
+            <X
+              className={`w-6 h-6 absolute inset-0 transition-all duration-200 ${
+                open ? "opacity-100 rotate-0" : "opacity-0 -rotate-90"
+              }`}
+            />
           </button>
         </div>
       </div>
@@ -121,66 +148,86 @@ export function Navbar() {
         </div>
       )}
 
-      {open && (
-        <div className="fixed inset-0 z-50 bg-background flex flex-col">
-          <div className="flex items-center justify-between px-4 h-16 border-b border-border">
+      {mounted && (
+        <div
+          className={`fixed inset-0 z-50 lg:hidden bg-[#0A0A0A] flex flex-col transition-all duration-300 ease-in-out ${
+            open ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4 pointer-events-none"
+          }`}
+          style={{ transitionDuration: open ? "300ms" : "250ms" }}
+        >
+          <div className="flex items-center justify-between px-4 h-16 border-b border-gold/20 shrink-0">
             <Logo size="md" />
-            <button aria-label="Close menu" onClick={() => setOpen(false)}>
+            <button
+              aria-label="Close menu"
+              onClick={() => setOpen(false)}
+              className="text-foreground"
+            >
               <X className="w-6 h-6" />
             </button>
           </div>
-          <nav className="flex-1 flex flex-col gap-1 px-4 py-6">
-            {NAV.map((n) => {
-              const active = pathname === n.to;
-              return (
-                <Link
-                  key={n.to}
-                  to={n.to}
-                  onClick={() => setOpen(false)}
-                  className={`px-4 py-3 rounded-md text-lg font-medium ${
-                    active ? "text-gold" : "text-text-body hover:bg-surface-1"
-                  }`}
-                >
-                  {n.label}
-                </Link>
-              );
-            })}
-            <Link
-              to="/auth"
-              onClick={() => setOpen(false)}
-              className="px-4 py-3 rounded-md text-lg font-medium text-text-body hover:bg-surface-1"
+
+          <div className="flex-1 overflow-y-auto">
+            <nav className="flex flex-col px-6 py-6">
+              {[
+                ...NAV.map((n) => ({ ...n, kind: "nav" as const })),
+                { to: "/auth", label: "Sign In", kind: "nav" as const },
+              ].map((n, i) => {
+                const active = pathname === n.to;
+                return (
+                  <Link
+                    key={n.to}
+                    to={n.to}
+                    onClick={closeAndGo}
+                    style={{ animationDelay: open ? `${i * 50}ms` : "0ms" }}
+                    className={`mobile-link-in py-3 text-lg font-medium border-b border-gold/10 ${
+                      active ? "text-gold" : "text-white hover:text-gold"
+                    }`}
+                  >
+                    {n.label}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            <div className="px-6 pb-4">
+              <Link
+                to="/premium"
+                onClick={closeAndGo}
+                style={{ animationDelay: open ? `${(NAV.length + 1) * 50}ms` : "0ms" }}
+                className="mobile-link-in btn-glow block w-full text-center bg-gold text-primary-foreground font-bold py-4 rounded-md text-base"
+              >
+                Subscribe
+              </Link>
+            </div>
+
+            <div className="border-t border-gold/20 mx-6" />
+
+            <div
+              className="px-6 py-6 space-y-4 mobile-link-in"
+              style={{ animationDelay: open ? `${(NAV.length + 2) * 50}ms` : "0ms" }}
             >
-              Sign In
-            </Link>
-            <Link
-              to="/premium"
-              onClick={() => setOpen(false)}
-              className="mt-4 mx-4 text-center bg-gold text-primary-foreground font-semibold py-3 rounded-md"
-            >
-              Subscribe
-            </Link>
-          </nav>
-          <div className="border-t border-border px-6 py-6 space-y-3 text-sm">
-            <a
-              href="mailto:mmwajoseph@gmail.com"
-              className="flex items-center gap-3 text-text-body"
-            >
-              <Mail className="w-4 h-4 text-gold" />
-              mmwajoseph@gmail.com
-            </a>
-            <a
-              href="tel:+254729147765"
-              className="flex items-center gap-3 text-text-body"
-            >
-              <Phone className="w-4 h-4 text-gold" />
-              +254 729 147 765
-            </a>
-            <p className="text-xs text-text-mute pt-3">
-              © 2026 Joseph Mmwa. All rights reserved.
-            </p>
-            <p className="text-xs font-display italic text-white">
-              If it's health, it's here.
-            </p>
+              <p className="label-eyebrow">Contact</p>
+              <a
+                href="mailto:mmwajoseph@gmail.com"
+                className="flex items-center gap-3 text-sm text-text-body hover:text-gold transition-colors"
+              >
+                <Mail className="w-4 h-4 text-gold" />
+                mmwajoseph@gmail.com
+              </a>
+              <a
+                href="tel:+254729147765"
+                className="flex items-center gap-3 text-sm text-text-body hover:text-gold transition-colors"
+              >
+                <Phone className="w-4 h-4 text-gold" />
+                +254 729 147 765
+              </a>
+              <p className="pt-4 font-display italic text-white text-sm">
+                If it's health, it's here.
+              </p>
+              <p className="text-xs text-text-mute">
+                © 2026 Joseph Mmwa. All rights reserved.
+              </p>
+            </div>
           </div>
         </div>
       )}

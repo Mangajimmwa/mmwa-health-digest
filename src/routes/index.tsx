@@ -208,47 +208,14 @@ function ArticleCard(props: {
   );
 }
 
-function Coverage() {
+function SectionDivider() {
   return (
-    <section className="mx-auto max-w-7xl px-4 lg:px-6 py-20">
-      <div className="bg-card border border-border rounded-xl p-8 lg:p-12">
-        <p className="label-eyebrow">What We Cover</p>
-        <h2 className="mt-3 font-display font-bold text-3xl sm:text-4xl max-w-2xl">
-          The full breadth of global health journalism
-        </h2>
-        <ul className="mt-8 grid gap-4 md:grid-cols-2">
-          {COVERAGE.map((c) => (
-            <li key={c} className="flex items-start gap-3 text-text-body">
-              <Check className="mt-1 shrink-0 w-5 h-5 text-gold" strokeWidth={3} />
-              <span className="font-serif">{c}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
+    <div className="mx-auto max-w-7xl px-4 lg:px-6">
+      <div className="h-px w-full bg-gold/20" />
+    </div>
   );
 }
 
-function Standards() {
-  return (
-    <section className="mx-auto max-w-4xl px-4 lg:px-6 py-16 text-center">
-      <p className="label-eyebrow">Editorial Standards</p>
-      <h2 className="mt-3 font-display font-bold text-3xl sm:text-4xl">
-        Accurate. Evidence-based. Globally relevant.
-      </h2>
-      <p className="mt-6 text-text-body font-serif text-lg">
-        Every story is grounded in primary sources — peer-reviewed research, public
-        health agencies, and named experts. We verify before we publish, and we
-        correct openly when we get something wrong.
-      </p>
-      <p className="mt-4 text-text-body font-serif text-lg">
-        JOSEPH MMWA is independent. We don't run sponsored content disguised as
-        reporting, and we don't promote treatments without trial data. The goal is
-        simple: useful, trustworthy health information for a global audience.
-      </p>
-    </section>
-  );
-}
 
 function Newsletter() {
   const [email, setEmail] = useState("");

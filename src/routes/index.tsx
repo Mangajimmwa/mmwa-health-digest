@@ -5,7 +5,6 @@ import {
   ArrowRight,
   Lock,
   Mail,
-  Check,
   Clock,
   ChevronRight,
 } from "lucide-react";

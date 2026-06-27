@@ -250,7 +250,7 @@ function Newsletter() {
   }
 
   return (
-    <section className="mx-auto max-w-7xl px-4 lg:px-6 py-16">
+    <section className="mx-auto max-w-7xl px-4 lg:px-6 py-20">
       <div
         className="border border-gold/30 rounded-xl p-8 lg:p-12 flex flex-col lg:flex-row gap-8 lg:items-center"
         style={{ background: "var(--gradient-newsletter)" }}
@@ -289,7 +289,7 @@ function Newsletter() {
 
 function PremiumUpsell() {
   return (
-    <section className="mx-auto max-w-7xl px-4 lg:px-6 py-16">
+    <section className="mx-auto max-w-7xl px-4 lg:px-6 py-20">
       <div
         className="rounded-xl border border-gold/30 p-10 lg:p-14"
         style={{ background: "var(--gradient-premium-radial)" }}
@@ -326,7 +326,7 @@ function CategoriesStrip() {
     },
   });
   return (
-    <section className="mx-auto max-w-7xl px-4 lg:px-6 py-16">
+    <section className="mx-auto max-w-7xl px-4 lg:px-6 py-20">
       <p className="label-eyebrow">Explore</p>
       <h2 className="mt-2 font-display font-bold text-3xl">Browse by topic</h2>
       <div className="mt-6 flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">

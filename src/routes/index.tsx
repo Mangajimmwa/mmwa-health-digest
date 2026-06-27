@@ -5,7 +5,6 @@ import {
   ArrowRight,
   Lock,
   Mail,
-  Check,
   Clock,
   ChevronRight,
 } from "lucide-react";
@@ -33,15 +32,8 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-const COVERAGE = [
-  "Breaking health and medical news from around the world",
-  "Outbreak alerts, epidemic monitoring and public health emergencies",
-  "Vaccine development, immunization programs and infectious disease reporting",
-  "Medical breakthroughs, clinical trials and emerging treatments",
-  "Public health policy, global health systems and healthcare access",
-  "Evidence-based health explainers for everyday readers",
-  "Global medical reporting with strong focus on accuracy, speed and public relevance",
-];
+
+
 
 const PLACEHOLDER_ARTICLES = [
   {
@@ -75,11 +67,13 @@ function Home() {
     <SiteLayout>
       <Toaster theme="dark" position="top-right" />
       <Hero />
+      <SectionDivider />
       <Latest />
-      <Coverage />
-      <Standards />
+      <SectionDivider />
       <Newsletter />
+      <SectionDivider />
       <PremiumUpsell />
+      <SectionDivider />
       <CategoriesStrip />
     </SiteLayout>
   );
@@ -87,8 +81,19 @@ function Home() {
 
 function Hero() {
   return (
-    <section className="relative bg-background">
-      <div className="relative mx-auto max-w-7xl px-4 lg:px-6 pt-24 pb-32 lg:pt-36 lg:pb-44">
+    <section className="relative bg-background overflow-hidden min-h-[90vh] flex items-center">
+      {/* Flat world map background */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 flex items-center justify-center"
+      >
+        <img
+          src="/world-map.svg"
+          alt=""
+          className="w-[120%] max-w-none opacity-[0.10] md:opacity-[0.12] [filter:blur(3px)] max-md:opacity-[0.06]"
+        />
+      </div>
+      <div className="relative z-10 mx-auto max-w-7xl w-full px-4 lg:px-6 pt-28 pb-32 lg:pt-40 lg:pb-44">
         <span className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-4 py-1.5 text-xs font-sans font-semibold uppercase tracking-[0.2em] text-gold">
           Global Health Desk
         </span>
@@ -101,7 +106,7 @@ function Hero() {
           Real-time medical news, outbreak updates, and global health reporting
           from Joseph Mmwa.
         </p>
-        <p className="mt-3 italic font-serif text-text-mute">If it's health, it's here.</p>
+        <p className="mt-3 font-display italic text-white text-lg">If it's health, it's here.</p>
         <div className="mt-9 flex flex-wrap gap-3">
           <Link
             to="/news"
@@ -216,47 +221,14 @@ function ArticleCard(props: {
   );
 }
 
-function Coverage() {
+function SectionDivider() {
   return (
-    <section className="mx-auto max-w-7xl px-4 lg:px-6 py-20">
-      <div className="bg-card border border-border rounded-xl p-8 lg:p-12">
-        <p className="label-eyebrow">What We Cover</p>
-        <h2 className="mt-3 font-display font-bold text-3xl sm:text-4xl max-w-2xl">
-          The full breadth of global health journalism
-        </h2>
-        <ul className="mt-8 grid gap-4 md:grid-cols-2">
-          {COVERAGE.map((c) => (
-            <li key={c} className="flex items-start gap-3 text-text-body">
-              <Check className="mt-1 shrink-0 w-5 h-5 text-gold" strokeWidth={3} />
-              <span className="font-serif">{c}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
+    <div className="mx-auto max-w-7xl px-4 lg:px-6">
+      <div className="h-px w-full bg-gold/20" />
+    </div>
   );
 }
 
-function Standards() {
-  return (
-    <section className="mx-auto max-w-4xl px-4 lg:px-6 py-16 text-center">
-      <p className="label-eyebrow">Editorial Standards</p>
-      <h2 className="mt-3 font-display font-bold text-3xl sm:text-4xl">
-        Accurate. Evidence-based. Globally relevant.
-      </h2>
-      <p className="mt-6 text-text-body font-serif text-lg">
-        Every story is grounded in primary sources — peer-reviewed research, public
-        health agencies, and named experts. We verify before we publish, and we
-        correct openly when we get something wrong.
-      </p>
-      <p className="mt-4 text-text-body font-serif text-lg">
-        JOSEPH MMWA is independent. We don't run sponsored content disguised as
-        reporting, and we don't promote treatments without trial data. The goal is
-        simple: useful, trustworthy health information for a global audience.
-      </p>
-    </section>
-  );
-}
 
 function Newsletter() {
   const [email, setEmail] = useState("");
@@ -278,7 +250,7 @@ function Newsletter() {
   }
 
   return (
-    <section className="mx-auto max-w-7xl px-4 lg:px-6 py-16">
+    <section className="mx-auto max-w-7xl px-4 lg:px-6 py-20">
       <div
         className="border border-gold/30 rounded-xl p-8 lg:p-12 flex flex-col lg:flex-row gap-8 lg:items-center"
         style={{ background: "var(--gradient-newsletter)" }}
@@ -317,7 +289,7 @@ function Newsletter() {
 
 function PremiumUpsell() {
   return (
-    <section className="mx-auto max-w-7xl px-4 lg:px-6 py-16">
+    <section className="mx-auto max-w-7xl px-4 lg:px-6 py-20">
       <div
         className="rounded-xl border border-gold/30 p-10 lg:p-14"
         style={{ background: "var(--gradient-premium-radial)" }}
@@ -354,7 +326,7 @@ function CategoriesStrip() {
     },
   });
   return (
-    <section className="mx-auto max-w-7xl px-4 lg:px-6 py-16">
+    <section className="mx-auto max-w-7xl px-4 lg:px-6 py-20">
       <p className="label-eyebrow">Explore</p>
       <h2 className="mt-2 font-display font-bold text-3xl">Browse by topic</h2>
       <div className="mt-6 flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">

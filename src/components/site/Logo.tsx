@@ -13,7 +13,7 @@ export function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
         <span className="text-foreground">JOSEPH</span>{" "}
         <span className="text-gold">MMWA</span>
       </div>
-      <div className={`mt-1 italic font-serif text-text-mute ${s.tag}`}>
+      <div className={`mt-1 font-display italic text-white ${s.tag}`}>
         If it's health, it's here.
       </div>
     </Link>

@@ -58,7 +58,7 @@ function AboutPage() {
             <p className="mt-2 text-gold font-medium">
               Medical &amp; Health Journalist
             </p>
-            <p className="mt-3 italic text-text-mute">
+            <p className="mt-3 font-display italic text-white">
               &ldquo;If it's health, it's here.&rdquo;
             </p>
           </div>

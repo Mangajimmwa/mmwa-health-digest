@@ -291,24 +291,39 @@ function PremiumUpsell() {
   return (
     <section className="mx-auto max-w-7xl px-4 lg:px-6 py-20">
       <div
-        className="rounded-xl border border-gold/30 p-10 lg:p-14"
+        className="relative overflow-hidden rounded-xl border border-gold/30 grid lg:grid-cols-2 gap-0"
         style={{ background: "var(--gradient-premium-radial)" }}
       >
-        <p className="label-eyebrow">Members Only</p>
-        <h2 className="mt-3 font-display font-bold text-4xl sm:text-5xl">
-          Unlock <span className="text-gold">Premium</span>
-        </h2>
-        <p className="mt-5 max-w-2xl text-text-body font-serif text-lg">
-          Exclusive global health and medical reporting, in-depth outbreak
-          analysis, early access to major health stories, premium video updates,
-          and detailed coverage of the medical developments shaping the world.
-        </p>
-        <Link
-          to="/premium"
-          className="mt-8 inline-flex items-center gap-2 bg-gold text-primary-foreground font-semibold px-6 py-3 rounded-md hover:bg-gold-hover"
-        >
-          Go Premium <ArrowRight className="w-4 h-4" />
-        </Link>
+        <div className="order-1 lg:order-1 p-8 sm:p-10 lg:p-14">
+          <p className="label-eyebrow">Members Only</p>
+          <h2 className="mt-3 font-display font-bold text-4xl sm:text-5xl">
+            Unlock <span className="text-gold">Premium</span>
+          </h2>
+          <p className="mt-5 max-w-xl text-text-body font-serif text-lg">
+            Exclusive global health and medical reporting, in-depth outbreak
+            analysis, early access to major health stories, premium video updates,
+            and detailed coverage of the medical developments shaping the world.
+          </p>
+          <Link
+            to="/premium"
+            className="btn-glow mt-8 inline-flex items-center gap-2 bg-gold text-primary-foreground font-semibold px-6 py-3 rounded-md"
+          >
+            Go Premium <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <div className="order-0 lg:order-2 relative min-h-[240px] lg:min-h-[420px]">
+          <img
+            src="https://images.unsplash.com/photo-1511895426328-dc8714191011?w=800&q=80"
+            alt="Diverse family representing global health and wellbeing"
+            className="absolute inset-0 w-full h-full object-cover rounded-xl lg:rounded-l-none lg:rounded-r-xl"
+            loading="lazy"
+          />
+          {/* Left-edge fade into the dark card on desktop, top fade on mobile */}
+          <div
+            aria-hidden
+            className="absolute inset-0 lg:bg-[linear-gradient(to_right,#0A0A0A_0%,rgba(10,10,10,0.5)_18%,transparent_45%)] bg-[linear-gradient(to_top,#0A0A0A_0%,rgba(10,10,10,0.4)_35%,transparent_70%)]"
+          />
+        </div>
       </div>
     </section>
   );

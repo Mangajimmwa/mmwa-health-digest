@@ -152,3 +152,38 @@
 @utility slide-down {
   animation: slide-down 220ms ease-out;
 }
+
+@keyframes mobile-link-in {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@utility mobile-link-in {
+  animation: mobile-link-in 320ms ease-out both;
+}
+
+@utility btn-glow {
+  transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+.btn-glow:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 18px -2px rgba(245, 166, 35, 0.55);
+}
+
+@utility nav-underline {
+  position: relative;
+}
+.nav-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  height: 1.5px;
+  width: 100%;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 220ms ease;
+}
+.nav-underline:hover::after { transform: scaleX(1); }
+

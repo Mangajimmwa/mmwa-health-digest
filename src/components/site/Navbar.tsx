@@ -178,7 +178,7 @@ export function Navbar() {
             <p className="text-xs text-text-mute pt-3">
               © 2026 Joseph Mmwa. All rights reserved.
             </p>
-            <p className="text-xs italic font-serif text-text-mute">
+            <p className="text-xs font-display italic text-white">
               If it's health, it's here.
             </p>
           </div>

@@ -307,8 +307,13 @@ function PremiumUpsell() {
   return (
     <section className="mx-auto max-w-7xl px-4 lg:px-6 py-20">
       <div
-        className="relative overflow-hidden rounded-xl border border-gold/30 grid lg:grid-cols-2 gap-0"
-        style={{ background: "var(--gradient-premium-radial)" }}
+        className="relative overflow-hidden rounded-xl grid lg:grid-cols-2 gap-0"
+        style={{
+          background:
+            "radial-gradient(ellipse at top left, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)",
+          border: "1px solid rgba(245, 166, 35, 0.15)",
+          boxShadow: "inset 0 0 60px rgba(245, 166, 35, 0.04)",
+        }}
       >
         <div className="order-1 lg:order-1 p-8 sm:p-10 lg:p-14">
           <p className="label-eyebrow">Members Only</p>

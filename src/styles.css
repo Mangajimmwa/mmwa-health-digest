@@ -137,11 +137,23 @@
 .gold-link:hover { color: var(--gold-hover); }
 
 @utility card-lift {
-  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease, background-color 200ms ease;
 }
 .card-lift:hover {
   transform: translateY(-4px);
+  background-color: #150F00;
   box-shadow: 0 0 0 1px rgba(245, 166, 35, 0.30), 0 20px 40px -20px rgba(245, 166, 35, 0.15);
+}
+
+@utility pill-active {
+  background: linear-gradient(135deg, #2A1F00, #1A1200);
+  border-color: rgba(245, 166, 35, 0.4);
+  color: var(--gold);
+}
+
+@utility ticker-fade {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 40px, #000 calc(100% - 40px), transparent 100%);
+          mask-image: linear-gradient(to right, transparent 0, #000 40px, #000 calc(100% - 40px), transparent 100%);
 }
 
 @keyframes slide-down {

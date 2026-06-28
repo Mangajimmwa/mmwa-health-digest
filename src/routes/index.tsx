@@ -93,6 +93,11 @@ function Hero() {
           className="w-[120%] max-w-none opacity-[0.10] md:opacity-[0.12] [filter:blur(3px)] max-md:opacity-[0.06]"
         />
       </div>
+      {/* Warm gold ground glow rising from the bottom */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(42,31,0,0.4)_0%,rgba(10,10,10,0)_60%)] max-md:bg-[linear-gradient(to_top,rgba(42,31,0,0.25)_0%,rgba(10,10,10,0)_60%)]"
+      />
       <div className="relative z-10 mx-auto max-w-7xl w-full px-4 lg:px-6 pt-28 pb-32 lg:pt-40 lg:pb-44">
         <span className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-4 py-1.5 text-xs font-sans font-semibold uppercase tracking-[0.2em] text-gold">
           Global Health Desk
@@ -103,8 +108,14 @@ function Hero() {
           <span className="text-gold">YOU CAN TRUST</span>
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-text-body font-serif">
-          Real-time medical news, outbreak updates, and global health reporting
-          from Joseph Mmwa.
+          Breaking medical news, verified health reporting, and evidence-based
+          journalism from Joseph Mmwa.
+        </p>
+        <p className="mt-4 max-w-2xl text-base text-text-body font-serif">
+          Joseph Mmwa is an independent medical and health journalist reporting
+          on disease outbreaks, vaccine developments, medical breakthroughs, and
+          global public health — with accuracy, clarity, and editorial
+          independence.
         </p>
         <p className="mt-3 font-display italic text-white text-lg">If it's health, it's here.</p>
         <div className="mt-9 flex flex-wrap gap-3">
@@ -224,7 +235,7 @@ function ArticleCard(props: {
 function SectionDivider() {
   return (
     <div className="mx-auto max-w-7xl px-4 lg:px-6">
-      <div className="h-px w-full bg-gold/20" />
+      <div className="h-px w-full bg-[linear-gradient(to_right,transparent,rgba(245,166,35,0.3),transparent)]" />
     </div>
   );
 }
@@ -252,8 +263,13 @@ function Newsletter() {
   return (
     <section className="mx-auto max-w-7xl px-4 lg:px-6 py-20">
       <div
-        className="border border-gold/30 rounded-xl p-8 lg:p-12 flex flex-col lg:flex-row gap-8 lg:items-center"
-        style={{ background: "var(--gradient-newsletter)" }}
+        className="rounded-xl p-8 lg:p-12 flex flex-col lg:flex-row gap-8 lg:items-center"
+        style={{
+          background:
+            "radial-gradient(ellipse at top right, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)",
+          border: "1px solid rgba(245, 166, 35, 0.15)",
+          boxShadow: "inset 0 0 60px rgba(245, 166, 35, 0.04)",
+        }}
       >
         <div className="shrink-0 w-14 h-14 rounded-full bg-gold/15 text-gold flex items-center justify-center">
           <Mail className="w-6 h-6" />
@@ -291,8 +307,13 @@ function PremiumUpsell() {
   return (
     <section className="mx-auto max-w-7xl px-4 lg:px-6 py-20">
       <div
-        className="relative overflow-hidden rounded-xl border border-gold/30 grid lg:grid-cols-2 gap-0"
-        style={{ background: "var(--gradient-premium-radial)" }}
+        className="relative overflow-hidden rounded-xl grid lg:grid-cols-2 gap-0"
+        style={{
+          background:
+            "radial-gradient(ellipse at top left, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)",
+          border: "1px solid rgba(245, 166, 35, 0.15)",
+          boxShadow: "inset 0 0 60px rgba(245, 166, 35, 0.04)",
+        }}
       >
         <div className="order-1 lg:order-1 p-8 sm:p-10 lg:p-14">
           <p className="label-eyebrow">Members Only</p>

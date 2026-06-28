@@ -12,7 +12,7 @@ export function BreakingTicker({ headline }: { headline?: string | null }) {
           <span className="hidden sm:inline">Breaking</span>
           <span className="pulse-dot inline-block w-2 h-2 rounded-full bg-white" />
         </div>
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden ticker-fade">
           <div className="ticker-track font-serif">{headline}</div>
         </div>
         <button

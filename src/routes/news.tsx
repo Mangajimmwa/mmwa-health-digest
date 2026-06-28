@@ -64,7 +64,7 @@ function NewsPage() {
               onClick={() => setActiveSlug(null)}
               className={`shrink-0 px-4 py-2 text-xs uppercase tracking-wider font-semibold rounded-full border ${
                 !activeSlug
-                  ? "border-gold text-gold bg-gold/10"
+                  ? "pill-active"
                   : "border-border text-text-mute hover:text-foreground"
               }`}
             >
@@ -76,7 +76,7 @@ function NewsPage() {
                 onClick={() => setActiveSlug(c.slug)}
                 className={`shrink-0 px-4 py-2 text-xs uppercase tracking-wider font-semibold rounded-full border ${
                   activeSlug === c.slug
-                    ? "border-gold text-gold bg-gold/10"
+                    ? "pill-active"
                     : "border-border text-text-mute hover:text-foreground"
                 }`}
               >

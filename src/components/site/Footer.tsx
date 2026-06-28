@@ -9,8 +9,9 @@ export function Footer() {
         <div>
           <Logo size="md" />
           <p className="mt-4 text-sm text-text-body max-w-xs">
-            Independent global health and medical journalism by Joseph Mmwa —
-            accurate, evidence-based, and globally relevant.
+            Joseph Mmwa is an independent medical and health journalist
+            delivering accurate, evidence-based reporting on the stories shaping
+            global public health.
           </p>
         </div>
         <div>

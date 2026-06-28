@@ -263,8 +263,13 @@ function Newsletter() {
   return (
     <section className="mx-auto max-w-7xl px-4 lg:px-6 py-20">
       <div
-        className="border border-gold/30 rounded-xl p-8 lg:p-12 flex flex-col lg:flex-row gap-8 lg:items-center"
-        style={{ background: "var(--gradient-newsletter)" }}
+        className="rounded-xl p-8 lg:p-12 flex flex-col lg:flex-row gap-8 lg:items-center"
+        style={{
+          background:
+            "radial-gradient(ellipse at top right, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)",
+          border: "1px solid rgba(245, 166, 35, 0.15)",
+          boxShadow: "inset 0 0 60px rgba(245, 166, 35, 0.04)",
+        }}
       >
         <div className="shrink-0 w-14 h-14 rounded-full bg-gold/15 text-gold flex items-center justify-center">
           <Mail className="w-6 h-6" />

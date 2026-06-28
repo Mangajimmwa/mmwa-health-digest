@@ -93,6 +93,11 @@ function Hero() {
           className="w-[120%] max-w-none opacity-[0.10] md:opacity-[0.12] [filter:blur(3px)] max-md:opacity-[0.06]"
         />
       </div>
+      {/* Warm gold ground glow rising from the bottom */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(42,31,0,0.4)_0%,rgba(10,10,10,0)_60%)] max-md:bg-[linear-gradient(to_top,rgba(42,31,0,0.25)_0%,rgba(10,10,10,0)_60%)]"
+      />
       <div className="relative z-10 mx-auto max-w-7xl w-full px-4 lg:px-6 pt-28 pb-32 lg:pt-40 lg:pb-44">
         <span className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-4 py-1.5 text-xs font-sans font-semibold uppercase tracking-[0.2em] text-gold">
           Global Health Desk
@@ -103,8 +108,14 @@ function Hero() {
           <span className="text-gold">YOU CAN TRUST</span>
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-text-body font-serif">
-          Real-time medical news, outbreak updates, and global health reporting
-          from Joseph Mmwa.
+          Breaking medical news, verified health reporting, and evidence-based
+          journalism from Joseph Mmwa.
+        </p>
+        <p className="mt-4 max-w-2xl text-base text-text-body font-serif">
+          Joseph Mmwa is an independent medical and health journalist reporting
+          on disease outbreaks, vaccine developments, medical breakthroughs, and
+          global public health — with accuracy, clarity, and editorial
+          independence.
         </p>
         <p className="mt-3 font-display italic text-white text-lg">If it's health, it's here.</p>
         <div className="mt-9 flex flex-wrap gap-3">

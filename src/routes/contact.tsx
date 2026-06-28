@@ -48,11 +48,15 @@ function ContactPage() {
       <Toaster theme="dark" position="top-right" />
       <section className="mx-auto max-w-5xl px-4 lg:px-6 py-16">
         <p className="label-eyebrow">Contact</p>
-        <h1 className="mt-2 font-display font-extrabold text-5xl">Get in touch</h1>
+        <h1 className="mt-2 font-display font-extrabold text-5xl">Get In Touch</h1>
+        <p className="mt-6 max-w-2xl text-text-body font-serif">
+          Have a story tip, press inquiry, correction request, or partnership
+          proposal? We welcome all genuine correspondence from readers,
+          healthcare professionals, researchers, and media organizations.
+        </p>
         <p className="mt-4 max-w-2xl text-text-body font-serif">
-          Press inquiries, story tips, and reader questions are all welcome.
-          Joseph typically responds within 48 hours. For urgent press matters,
-          mark your subject line with <span className="text-gold">[PRESS]</span>.
+          For general questions or feedback, use the form below. For urgent
+          matters, reach us directly by email or phone.
         </p>
 
         <div className="mt-10 grid gap-10 md:grid-cols-[1fr_360px]">
@@ -124,6 +128,11 @@ function ContactPage() {
                 <p className="font-medium">+254 729 147 765</p>
               </div>
             </a>
+            <p className="text-sm text-text-body font-serif px-1">
+              We aim to respond to all inquiries within 48 hours. For breaking
+              health tips or confidential source contact, email is strongly
+              preferred.
+            </p>
           </aside>
         </div>
       </section>

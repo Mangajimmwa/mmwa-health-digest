@@ -377,7 +377,8 @@ function CategoriesStrip() {
         {(data ?? []).map((c) => (
           <Link
             key={c.id}
-            to="/categories"
+            to="/category/$slug"
+            params={{ slug: c.slug }}
             className="shrink-0 bg-card border border-border rounded-lg px-5 py-3 text-sm font-medium text-text-body hover:text-gold hover:border-gold/40 transition-colors whitespace-nowrap"
           >
             {c.name}

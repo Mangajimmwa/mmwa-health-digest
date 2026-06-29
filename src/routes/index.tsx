@@ -243,7 +243,7 @@ function ArticleCard(props: {
 function SectionDivider() {
   return (
     <div className="mx-auto max-w-7xl px-4 lg:px-6">
-      <div className="h-px w-full bg-[linear-gradient(to_right,transparent,rgba(245,166,35,0.3),transparent)]" />
+      <div className="h-px w-full bg-[linear-gradient(to_right,transparent,rgba(245,166,35,0.45),transparent)]" />
     </div>
   );
 }

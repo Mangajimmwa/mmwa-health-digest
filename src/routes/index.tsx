@@ -96,16 +96,22 @@ function Hero() {
       {/* Warm gold ground glow rising from the bottom */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(42,31,0,0.4)_0%,rgba(10,10,10,0)_60%)] max-md:bg-[linear-gradient(to_top,rgba(42,31,0,0.25)_0%,rgba(10,10,10,0)_60%)]"
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(61,40,0,0.55)_0%,rgba(10,10,10,0)_65%)] max-md:bg-[linear-gradient(to_top,rgba(61,40,0,0.35)_0%,rgba(10,10,10,0)_65%)]"
       />
       <div className="relative z-10 mx-auto max-w-7xl w-full px-4 lg:px-6 pt-28 pb-32 lg:pt-40 lg:pb-44">
-        <span className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-4 py-1.5 text-xs font-sans font-semibold uppercase tracking-[0.2em] text-gold">
+        <span
+          className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-sans font-semibold uppercase tracking-[0.2em] text-gold"
+          style={{
+            background: "rgba(245, 166, 35, 0.15)",
+            border: "1px solid #F5A623",
+          }}
+        >
           Global Health Desk
         </span>
         <h1 className="mt-6 font-display font-black text-5xl sm:text-6xl lg:text-7xl leading-[1.02] tracking-tight max-w-4xl">
-          <span className="text-foreground">GLOBAL HEALTH NEWS</span>
+          <span style={{ color: "#FFFFFF" }}>GLOBAL HEALTH NEWS</span>
           <br />
-          <span className="text-gold">YOU CAN TRUST</span>
+          <span style={{ color: "#F5A623" }}>YOU CAN TRUST</span>
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-text-body font-serif">
           Breaking medical news, verified health reporting, and evidence-based
@@ -117,7 +123,9 @@ function Hero() {
           global public health — with accuracy, clarity, and editorial
           independence.
         </p>
-        <p className="mt-3 font-display italic text-white text-lg">If it's health, it's here.</p>
+        <p className="mt-3 font-display italic text-white text-lg tagline-glow">
+          If it's health, it's here.
+        </p>
         <div className="mt-9 flex flex-wrap gap-3">
           <Link
             to="/news"
@@ -139,7 +147,7 @@ function Hero() {
 
 function Latest() {
   const { data: articles } = useQuery({
-    queryKey: ["articles", "latest"],
+    queryKey: ["articles", "latest"], staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const { data } = await supabase
         .from("articles")
@@ -235,7 +243,7 @@ function ArticleCard(props: {
 function SectionDivider() {
   return (
     <div className="mx-auto max-w-7xl px-4 lg:px-6">
-      <div className="h-px w-full bg-[linear-gradient(to_right,transparent,rgba(245,166,35,0.3),transparent)]" />
+      <div className="h-px w-full bg-[linear-gradient(to_right,transparent,rgba(245,166,35,0.45),transparent)]" />
     </div>
   );
 }
@@ -266,9 +274,9 @@ function Newsletter() {
         className="rounded-xl p-8 lg:p-12 flex flex-col lg:flex-row gap-8 lg:items-center"
         style={{
           background:
-            "radial-gradient(ellipse at top right, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)",
-          border: "1px solid rgba(245, 166, 35, 0.15)",
-          boxShadow: "inset 0 0 60px rgba(245, 166, 35, 0.04)",
+            "radial-gradient(ellipse at top right, #3D2800 0%, #251800 45%, #0A0A0A 100%)",
+          border: "1px solid rgba(245, 166, 35, 0.35)",
+          boxShadow: "inset 0 0 80px rgba(245, 166, 35, 0.08)",
         }}
       >
         <div className="shrink-0 w-14 h-14 rounded-full bg-gold/15 text-gold flex items-center justify-center">
@@ -310,9 +318,9 @@ function PremiumUpsell() {
         className="relative overflow-hidden rounded-xl grid lg:grid-cols-2 gap-0"
         style={{
           background:
-            "radial-gradient(ellipse at top left, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)",
-          border: "1px solid rgba(245, 166, 35, 0.15)",
-          boxShadow: "inset 0 0 60px rgba(245, 166, 35, 0.04)",
+            "radial-gradient(ellipse at top left, #3D2800 0%, #251800 45%, #0A0A0A 100%)",
+          border: "1px solid rgba(245, 166, 35, 0.35)",
+          boxShadow: "inset 0 0 80px rgba(245, 166, 35, 0.08)",
         }}
       >
         <div className="order-1 lg:order-1 p-8 sm:p-10 lg:p-14">
@@ -352,7 +360,7 @@ function PremiumUpsell() {
 
 function CategoriesStrip() {
   const { data } = useQuery({
-    queryKey: ["categories"],
+    queryKey: ["categories"], staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const { data } = await supabase
         .from("categories")
@@ -369,7 +377,8 @@ function CategoriesStrip() {
         {(data ?? []).map((c) => (
           <Link
             key={c.id}
-            to="/categories"
+            to="/category/$slug"
+            params={{ slug: c.slug }}
             className="shrink-0 bg-card border border-border rounded-lg px-5 py-3 text-sm font-medium text-text-body hover:text-gold hover:border-gold/40 transition-colors whitespace-nowrap"
           >
             {c.name}

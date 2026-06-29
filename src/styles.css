@@ -88,6 +88,8 @@
 @layer base {
   html {
     color-scheme: dark;
+    scrollbar-color: rgba(245, 166, 35, 0.6) #111111;
+    scrollbar-width: thin;
   }
   * { border-color: var(--color-border); }
   body {
@@ -98,15 +100,20 @@
   }
   h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
   ::selection { background: #F5A623; color: #0A0A0A; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #111111; }
+  ::-webkit-scrollbar-thumb { background: rgba(245, 166, 35, 0.6); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #F5A623; }
+  :focus-visible { outline: 2px solid #F5A623; outline-offset: 2px; border-radius: 4px; }
 }
 
 @utility label-eyebrow {
   font-family: var(--font-sans);
   font-size: 0.72rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: #F5A623;
 }
 
 @utility ticker-track {
@@ -141,19 +148,20 @@
 }
 .card-lift:hover {
   transform: translateY(-4px);
-  background-color: #150F00;
-  box-shadow: 0 0 0 1px rgba(245, 166, 35, 0.30), 0 20px 40px -20px rgba(245, 166, 35, 0.15);
+  background-color: #1E1200;
+  border-color: rgba(245, 166, 35, 0.35);
+  box-shadow: 0 0 0 1px rgba(245, 166, 35, 0.35), 0 20px 40px -20px rgba(245, 166, 35, 0.2);
 }
 
 @utility pill-active {
-  background: linear-gradient(135deg, #2A1F00, #1A1200);
-  border-color: rgba(245, 166, 35, 0.4);
+  background: linear-gradient(135deg, #3D2800, #251800);
+  border-color: rgba(245, 166, 35, 0.6);
   color: var(--gold);
 }
 
 @utility ticker-fade {
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 40px, #000 calc(100% - 40px), transparent 100%);
-          mask-image: linear-gradient(to right, transparent 0, #000 40px, #000 calc(100% - 40px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 60px, #000 calc(100% - 60px), transparent 100%);
+          mask-image: linear-gradient(to right, transparent 0, #000 60px, #000 calc(100% - 60px), transparent 100%);
 }
 
 @keyframes slide-down {
@@ -189,8 +197,8 @@
   content: "";
   position: absolute;
   left: 0;
-  bottom: -4px;
-  height: 1.5px;
+  bottom: -6px;
+  height: 2px;
   width: 100%;
   background: var(--gold);
   transform: scaleX(0);
@@ -198,4 +206,9 @@
   transition: transform 220ms ease;
 }
 .nav-underline:hover::after { transform: scaleX(1); }
+.nav-underline.is-active::after { transform: scaleX(1); }
+
+@utility tagline-glow {
+  text-shadow: 0 0 20px rgba(245, 166, 35, 0.3);
+}
 

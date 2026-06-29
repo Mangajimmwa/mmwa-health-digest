@@ -102,7 +102,7 @@ function Hero() {
         <span
           className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-sans font-semibold uppercase tracking-[0.2em] text-gold"
           style={{
-            background: "rgba(245, 166, 35, 0.35)",
+            background: "rgba(245, 166, 35, 0.15)",
             border: "1px solid #F5A623",
           }}
         >

@@ -18,6 +18,7 @@ export const Route = createFileRoute("/categories")({
 function CategoriesPage() {
   const { data } = useQuery({
     queryKey: ["categories", "with-count"],
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const { data: cats } = await supabase
         .from("categories")
@@ -32,7 +33,7 @@ function CategoriesPage() {
       <section className="mx-auto max-w-7xl px-4 lg:px-6 py-14">
         <p className="label-eyebrow">Topics</p>
         <h1 className="mt-2 font-display font-bold text-4xl sm:text-5xl">Categories</h1>
-        <p className="mt-4 max-w-2xl text-text-body font-serif">
+        <p className="mt-4 max-w-2xl font-serif" style={{ color: "#D4D4D4" }}>
           Every story published by the global health desk, organized by topic.
         </p>
 
@@ -40,15 +41,16 @@ function CategoriesPage() {
           {(data ?? []).map((c) => (
             <Link
               key={c.id}
-              to="/news"
-              className="block bg-card border border-border rounded-lg p-6 hover:border-gold/50 transition-colors"
+              to="/category/$slug"
+              params={{ slug: c.slug }}
+              className="block bg-card border border-border rounded-lg p-6 card-lift"
             >
-              <p className="label-eyebrow">{c.name}</p>
+              <p className="label-eyebrow">Topic</p>
               <h3 className="mt-3 font-display font-bold text-xl text-foreground">
                 {c.name}
               </h3>
               {c.description && (
-                <p className="mt-2 text-sm text-text-body font-serif">{c.description}</p>
+                <p className="mt-2 text-sm text-text-body font-serif line-clamp-3">{c.description}</p>
               )}
             </Link>
           ))}

@@ -4,7 +4,10 @@ import { Logo } from "./Logo";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-surface-1 mt-24">
+    <footer
+      className="border-t border-border mt-24"
+      style={{ background: "linear-gradient(to top, #1E1200 0%, #0A0A0A 100%)" }}
+    >
       <div className="mx-auto max-w-7xl px-4 lg:px-6 py-14 grid gap-10 md:grid-cols-3">
         <div>
           <Logo size="md" />
@@ -30,20 +33,20 @@ export function Footer() {
           <ul className="space-y-3 text-sm text-text-body">
             <li>
               <a href="mailto:mmwajoseph@gmail.com" className="flex items-center gap-3 hover:text-foreground">
-                <Mail className="w-4 h-4 text-gold" />
+                <Mail className="w-4 h-4 text-gold" aria-hidden="true" />
                 mmwajoseph@gmail.com
               </a>
             </li>
             <li>
               <a href="tel:+254729147765" className="flex items-center gap-3 hover:text-foreground">
-                <Phone className="w-4 h-4 text-gold" />
+                <Phone className="w-4 h-4 text-gold" aria-hidden="true" />
                 +254 729 147 765
               </a>
             </li>
           </ul>
         </div>
       </div>
-      <div className="border-t border-border">
+      <div className="border-t border-gold/10">
         <div className="mx-auto max-w-7xl px-4 lg:px-6 py-5 flex flex-col items-center sm:flex-row sm:justify-between gap-1 text-xs text-text-mute">
           <p>© 2026 Joseph Mmwa. All rights reserved.</p>
           <p className="font-display italic text-white">If it's health, it's here.</p>

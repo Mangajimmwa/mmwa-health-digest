@@ -102,7 +102,7 @@ function Hero() {
         <span
           className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-sans font-semibold uppercase tracking-[0.2em] text-gold"
           style={{
-            background: "rgba(245, 166, 35, 0.15)",
+            background: "rgba(245, 166, 35, 0.35)",
             border: "1px solid #F5A623",
           }}
         >
@@ -274,9 +274,9 @@ function Newsletter() {
         className="rounded-xl p-8 lg:p-12 flex flex-col lg:flex-row gap-8 lg:items-center"
         style={{
           background:
-            "radial-gradient(ellipse at top right, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)",
-          border: "1px solid rgba(245, 166, 35, 0.15)",
-          boxShadow: "inset 0 0 60px rgba(245, 166, 35, 0.04)",
+            "radial-gradient(ellipse at top right, #3D2800 0%, #251800 45%, #0A0A0A 100%)",
+          border: "1px solid rgba(245, 166, 35, 0.35)",
+          boxShadow: "inset 0 0 80px rgba(245, 166, 35, 0.08)",
         }}
       >
         <div className="shrink-0 w-14 h-14 rounded-full bg-gold/15 text-gold flex items-center justify-center">
@@ -318,9 +318,9 @@ function PremiumUpsell() {
         className="relative overflow-hidden rounded-xl grid lg:grid-cols-2 gap-0"
         style={{
           background:
-            "radial-gradient(ellipse at top left, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)",
-          border: "1px solid rgba(245, 166, 35, 0.15)",
-          boxShadow: "inset 0 0 60px rgba(245, 166, 35, 0.04)",
+            "radial-gradient(ellipse at top left, #3D2800 0%, #251800 45%, #0A0A0A 100%)",
+          border: "1px solid rgba(245, 166, 35, 0.35)",
+          boxShadow: "inset 0 0 80px rgba(245, 166, 35, 0.08)",
         }}
       >
         <div className="order-1 lg:order-1 p-8 sm:p-10 lg:p-14">

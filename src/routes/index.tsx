@@ -147,7 +147,7 @@ function Hero() {
 
 function Latest() {
   const { data: articles } = useQuery({
-    queryKey: ["articles", "latest"],
+    queryKey: ["articles", "latest"], staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const { data } = await supabase
         .from("articles")
@@ -360,7 +360,7 @@ function PremiumUpsell() {
 
 function CategoriesStrip() {
   const { data } = useQuery({
-    queryKey: ["categories"],
+    queryKey: ["categories"], staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const { data } = await supabase
         .from("categories")

@@ -342,15 +342,31 @@ function PremiumUpsell() {
         </div>
         <div className="order-0 lg:order-2 relative min-h-[240px] lg:min-h-[420px]">
           <img
-            src="https://images.unsplash.com/photo-1511895426328-dc8714191011?w=800&q=80"
-            alt="Diverse family representing global health and wellbeing"
-            className="absolute inset-0 w-full h-full object-cover rounded-xl lg:rounded-l-none lg:rounded-r-xl"
+            src="https://images.unsplash.com/photo-1609220136736-443140cffec6?auto=format&fit=crop&w=1200&q=80"
+            srcSet="https://images.unsplash.com/photo-1609220136736-443140cffec6?auto=format&fit=crop&w=600&q=80 600w, https://images.unsplash.com/photo-1609220136736-443140cffec6?auto=format&fit=crop&w=1200&q=80 1200w"
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            alt="Global health and wellbeing"
             loading="lazy"
+            decoding="async"
+            onError={(e) => {
+              const img = e.currentTarget;
+              const fallbacks = [
+                "https://images.unsplash.com/photo-1581579186913-45ac3e6efe93?auto=format&fit=crop&w=1200&q=80",
+                "https://images.unsplash.com/photo-1529390079861-591de354faf5?auto=format&fit=crop&w=1200&q=80",
+              ];
+              const next = Number(img.dataset.fallback ?? "0");
+              if (next < fallbacks.length) {
+                img.dataset.fallback = String(next + 1);
+                img.removeAttribute("srcset");
+                img.src = fallbacks[next];
+              }
+            }}
+            className="absolute inset-0 w-full h-full object-cover rounded-[12px] lg:rounded-l-none lg:rounded-r-[12px]"
           />
           {/* Left-edge fade into the dark card on desktop, top fade on mobile */}
           <div
             aria-hidden
-            className="absolute inset-0 lg:bg-[linear-gradient(to_right,#0A0A0A_0%,rgba(10,10,10,0.5)_18%,transparent_45%)] bg-[linear-gradient(to_top,#0A0A0A_0%,rgba(10,10,10,0.4)_35%,transparent_70%)]"
+            className="pointer-events-none absolute inset-0 lg:bg-[linear-gradient(to_right,#0A0A0A_0%,rgba(10,10,10,0.5)_18%,transparent_45%)] bg-[linear-gradient(to_top,#0A0A0A_0%,rgba(10,10,10,0.4)_35%,transparent_70%)]"
           />
         </div>
       </div>

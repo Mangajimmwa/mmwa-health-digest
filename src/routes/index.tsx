@@ -35,32 +35,8 @@ export const Route = createFileRoute("/")({
 
 
 
-const PLACEHOLDER_ARTICLES = [
-  {
-    category: "Outbreaks",
-    title: "WHO tracks new respiratory cluster across three continents",
-    excerpt:
-      "Surveillance teams in Asia, Europe and Africa are coordinating data on an unexplained cluster of respiratory infections in adults.",
-    date: "Jun 26, 2026",
-    read: "5 min read",
-  },
-  {
-    category: "Vaccines",
-    title: "Universal flu candidate enters phase III in five countries",
-    excerpt:
-      "A nanoparticle-based universal influenza vaccine has cleared phase II safety review and begins large-scale efficacy testing.",
-    date: "Jun 25, 2026",
-    read: "7 min read",
-  },
-  {
-    category: "Medical Research",
-    title: "CRISPR-edited T cells show durable remission in late-stage trial",
-    excerpt:
-      "Three-year follow-up data points to lasting response in patients with refractory leukemia, researchers report this week.",
-    date: "Jun 24, 2026",
-    read: "6 min read",
-  },
-];
+
+
 
 function Home() {
   return (

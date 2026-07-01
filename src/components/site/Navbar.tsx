@@ -48,9 +48,11 @@ export function Navbar() {
 
   function submitSearch(e: React.FormEvent) {
     e.preventDefault();
+    const term = q.trim();
     setSearchOpen(false);
-    navigate({ to: "/news" });
     setQ("");
+    if (term) navigate({ to: "/search", search: { q: term } });
+    else navigate({ to: "/search", search: { q: "" } });
   }
 
   return (

@@ -12,19 +12,21 @@ export function SiteLayout({ children }: { children: ReactNode }) {
     queryFn: async () => {
       const { data } = await supabase
         .from("breaking_news")
-        .select("headline")
+        .select("headline,link,linked_article_id,articles:linked_article_id(slug)")
         .eq("is_active", true)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      return data?.headline ?? null;
+      if (!data) return null;
+      const slug = (data.articles as { slug?: string } | null)?.slug ?? null;
+      return { headline: data.headline, slug, link: data.link };
     },
     staleTime: 60_000,
   });
 
   return (
     <div className="min-h-screen flex flex-col">
-      <BreakingTicker headline={breaking} />
+      <BreakingTicker item={breaking} />
       <Navbar />
       <main className="flex-1">{children}</main>
       <Footer />

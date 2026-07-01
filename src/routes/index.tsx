@@ -135,22 +135,20 @@ function Latest() {
     },
   });
 
-  const items =
-    articles && articles.length > 0
-      ? articles.map((a) => ({
-          category: (a.categories as { name?: string } | null)?.name ?? "News",
-          title: a.title,
-          excerpt: a.excerpt ?? "",
-          date: a.published_at
-            ? new Date(a.published_at).toLocaleDateString(undefined, {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })
-            : "",
-          read: `${a.read_time_minutes} min read`,
-        }))
-      : PLACEHOLDER_ARTICLES;
+  const items = (articles ?? []).map((a) => ({
+    slug: a.slug,
+    category: (a.categories as { name?: string } | null)?.name ?? "News",
+    title: a.title,
+    excerpt: a.excerpt ?? "",
+    date: a.published_at
+      ? new Date(a.published_at).toLocaleDateString(undefined, {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
+      : "",
+    read: `${a.read_time_minutes} min read`,
+  }));
 
   return (
     <section className="mx-auto max-w-7xl px-4 lg:px-6 py-20">
@@ -168,24 +166,39 @@ function Latest() {
           All stories <ChevronRight className="w-4 h-4" />
         </Link>
       </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {items.map((a, i) => (
-          <ArticleCard key={i} {...a} />
-        ))}
-      </div>
-      <div className="mt-10 text-center">
-        <Link
-          to="/news"
-          className="inline-flex items-center gap-2 border border-gold text-gold font-semibold px-6 py-3 rounded-md hover:bg-gold/10"
-        >
-          Load More
-        </Link>
-      </div>
+      {items.length === 0 ? (
+        <div className="bg-card border border-border rounded-xl p-12 text-center">
+          <p className="label-eyebrow">Coming soon</p>
+          <h3 className="mt-3 font-display font-bold text-2xl">
+            No stories published yet
+          </h3>
+          <p className="mt-3 text-text-body font-serif max-w-xl mx-auto">
+            The newsroom is preparing its first verified reports. Subscribe below to be first to know.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {items.map((a) => (
+              <ArticleCard key={a.slug} {...a} />
+            ))}
+          </div>
+          <div className="mt-10 text-center">
+            <Link
+              to="/news"
+              className="inline-flex items-center gap-2 border border-gold text-gold font-semibold px-6 py-3 rounded-md hover:bg-gold/10"
+            >
+              Load More
+            </Link>
+          </div>
+        </>
+      )}
     </section>
   );
 }
 
 function ArticleCard(props: {
+  slug: string;
   category: string;
   title: string;
   excerpt: string;
@@ -193,7 +206,11 @@ function ArticleCard(props: {
   read: string;
 }) {
   return (
-    <article className="group bg-card border border-border rounded-lg overflow-hidden card-lift">
+    <Link
+      to="/news/$slug"
+      params={{ slug: props.slug }}
+      className="group block bg-card border border-border rounded-lg overflow-hidden card-lift"
+    >
       <div className="aspect-[16/10] bg-gradient-to-br from-surface-2 to-surface-1 relative">
         <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_30%_20%,rgba(245,166,35,0.15),transparent_60%)]" />
       </div>

@@ -100,14 +100,16 @@ function NewsPage() {
             <EmptyState />
           ) : (
             filtered.map((a) => (
-              <article
+              <Link
                 key={a.id}
-                className="bg-card border border-border rounded-lg overflow-hidden card-lift"
+                to="/news/$slug"
+                params={{ slug: a.slug }}
+                className="group block bg-card border border-border rounded-lg overflow-hidden card-lift"
               >
                 <div className="aspect-[16/10] bg-gradient-to-br from-surface-2 to-surface-1" />
                 <div className="p-6">
                   <span className="label-eyebrow">{a.categories?.name}</span>
-                  <h3 className="mt-3 font-display font-bold text-xl leading-snug">
+                  <h3 className="mt-3 font-display font-bold text-xl leading-snug group-hover:text-gold transition-colors">
                     {a.title}
                   </h3>
                   {a.excerpt && (
@@ -129,7 +131,7 @@ function NewsPage() {
                     </span>
                   </div>
                 </div>
-              </article>
+              </Link>
             ))
           )}
         </div>
@@ -145,11 +147,10 @@ function EmptyState() {
         <Newspaper className="w-6 h-6" />
       </div>
       <h3 className="mt-5 font-display font-bold text-2xl text-foreground">
-        The newsroom is just getting started
+        No stories published yet
       </h3>
       <p className="mt-3 text-text-body font-serif max-w-xl mx-auto">
-        No articles have been published yet. Check back soon for verified global
-        health reporting.
+        The newsroom is preparing its first verified reports. Check back soon.
       </p>
       <Link
         to="/"

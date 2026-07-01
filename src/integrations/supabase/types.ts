@@ -14,6 +14,32 @@ export type Database = {
   }
   public: {
     Tables: {
+      article_views: {
+        Row: {
+          article_id: string
+          id: number
+          viewed_at: string
+        }
+        Insert: {
+          article_id: string
+          id?: number
+          viewed_at?: string
+        }
+        Update: {
+          article_id?: string
+          id?: number
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_views_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       articles: {
         Row: {
           author: string
@@ -31,6 +57,7 @@ export type Database = {
           is_published: boolean
           published_at: string | null
           read_time_minutes: number
+          region: string | null
           slug: string
           tags: string[]
           title: string
@@ -53,6 +80,7 @@ export type Database = {
           is_published?: boolean
           published_at?: string | null
           read_time_minutes?: number
+          region?: string | null
           slug: string
           tags?: string[]
           title: string
@@ -75,6 +103,7 @@ export type Database = {
           is_published?: boolean
           published_at?: string | null
           read_time_minutes?: number
+          region?: string | null
           slug?: string
           tags?: string[]
           title?: string
@@ -127,6 +156,8 @@ export type Database = {
           id: string
           is_active: boolean
           link: string | null
+          linked_article_id: string | null
+          updated_at: string
         }
         Insert: {
           created_at?: string
@@ -134,6 +165,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           link?: string | null
+          linked_article_id?: string | null
+          updated_at?: string
         }
         Update: {
           created_at?: string
@@ -141,8 +174,18 @@ export type Database = {
           id?: string
           is_active?: boolean
           link?: string | null
+          linked_article_id?: string | null
+          updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "breaking_news_linked_article_id_fkey"
+            columns: ["linked_article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       categories: {
         Row: {
@@ -209,6 +252,42 @@ export type Database = {
           },
         ]
       }
+      media: {
+        Row: {
+          alt_text: string | null
+          created_at: string
+          filename: string
+          id: string
+          mime_type: string | null
+          path: string
+          size_bytes: number | null
+          uploaded_by: string | null
+          url: string
+        }
+        Insert: {
+          alt_text?: string | null
+          created_at?: string
+          filename: string
+          id?: string
+          mime_type?: string | null
+          path: string
+          size_bytes?: number | null
+          uploaded_by?: string | null
+          url: string
+        }
+        Update: {
+          alt_text?: string | null
+          created_at?: string
+          filename?: string
+          id?: string
+          mime_type?: string | null
+          path?: string
+          size_bytes?: number | null
+          uploaded_by?: string | null
+          url?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -256,6 +335,30 @@ export type Database = {
           display_name?: string | null
           id?: string
           is_premium?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          contact_email: string
+          contact_phone: string
+          id: boolean
+          tagline: string
+          updated_at: string
+        }
+        Insert: {
+          contact_email?: string
+          contact_phone?: string
+          id?: boolean
+          tagline?: string
+          updated_at?: string
+        }
+        Update: {
+          contact_email?: string
+          contact_phone?: string
+          id?: boolean
+          tagline?: string
           updated_at?: string
         }
         Relationships: []

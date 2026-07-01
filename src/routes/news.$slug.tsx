@@ -150,7 +150,7 @@ function ArticlePage() {
 
         {a.tags && a.tags.length > 0 && (
           <div className="mt-10 flex flex-wrap gap-2">
-            {a.tags.map((t) => (
+            {a.tags.map((t: string) => (
               <span
                 key={t}
                 className="text-xs bg-gold/10 text-gold border border-gold/25 px-3 py-1 rounded-full uppercase tracking-wider"

@@ -9,17 +9,13 @@ const searchSchema = z.object({ q: z.string().optional().default("") });
 
 export const Route = createFileRoute("/search")({
   validateSearch: searchSchema,
-  head: ({ search }) => {
-    const q = search.q ?? "";
-    const title = q ? `Search: ${q} — JOSEPH MMWA` : "Search — JOSEPH MMWA";
-    return {
-      meta: [
-        { title },
-        { name: "description", content: "Search medical and global health stories on JOSEPH MMWA." },
-        { name: "robots", content: "noindex" },
-      ],
-    };
-  },
+  head: () => ({
+    meta: [
+      { title: "Search — JOSEPH MMWA" },
+      { name: "description", content: "Search medical and global health stories on JOSEPH MMWA." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: SearchPage,
 });
 

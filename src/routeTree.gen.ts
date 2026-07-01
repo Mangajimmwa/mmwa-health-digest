@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VideosRouteImport } from './routes/videos'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PremiumRouteImport } from './routes/premium'
 import { Route as PodcastsRouteImport } from './routes/podcasts'
@@ -25,6 +26,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as AdminSubscribersRouteImport } from './routes/admin.subscribers'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
@@ -44,6 +46,11 @@ const VideosRoute = VideosRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -116,6 +123,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const NewsSlugRoute = NewsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => NewsRoute,
+} as any)
 const CategorySlugRoute = CategorySlugRouteImport.update({
   id: '/category/$slug',
   path: '/category/$slug',
@@ -176,11 +188,12 @@ export interface FileRoutesByFullPath {
   '/categories': typeof CategoriesRoute
   '/contact': typeof ContactRoute
   '/forgot-password': typeof ForgotPasswordRoute
-  '/news': typeof NewsRoute
+  '/news': typeof NewsRouteWithChildren
   '/notifications': typeof NotificationsRoute
   '/podcasts': typeof PodcastsRoute
   '/premium': typeof PremiumRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/videos': typeof VideosRoute
   '/admin/articles': typeof AdminArticlesRouteWithChildren
@@ -190,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/subscribers': typeof AdminSubscribersRoute
   '/category/$slug': typeof CategorySlugRoute
+  '/news/$slug': typeof NewsSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/articles/new': typeof AdminArticlesNewRoute
   '/admin/articles/$id/edit': typeof AdminArticlesIdEditRoute
@@ -203,11 +217,12 @@ export interface FileRoutesByTo {
   '/categories': typeof CategoriesRoute
   '/contact': typeof ContactRoute
   '/forgot-password': typeof ForgotPasswordRoute
-  '/news': typeof NewsRoute
+  '/news': typeof NewsRouteWithChildren
   '/notifications': typeof NotificationsRoute
   '/podcasts': typeof PodcastsRoute
   '/premium': typeof PremiumRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/videos': typeof VideosRoute
   '/admin/articles': typeof AdminArticlesRouteWithChildren
@@ -217,6 +232,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/subscribers': typeof AdminSubscribersRoute
   '/category/$slug': typeof CategorySlugRoute
+  '/news/$slug': typeof NewsSlugRoute
   '/admin': typeof AdminIndexRoute
   '/admin/articles/new': typeof AdminArticlesNewRoute
   '/admin/articles/$id/edit': typeof AdminArticlesIdEditRoute
@@ -232,11 +248,12 @@ export interface FileRoutesById {
   '/categories': typeof CategoriesRoute
   '/contact': typeof ContactRoute
   '/forgot-password': typeof ForgotPasswordRoute
-  '/news': typeof NewsRoute
+  '/news': typeof NewsRouteWithChildren
   '/notifications': typeof NotificationsRoute
   '/podcasts': typeof PodcastsRoute
   '/premium': typeof PremiumRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/videos': typeof VideosRoute
   '/admin/articles': typeof AdminArticlesRouteWithChildren
@@ -246,6 +263,7 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/subscribers': typeof AdminSubscribersRoute
   '/category/$slug': typeof CategorySlugRoute
+  '/news/$slug': typeof NewsSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/articles/new': typeof AdminArticlesNewRoute
   '/admin/articles/$id/edit': typeof AdminArticlesIdEditRoute
@@ -267,6 +285,7 @@ export interface FileRouteTypes {
     | '/podcasts'
     | '/premium'
     | '/reset-password'
+    | '/search'
     | '/sitemap.xml'
     | '/videos'
     | '/admin/articles'
@@ -276,6 +295,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/subscribers'
     | '/category/$slug'
+    | '/news/$slug'
     | '/admin/'
     | '/admin/articles/new'
     | '/admin/articles/$id/edit'
@@ -294,6 +314,7 @@ export interface FileRouteTypes {
     | '/podcasts'
     | '/premium'
     | '/reset-password'
+    | '/search'
     | '/sitemap.xml'
     | '/videos'
     | '/admin/articles'
@@ -303,6 +324,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/subscribers'
     | '/category/$slug'
+    | '/news/$slug'
     | '/admin'
     | '/admin/articles/new'
     | '/admin/articles/$id/edit'
@@ -322,6 +344,7 @@ export interface FileRouteTypes {
     | '/podcasts'
     | '/premium'
     | '/reset-password'
+    | '/search'
     | '/sitemap.xml'
     | '/videos'
     | '/admin/articles'
@@ -331,6 +354,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/subscribers'
     | '/category/$slug'
+    | '/news/$slug'
     | '/admin/'
     | '/admin/articles/new'
     | '/admin/articles/$id/edit'
@@ -346,11 +370,12 @@ export interface RootRouteChildren {
   CategoriesRoute: typeof CategoriesRoute
   ContactRoute: typeof ContactRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
-  NewsRoute: typeof NewsRoute
+  NewsRoute: typeof NewsRouteWithChildren
   NotificationsRoute: typeof NotificationsRoute
   PodcastsRoute: typeof PodcastsRoute
   PremiumRoute: typeof PremiumRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VideosRoute: typeof VideosRoute
   CategorySlugRoute: typeof CategorySlugRoute
@@ -371,6 +396,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -470,6 +502,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/news/$slug': {
+      id: '/news/$slug'
+      path: '/$slug'
+      fullPath: '/news/$slug'
+      preLoaderRoute: typeof NewsSlugRouteImport
+      parentRoute: typeof NewsRoute
     }
     '/category/$slug': {
       id: '/category/$slug'
@@ -580,6 +619,16 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface NewsRouteChildren {
+  NewsSlugRoute: typeof NewsSlugRoute
+}
+
+const NewsRouteChildren: NewsRouteChildren = {
+  NewsSlugRoute: NewsSlugRoute,
+}
+
+const NewsRouteWithChildren = NewsRoute._addFileChildren(NewsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -589,11 +638,12 @@ const rootRouteChildren: RootRouteChildren = {
   CategoriesRoute: CategoriesRoute,
   ContactRoute: ContactRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
-  NewsRoute: NewsRoute,
+  NewsRoute: NewsRouteWithChildren,
   NotificationsRoute: NotificationsRoute,
   PodcastsRoute: PodcastsRoute,
   PremiumRoute: PremiumRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VideosRoute: VideosRoute,
   CategorySlugRoute: CategorySlugRoute,

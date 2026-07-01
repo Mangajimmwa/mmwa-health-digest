@@ -212,3 +212,80 @@
   text-shadow: 0 0 20px rgba(245, 166, 35, 0.3);
 }
 
+
+/* Article body typography */
+.prose-article {
+  color: #E4E4E4;
+  font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
+  font-size: 1.075rem;
+  line-height: 1.75;
+}
+.prose-article > * + * { margin-top: 1.1em; }
+.prose-article h1,
+.prose-article h2,
+.prose-article h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: #FFFFFF;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 1.8em;
+}
+.prose-article h2 { font-size: 1.75rem; }
+.prose-article h3 { font-size: 1.35rem; }
+.prose-article p { font-size: 1.075rem; }
+.prose-article a { color: #F5A623; text-decoration: underline; text-underline-offset: 3px; }
+.prose-article a:hover { color: #FFB53A; }
+.prose-article strong { color: #FFFFFF; }
+.prose-article em { font-style: italic; }
+.prose-article ul,
+.prose-article ol { padding-left: 1.4em; }
+.prose-article ul { list-style: disc; }
+.prose-article ol { list-style: decimal; }
+.prose-article li { margin-top: 0.4em; }
+.prose-article blockquote {
+  border-left: 3px solid #F5A623;
+  padding: 0.4em 1em;
+  margin: 1.4em 0;
+  color: #F5F5F5;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: 1.2rem;
+  background: linear-gradient(to right, rgba(245,166,35,0.06), transparent);
+}
+.prose-article hr {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(245,166,35,0.45), transparent);
+  margin: 2em 0;
+}
+.prose-article figure { margin: 1.8em 0; }
+.prose-article figure img,
+.prose-article img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.prose-article figcaption {
+  margin-top: 0.55em;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: #9A9A9A;
+  text-align: center;
+}
+.prose-article iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  border: 0;
+  border-radius: 8px;
+}
+.prose-article [data-youtube-video] { margin: 1.8em 0; }
+.prose-article [data-youtube-video] iframe { width: 100%; aspect-ratio: 16/9; height: auto; }
+.prose-article .is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: #6b6b6b;
+  float: left;
+  height: 0;
+  pointer-events: none;
+}

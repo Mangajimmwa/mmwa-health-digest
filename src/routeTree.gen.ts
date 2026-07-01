@@ -24,7 +24,17 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
+import { Route as AdminSubscribersRouteImport } from './routes/admin.subscribers'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminMediaRouteImport } from './routes/admin.media'
+import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
+import { Route as AdminBreakingRouteImport } from './routes/admin.breaking'
+import { Route as AdminArticlesRouteImport } from './routes/admin.articles'
+import { Route as AdminArticlesNewRouteImport } from './routes/admin.articles.new'
+import { Route as ApiPublicMediaSplatRouteImport } from './routes/api.public.media.$'
+import { Route as AdminArticlesIdEditRouteImport } from './routes/admin.articles.$id.edit'
 
 const VideosRoute = VideosRouteImport.update({
   id: '/videos',
@@ -101,16 +111,66 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const CategorySlugRoute = CategorySlugRouteImport.update({
   id: '/category/$slug',
   path: '/category/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminSubscribersRoute = AdminSubscribersRouteImport.update({
+  id: '/subscribers',
+  path: '/subscribers',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMediaRoute = AdminMediaRouteImport.update({
+  id: '/media',
+  path: '/media',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminBreakingRoute = AdminBreakingRouteImport.update({
+  id: '/breaking',
+  path: '/breaking',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminArticlesRoute = AdminArticlesRouteImport.update({
+  id: '/articles',
+  path: '/articles',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminArticlesNewRoute = AdminArticlesNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AdminArticlesRoute,
+} as any)
+const ApiPublicMediaSplatRoute = ApiPublicMediaSplatRouteImport.update({
+  id: '/api/public/media/$',
+  path: '/api/public/media/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminArticlesIdEditRoute = AdminArticlesIdEditRouteImport.update({
+  id: '/$id/edit',
+  path: '/$id/edit',
+  getParentRoute: () => AdminArticlesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/bookmarks': typeof BookmarksRoute
   '/categories': typeof CategoriesRoute
@@ -123,12 +183,21 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/videos': typeof VideosRoute
+  '/admin/articles': typeof AdminArticlesRouteWithChildren
+  '/admin/breaking': typeof AdminBreakingRoute
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/media': typeof AdminMediaRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/subscribers': typeof AdminSubscribersRoute
   '/category/$slug': typeof CategorySlugRoute
+  '/admin/': typeof AdminIndexRoute
+  '/admin/articles/new': typeof AdminArticlesNewRoute
+  '/admin/articles/$id/edit': typeof AdminArticlesIdEditRoute
+  '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/bookmarks': typeof BookmarksRoute
   '/categories': typeof CategoriesRoute
@@ -141,13 +210,23 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/videos': typeof VideosRoute
+  '/admin/articles': typeof AdminArticlesRouteWithChildren
+  '/admin/breaking': typeof AdminBreakingRoute
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/media': typeof AdminMediaRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/subscribers': typeof AdminSubscribersRoute
   '/category/$slug': typeof CategorySlugRoute
+  '/admin': typeof AdminIndexRoute
+  '/admin/articles/new': typeof AdminArticlesNewRoute
+  '/admin/articles/$id/edit': typeof AdminArticlesIdEditRoute
+  '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/bookmarks': typeof BookmarksRoute
   '/categories': typeof CategoriesRoute
@@ -160,7 +239,17 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/videos': typeof VideosRoute
+  '/admin/articles': typeof AdminArticlesRouteWithChildren
+  '/admin/breaking': typeof AdminBreakingRoute
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/media': typeof AdminMediaRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/subscribers': typeof AdminSubscribersRoute
   '/category/$slug': typeof CategorySlugRoute
+  '/admin/': typeof AdminIndexRoute
+  '/admin/articles/new': typeof AdminArticlesNewRoute
+  '/admin/articles/$id/edit': typeof AdminArticlesIdEditRoute
+  '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -180,12 +269,21 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/videos'
+    | '/admin/articles'
+    | '/admin/breaking'
+    | '/admin/categories'
+    | '/admin/media'
+    | '/admin/settings'
+    | '/admin/subscribers'
     | '/category/$slug'
+    | '/admin/'
+    | '/admin/articles/new'
+    | '/admin/articles/$id/edit'
+    | '/api/public/media/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
-    | '/admin'
     | '/auth'
     | '/bookmarks'
     | '/categories'
@@ -198,7 +296,17 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/videos'
+    | '/admin/articles'
+    | '/admin/breaking'
+    | '/admin/categories'
+    | '/admin/media'
+    | '/admin/settings'
+    | '/admin/subscribers'
     | '/category/$slug'
+    | '/admin'
+    | '/admin/articles/new'
+    | '/admin/articles/$id/edit'
+    | '/api/public/media/$'
   id:
     | '__root__'
     | '/'
@@ -216,13 +324,23 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/videos'
+    | '/admin/articles'
+    | '/admin/breaking'
+    | '/admin/categories'
+    | '/admin/media'
+    | '/admin/settings'
+    | '/admin/subscribers'
     | '/category/$slug'
+    | '/admin/'
+    | '/admin/articles/new'
+    | '/admin/articles/$id/edit'
+    | '/api/public/media/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   BookmarksRoute: typeof BookmarksRoute
   CategoriesRoute: typeof CategoriesRoute
@@ -236,6 +354,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VideosRoute: typeof VideosRoute
   CategorySlugRoute: typeof CategorySlugRoute
+  ApiPublicMediaSplatRoute: typeof ApiPublicMediaSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -345,6 +464,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/category/$slug': {
       id: '/category/$slug'
       path: '/category/$slug'
@@ -352,13 +478,112 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CategorySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/subscribers': {
+      id: '/admin/subscribers'
+      path: '/subscribers'
+      fullPath: '/admin/subscribers'
+      preLoaderRoute: typeof AdminSubscribersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/media': {
+      id: '/admin/media'
+      path: '/media'
+      fullPath: '/admin/media'
+      preLoaderRoute: typeof AdminMediaRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/categories': {
+      id: '/admin/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/breaking': {
+      id: '/admin/breaking'
+      path: '/breaking'
+      fullPath: '/admin/breaking'
+      preLoaderRoute: typeof AdminBreakingRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/articles': {
+      id: '/admin/articles'
+      path: '/articles'
+      fullPath: '/admin/articles'
+      preLoaderRoute: typeof AdminArticlesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/articles/new': {
+      id: '/admin/articles/new'
+      path: '/new'
+      fullPath: '/admin/articles/new'
+      preLoaderRoute: typeof AdminArticlesNewRouteImport
+      parentRoute: typeof AdminArticlesRoute
+    }
+    '/api/public/media/$': {
+      id: '/api/public/media/$'
+      path: '/api/public/media/$'
+      fullPath: '/api/public/media/$'
+      preLoaderRoute: typeof ApiPublicMediaSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/articles/$id/edit': {
+      id: '/admin/articles/$id/edit'
+      path: '/$id/edit'
+      fullPath: '/admin/articles/$id/edit'
+      preLoaderRoute: typeof AdminArticlesIdEditRouteImport
+      parentRoute: typeof AdminArticlesRoute
+    }
   }
 }
+
+interface AdminArticlesRouteChildren {
+  AdminArticlesNewRoute: typeof AdminArticlesNewRoute
+  AdminArticlesIdEditRoute: typeof AdminArticlesIdEditRoute
+}
+
+const AdminArticlesRouteChildren: AdminArticlesRouteChildren = {
+  AdminArticlesNewRoute: AdminArticlesNewRoute,
+  AdminArticlesIdEditRoute: AdminArticlesIdEditRoute,
+}
+
+const AdminArticlesRouteWithChildren = AdminArticlesRoute._addFileChildren(
+  AdminArticlesRouteChildren,
+)
+
+interface AdminRouteChildren {
+  AdminArticlesRoute: typeof AdminArticlesRouteWithChildren
+  AdminBreakingRoute: typeof AdminBreakingRoute
+  AdminCategoriesRoute: typeof AdminCategoriesRoute
+  AdminMediaRoute: typeof AdminMediaRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminSubscribersRoute: typeof AdminSubscribersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminArticlesRoute: AdminArticlesRouteWithChildren,
+  AdminBreakingRoute: AdminBreakingRoute,
+  AdminCategoriesRoute: AdminCategoriesRoute,
+  AdminMediaRoute: AdminMediaRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
+  AdminSubscribersRoute: AdminSubscribersRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   BookmarksRoute: BookmarksRoute,
   CategoriesRoute: CategoriesRoute,
@@ -372,6 +597,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VideosRoute: VideosRoute,
   CategorySlugRoute: CategorySlugRoute,
+  ApiPublicMediaSplatRoute: ApiPublicMediaSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

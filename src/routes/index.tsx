@@ -229,7 +229,7 @@ function ArticleCard(props: {
           </span>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }
 

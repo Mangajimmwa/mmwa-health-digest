@@ -25,26 +25,47 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  function describeError(err: unknown): string {
+    console.error("[auth] error:", err);
+    if (err && typeof err === "object") {
+      const anyErr = err as { message?: string; error_description?: string; name?: string; status?: number };
+      const msg = anyErr.message || anyErr.error_description;
+      if (msg && msg.trim()) return msg;
+      if (anyErr.status) return `Request failed (status ${anyErr.status}). Please try again.`;
+      if (anyErr.name) return anyErr.name;
+    }
+    if (typeof err === "string" && err.trim()) return err;
+    return "Something went wrong. Please try again.";
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        console.log("[auth] signUp start", { email });
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: window.location.origin },
         });
+        console.log("[auth] signUp response", { data, error });
         if (error) throw error;
-        toast.success("Check your email to confirm your account.");
+        if (!data.user && !data.session) {
+          toast.error("Signup did not return a user. Please try again.");
+          return;
+        }
+        toast.success("Account created. Check your email to confirm your account.");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        console.log("[auth] signIn start", { email });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        console.log("[auth] signIn response", { data, error });
         if (error) throw error;
         toast.success("Welcome back.");
         navigate({ to: "/" });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
+      toast.error(describeError(err));
     } finally {
       setLoading(false);
     }

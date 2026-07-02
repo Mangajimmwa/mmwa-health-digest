@@ -72,15 +72,21 @@ function AuthPage() {
   }
 
   async function google() {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      toast.error("Google sign-in failed");
-      return;
+    try {
+      console.log("[auth] google oauth start");
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      console.log("[auth] google oauth result", result);
+      if (result.error) {
+        toast.error(describeError(result.error));
+        return;
+      }
+      if (result.redirected) return;
+      navigate({ to: "/" });
+    } catch (err) {
+      toast.error(describeError(err));
     }
-    if (result.redirected) return;
-    navigate({ to: "/" });
   }
 
   return (

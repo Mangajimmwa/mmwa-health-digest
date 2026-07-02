@@ -72,17 +72,17 @@ function AuthPage() {
 
   async function google() {
     try {
-      console.log("[auth] google oauth start");
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+      // NOTE: Supabase Auth → URL Configuration → Redirect URLs must include:
+      //   https://josephmmwa.com/auth/callback
+      //   https://www.josephmmwa.com/auth/callback
+      //   http://localhost:8080/auth/callback (for local dev)
+      // Google Client ID/Secret are configured inside Supabase (Auth → Providers → Google).
+      const redirectTo = `${window.location.origin}/auth/callback`;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo },
       });
-      console.log("[auth] google oauth result", result);
-      if (result.error) {
-        toast.error(describeError(result.error));
-        return;
-      }
-      if (result.redirected) return;
-      navigate({ to: "/" });
+      if (error) toast.error(describeError(error));
     } catch (err) {
       toast.error(describeError(err));
     }

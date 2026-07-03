@@ -3,15 +3,15 @@ import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/site/Logo";
 
-// IMPORTANT: Supabase Auth → URL Configuration → Redirect URLs must include:
+// Supabase Auth → URL Configuration → Redirect URLs must include:
 //   https://josephmmwa.com/auth/callback
 //   https://www.josephmmwa.com/auth/callback
 //   http://localhost:8080/auth/callback (for local dev)
 //
-// Google Cloud Console → Authorized redirect URIs should point to Supabase's
+// Google Cloud Console → Authorized redirect URIs must point to Supabase's
 // callback (e.g. https://<project-ref>.supabase.co/auth/v1/callback), NOT to
 // josephmmwa.com. Supabase brokers the Google exchange, then redirects the
-// browser back here with either a `?code=` (PKCE) or a `#access_token=` hash.
+// browser back here with either a `?code=` (PKCE) or `#access_token=` hash.
 
 export const Route = createFileRoute("/auth/callback")({
   ssr: false,
@@ -33,41 +33,69 @@ function AuthCallback() {
           url.searchParams.get("error");
 
         if (errorDescription) {
+          console.error("Callback error:", JSON.stringify({ errorDescription }));
           navigate({
             to: "/auth",
-            search: { error: errorDescription } as never,
+            search: { error: "google_callback_failed" },
           });
           return;
         }
 
-        // PKCE flow: exchange the ?code=... for a session.
+        // PKCE flow: exchange ?code=... for a session.
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(
             window.location.href,
           );
-          if (error) throw error;
+          if (error) {
+            console.error(
+              "Callback error:",
+              JSON.stringify(error, Object.getOwnPropertyNames(error)),
+            );
+            navigate({
+              to: "/auth",
+              search: { error: "google_callback_failed" },
+            });
+            return;
+          }
         }
 
-        // Implicit flow leaves tokens in the URL hash; the supabase-js client
-        // parses them automatically via detectSessionInUrl. Give it a tick,
-        // then verify a session exists.
-        const { data } = await supabase.auth.getSession();
+        // Implicit flow leaves tokens in the URL hash; supabase-js parses them
+        // automatically via detectSessionInUrl. Verify a session exists.
+        const { data, error: sessionError } = await supabase.auth.getSession();
         if (cancelled) return;
+
+        if (sessionError) {
+          console.error(
+            "Callback error:",
+            JSON.stringify(sessionError, Object.getOwnPropertyNames(sessionError)),
+          );
+          navigate({
+            to: "/auth",
+            search: { error: "google_callback_failed" },
+          });
+          return;
+        }
 
         if (data.session) {
           const intended = sessionStorage.getItem("post_auth_redirect");
           sessionStorage.removeItem("post_auth_redirect");
           navigate({ to: intended || "/" });
         } else {
+          console.error("Callback error:", JSON.stringify({ reason: "no_session" }));
           navigate({
             to: "/auth",
-            search: { error: "no_session" } as never,
+            search: { error: "no_session" },
           });
         }
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Authentication failed";
-        navigate({ to: "/auth", search: { error: message } as never });
+        console.error(
+          "Callback error:",
+          JSON.stringify(err, Object.getOwnPropertyNames(err ?? {})),
+        );
+        navigate({
+          to: "/auth",
+          search: { error: "google_callback_failed" },
+        });
       }
     }
 

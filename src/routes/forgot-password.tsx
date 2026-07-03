@@ -29,7 +29,13 @@ function ForgotPasswordPage() {
     });
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      console.error("Auth error:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
+      const msg =
+        (error.message && error.message.trim()) ||
+        ((error as { error_description?: string }).error_description ?? "").trim() ||
+        (error.code ? String(error.code) : "") ||
+        "Something went wrong. Please try again.";
+      toast.error(msg);
       return;
     }
     setSent(true);

@@ -1,12 +1,27 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 
+// NOTE: If signup confirmation emails are not arriving, the site owner must:
+// 1. Go to Supabase → Authentication → Providers → Email and toggle off
+//    "Confirm email" for instant account activation (recommended until SMTP
+//    is configured), OR
+// 2. Go to Supabase → Project Settings → Auth → SMTP Settings and configure
+//    a real transactional email provider such as Resend, SendGrid, or
+//    Postmark so confirmation emails actually deliver.
+// Without one of those two steps, email signup will remain broken regardless
+// of any code changes here.
+
+type AuthSearch = { error?: string };
+
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>): AuthSearch => ({
+    error: typeof search.error === "string" ? search.error : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Sign In — JOSEPH MMWA" },
@@ -16,49 +31,88 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+function describeError(err: unknown): string {
+  console.error("Auth error:", JSON.stringify(err, Object.getOwnPropertyNames(err ?? {})));
+  if (err && typeof err === "object") {
+    const e = err as {
+      message?: string;
+      msg?: string;
+      error_description?: string;
+      code?: string;
+      name?: string;
+      status?: number;
+    };
+    if (e.message && e.message.trim()) return e.message;
+    if (e.msg && e.msg.trim()) return e.msg;
+    if (e.error_description && e.error_description.trim()) return e.error_description;
+    if (e.code && String(e.code).trim()) return String(e.code);
+    if (e.status) return `Request failed (status ${e.status}). Please try again.`;
+    if (e.name && e.name.trim()) return e.name;
+  }
+  if (typeof err === "string" && err.trim()) return err;
+  return "Something went wrong. Please try again.";
+}
+
+function friendlyCallbackError(code?: string): string | null {
+  if (!code) return null;
+  switch (code) {
+    case "google_callback_failed":
+      return "Google sign-in failed. Please try again.";
+    case "no_session":
+      return "Sign-in did not complete. Please try again.";
+    default:
+      return code;
+  }
+}
+
 function AuthPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [awaitingConfirm, setAwaitingConfirm] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
   const navigate = useNavigate();
+  const search = Route.useSearch();
 
-  function describeError(err: unknown): string {
-    console.error("[auth] error:", err);
-    if (err && typeof err === "object") {
-      const anyErr = err as { message?: string; error_description?: string; name?: string; status?: number };
-      const msg = anyErr.message || anyErr.error_description;
-      if (msg && msg.trim()) return msg;
-      if (anyErr.status) return `Request failed (status ${anyErr.status}). Please try again.`;
-      if (anyErr.name) return anyErr.name;
-    }
-    if (typeof err === "string" && err.trim()) return err;
-    return "Something went wrong. Please try again.";
-  }
+  useEffect(() => {
+    const msg = friendlyCallbackError(search.error);
+    if (msg) toast.error(msg);
+    // Only run when the incoming error param changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.error]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
       if (mode === "signup") {
-        console.log("[auth] signUp start", { email });
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
         });
-        console.log("[auth] signUp response", { data, error });
         if (error) throw error;
-        if (!data.user && !data.session) {
-          toast.error("Signup did not return a user. Please try again.");
+
+        // State A: email confirmation disabled — session is returned immediately.
+        if (data.session) {
+          toast.success(
+            "Welcome to Joseph Mmwa — your trusted source for global health news.",
+          );
+          navigate({ to: "/" });
           return;
         }
-        toast.success("Account created. Check your email to confirm your account.");
+
+        // State B: confirmation pending — show inbox screen.
+        if (data.user) {
+          setAwaitingConfirm(email);
+          return;
+        }
+
+        toast.error("Signup did not return a user. Please try again.");
       } else {
-        console.log("[auth] signIn start", { email });
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        console.log("[auth] signIn response", { data, error });
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Welcome back.");
         navigate({ to: "/" });
@@ -70,19 +124,34 @@ function AuthPage() {
     }
   }
 
+  async function resendConfirmation() {
+    if (!awaitingConfirm) return;
+    setResending(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: awaitingConfirm,
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      });
+      if (error) throw error;
+      toast.success("Confirmation email resent.");
+    } catch (err) {
+      toast.error(describeError(err));
+    } finally {
+      setResending(false);
+    }
+  }
+
   async function google() {
     try {
-      // NOTE: Supabase Auth → URL Configuration → Redirect URLs must include:
-      //   https://josephmmwa.com/auth/callback
-      //   https://www.josephmmwa.com/auth/callback
-      //   http://localhost:8080/auth/callback (for local dev)
-      // Google Client ID/Secret are configured inside Supabase (Auth → Providers → Google).
+      // redirectTo must exactly match a URL listed in Supabase
+      // Authentication → URL Configuration → Redirect URLs.
       const redirectTo = `${window.location.origin}/auth/callback`;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo },
       });
-      if (error) toast.error(describeError(error));
+      if (error) throw error;
     } catch (err) {
       toast.error(describeError(err));
     }
@@ -105,83 +174,115 @@ function AuthPage() {
             </p>
           </div>
 
-          <div className="mt-8 grid grid-cols-2 bg-surface-2 rounded-md p-1 text-sm">
-            {(["signin", "signup"] as const).map((m) => (
+          {awaitingConfirm ? (
+            <div className="mt-8">
+              <h2 className="font-display font-bold text-2xl text-foreground">
+                Check your inbox
+              </h2>
+              <p className="mt-3 text-sm text-text-body font-serif">
+                We've sent a confirmation link to{" "}
+                <span className="text-gold">{awaitingConfirm}</span>. Click the
+                link in the email to activate your account. If you don't see it
+                within a few minutes, check your spam folder.
+              </p>
               <button
-                key={m}
-                onClick={() => setMode(m)}
-                className={`py-2 rounded-md font-medium transition-colors ${
-                  mode === m ? "bg-gold text-primary-foreground" : "text-text-body"
-                }`}
+                onClick={resendConfirmation}
+                disabled={resending}
+                className="mt-6 w-full bg-gold text-primary-foreground font-semibold py-3 rounded-md hover:bg-gold-hover disabled:opacity-60"
               >
-                {m === "signin" ? "Sign in" : "Create account"}
+                {resending ? "..." : "Resend confirmation email"}
               </button>
-            ))}
-          </div>
-
-          <button
-            onClick={google}
-            className="mt-6 w-full flex items-center justify-center gap-3 bg-surface-2 border border-border hover:border-gold/40 rounded-md py-3 text-sm font-medium"
-          >
-            <GoogleIcon /> Continue with Google
-          </button>
-
-          <div className="my-6 flex items-center gap-3 text-xs text-text-mute">
-            <div className="h-px flex-1 bg-border" />
-            OR
-            <div className="h-px flex-1 bg-border" />
-          </div>
-
-          <form onSubmit={submit} className="space-y-3">
-            <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gold" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="w-full bg-surface-2 border border-border rounded-md pl-10 pr-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold"
-              />
-            </div>
-            <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gold" />
-              <input
-                type={showPassword ? "text" : "password"}
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 6 characters"
-                className="w-full bg-surface-2 border border-border rounded-md pl-10 pr-10 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold"
-              />
               <button
-                type="button"
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-mute hover:text-gold"
+                onClick={() => {
+                  setAwaitingConfirm(null);
+                  setMode("signin");
+                }}
+                className="mt-3 w-full text-sm text-gold hover:text-gold-hover"
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                Back to sign in
               </button>
             </div>
-            {mode === "signin" && (
-              <div className="text-right">
-                <Link to="/forgot-password" className="text-xs text-gold hover:text-gold-hover">
-                  Forgot your password?
-                </Link>
+          ) : (
+            <>
+              <div className="mt-8 grid grid-cols-2 bg-surface-2 rounded-md p-1 text-sm">
+                {(["signin", "signup"] as const).map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setMode(m)}
+                    className={`py-2 rounded-md font-medium transition-colors ${
+                      mode === m ? "bg-gold text-primary-foreground" : "text-text-body"
+                    }`}
+                  >
+                    {m === "signin" ? "Sign in" : "Create account"}
+                  </button>
+                ))}
               </div>
-            )}
-            <button
-              disabled={loading}
-              className="w-full bg-gold text-primary-foreground font-semibold py-3 rounded-md hover:bg-gold-hover disabled:opacity-60"
-            >
-              {loading ? "..." : mode === "signin" ? "Sign In" : "Create Account"}
-            </button>
-          </form>
 
-          <p className="mt-5 text-xs text-text-mute text-center">
-            By continuing you agree to our terms and privacy policy.
-          </p>
+              <button
+                onClick={google}
+                className="mt-6 w-full flex items-center justify-center gap-3 bg-surface-2 border border-border hover:border-gold/40 rounded-md py-3 text-sm font-medium"
+              >
+                <GoogleIcon /> Continue with Google
+              </button>
+
+              <div className="my-6 flex items-center gap-3 text-xs text-text-mute">
+                <div className="h-px flex-1 bg-border" />
+                OR
+                <div className="h-px flex-1 bg-border" />
+              </div>
+
+              <form onSubmit={submit} className="space-y-3">
+                <div className="relative">
+                  <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gold" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full bg-surface-2 border border-border rounded-md pl-10 pr-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold"
+                  />
+                </div>
+                <div className="relative">
+                  <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gold" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="At least 6 characters"
+                    className="w-full bg-surface-2 border border-border rounded-md pl-10 pr-10 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold"
+                  />
+                  <button
+                    type="button"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-mute hover:text-gold"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {mode === "signin" && (
+                  <div className="text-right">
+                    <Link to="/forgot-password" className="text-xs text-gold hover:text-gold-hover">
+                      Forgot your password?
+                    </Link>
+                  </div>
+                )}
+                <button
+                  disabled={loading}
+                  className="w-full bg-gold text-primary-foreground font-semibold py-3 rounded-md hover:bg-gold-hover disabled:opacity-60"
+                >
+                  {loading ? "..." : mode === "signin" ? "Sign In" : "Create Account"}
+                </button>
+              </form>
+
+              <p className="mt-5 text-xs text-text-mute text-center">
+                By continuing you agree to our terms and privacy policy.
+              </p>
+            </>
+          )}
         </div>
       </main>
     </div>

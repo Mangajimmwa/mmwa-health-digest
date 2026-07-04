@@ -9,6 +9,8 @@ const STATIC_PATHS = [
   "/categories",
   "/about",
   "/contact",
+  "/privacy",
+  "/terms",
 ];
 
 export const Route = createFileRoute("/sitemap.xml")({

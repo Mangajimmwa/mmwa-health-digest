@@ -10,9 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VideosRouteImport } from './routes/videos'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PremiumRouteImport } from './routes/premium'
 import { Route as PodcastsRouteImport } from './routes/podcasts'
 import { Route as NotificationsRouteImport } from './routes/notifications'
@@ -44,6 +46,11 @@ const VideosRoute = VideosRouteImport.update({
   path: '/videos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -57,6 +64,11 @@ const SearchRoute = SearchRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PremiumRoute = PremiumRouteImport.update({
@@ -198,9 +210,11 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof NotificationsRoute
   '/podcasts': typeof PodcastsRoute
   '/premium': typeof PremiumRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/videos': typeof VideosRoute
   '/admin/articles': typeof AdminArticlesRouteWithChildren
   '/admin/breaking': typeof AdminBreakingRoute
@@ -228,9 +242,11 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/podcasts': typeof PodcastsRoute
   '/premium': typeof PremiumRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/videos': typeof VideosRoute
   '/admin/articles': typeof AdminArticlesRouteWithChildren
   '/admin/breaking': typeof AdminBreakingRoute
@@ -260,9 +276,11 @@ export interface FileRoutesById {
   '/notifications': typeof NotificationsRoute
   '/podcasts': typeof PodcastsRoute
   '/premium': typeof PremiumRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/videos': typeof VideosRoute
   '/admin/articles': typeof AdminArticlesRouteWithChildren
   '/admin/breaking': typeof AdminBreakingRoute
@@ -293,9 +311,11 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/podcasts'
     | '/premium'
+    | '/privacy'
     | '/reset-password'
     | '/search'
     | '/sitemap.xml'
+    | '/terms'
     | '/videos'
     | '/admin/articles'
     | '/admin/breaking'
@@ -323,9 +343,11 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/podcasts'
     | '/premium'
+    | '/privacy'
     | '/reset-password'
     | '/search'
     | '/sitemap.xml'
+    | '/terms'
     | '/videos'
     | '/admin/articles'
     | '/admin/breaking'
@@ -354,9 +376,11 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/podcasts'
     | '/premium'
+    | '/privacy'
     | '/reset-password'
     | '/search'
     | '/sitemap.xml'
+    | '/terms'
     | '/videos'
     | '/admin/articles'
     | '/admin/breaking'
@@ -386,9 +410,11 @@ export interface RootRouteChildren {
   NotificationsRoute: typeof NotificationsRoute
   PodcastsRoute: typeof PodcastsRoute
   PremiumRoute: typeof PremiumRoute
+  PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TermsRoute: typeof TermsRoute
   VideosRoute: typeof VideosRoute
   CategorySlugRoute: typeof CategorySlugRoute
   ApiPublicMediaSplatRoute: typeof ApiPublicMediaSplatRoute
@@ -401,6 +427,13 @@ declare module '@tanstack/react-router' {
       path: '/videos'
       fullPath: '/videos'
       preLoaderRoute: typeof VideosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -422,6 +455,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/premium': {
@@ -671,9 +711,11 @@ const rootRouteChildren: RootRouteChildren = {
   NotificationsRoute: NotificationsRoute,
   PodcastsRoute: PodcastsRoute,
   PremiumRoute: PremiumRoute,
+  PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TermsRoute: TermsRoute,
   VideosRoute: VideosRoute,
   CategorySlugRoute: CategorySlugRoute,
   ApiPublicMediaSplatRoute: ApiPublicMediaSplatRoute,

@@ -13,6 +13,7 @@ import { Route as VideosRouteImport } from './routes/videos'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PremiumRouteImport } from './routes/premium'
 import { Route as PodcastsRouteImport } from './routes/podcasts'
 import { Route as NotificationsRouteImport } from './routes/notifications'
@@ -57,6 +58,11 @@ const SearchRoute = SearchRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PremiumRoute = PremiumRouteImport.update({
@@ -198,6 +204,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof NotificationsRoute
   '/podcasts': typeof PodcastsRoute
   '/premium': typeof PremiumRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -228,6 +235,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/podcasts': typeof PodcastsRoute
   '/premium': typeof PremiumRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -260,6 +268,7 @@ export interface FileRoutesById {
   '/notifications': typeof NotificationsRoute
   '/podcasts': typeof PodcastsRoute
   '/premium': typeof PremiumRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -293,6 +302,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/podcasts'
     | '/premium'
+    | '/privacy'
     | '/reset-password'
     | '/search'
     | '/sitemap.xml'
@@ -323,6 +333,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/podcasts'
     | '/premium'
+    | '/privacy'
     | '/reset-password'
     | '/search'
     | '/sitemap.xml'
@@ -354,6 +365,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/podcasts'
     | '/premium'
+    | '/privacy'
     | '/reset-password'
     | '/search'
     | '/sitemap.xml'
@@ -386,6 +398,7 @@ export interface RootRouteChildren {
   NotificationsRoute: typeof NotificationsRoute
   PodcastsRoute: typeof PodcastsRoute
   PremiumRoute: typeof PremiumRoute
+  PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -422,6 +435,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/premium': {
@@ -671,6 +691,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotificationsRoute: NotificationsRoute,
   PodcastsRoute: PodcastsRoute,
   PremiumRoute: PremiumRoute,
+  PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,

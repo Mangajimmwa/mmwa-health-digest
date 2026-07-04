@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VideosRouteImport } from './routes/videos'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -43,6 +44,11 @@ import { Route as AdminArticlesIdEditRouteImport } from './routes/admin.articles
 const VideosRoute = VideosRouteImport.update({
   id: '/videos',
   path: '/videos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -208,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/videos': typeof VideosRoute
   '/admin/articles': typeof AdminArticlesRouteWithChildren
   '/admin/breaking': typeof AdminBreakingRoute
@@ -239,6 +246,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/videos': typeof VideosRoute
   '/admin/articles': typeof AdminArticlesRouteWithChildren
   '/admin/breaking': typeof AdminBreakingRoute
@@ -272,6 +280,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/videos': typeof VideosRoute
   '/admin/articles': typeof AdminArticlesRouteWithChildren
   '/admin/breaking': typeof AdminBreakingRoute
@@ -306,6 +315,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/search'
     | '/sitemap.xml'
+    | '/terms'
     | '/videos'
     | '/admin/articles'
     | '/admin/breaking'
@@ -337,6 +347,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/search'
     | '/sitemap.xml'
+    | '/terms'
     | '/videos'
     | '/admin/articles'
     | '/admin/breaking'
@@ -369,6 +380,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/search'
     | '/sitemap.xml'
+    | '/terms'
     | '/videos'
     | '/admin/articles'
     | '/admin/breaking'
@@ -402,6 +414,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TermsRoute: typeof TermsRoute
   VideosRoute: typeof VideosRoute
   CategorySlugRoute: typeof CategorySlugRoute
   ApiPublicMediaSplatRoute: typeof ApiPublicMediaSplatRoute
@@ -414,6 +427,13 @@ declare module '@tanstack/react-router' {
       path: '/videos'
       fullPath: '/videos'
       preLoaderRoute: typeof VideosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -695,6 +715,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TermsRoute: TermsRoute,
   VideosRoute: VideosRoute,
   CategorySlugRoute: CategorySlugRoute,
   ApiPublicMediaSplatRoute: ApiPublicMediaSplatRoute,

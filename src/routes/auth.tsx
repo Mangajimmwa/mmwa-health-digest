@@ -59,7 +59,8 @@ function friendlyCallbackError(code?: string): string | null {
     case "google_callback_failed":
       return "Google sign-in failed. Please try again.";
     case "no_session":
-      return "Sign-in did not complete. Please try again.";
+    case "session_failed":
+      return "Authentication failed. Please try signing in again.";
     default:
       return code;
   }

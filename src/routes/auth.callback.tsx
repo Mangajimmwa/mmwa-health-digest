@@ -10,9 +10,7 @@ import { Logo } from "@/components/site/Logo";
 //
 // Google Cloud Console → Authorized redirect URIs must point to Supabase's
 // callback (e.g. https://<project-ref>.supabase.co/auth/v1/callback), NOT to
-// josephmmwa.com. Supabase brokers the Google exchange, then redirects the
-// browser back here with either a `?code=` (PKCE), `#access_token=` hash
-// (implicit) or `?token_hash=&type=` (email verification link).
+// josephmmwa.com.
 
 export const Route = createFileRoute("/auth/callback")({
   ssr: false,
@@ -43,11 +41,13 @@ function AuthCallback() {
 
   useEffect(() => {
     let cancelled = false;
-    let unsub: (() => void) | undefined;
 
-    function finish(session: unknown) {
+    function goHomeOrIntended(recovery = false) {
       if (cancelled) return;
-      if (!session) return;
+      if (recovery) {
+        navigate({ to: "/reset-password" });
+        return;
+      }
       const intended =
         typeof window !== "undefined"
           ? sessionStorage.getItem("post_auth_redirect")
@@ -55,36 +55,26 @@ function AuthCallback() {
       if (typeof window !== "undefined") {
         sessionStorage.removeItem("post_auth_redirect");
       }
-      // Recovery links should route to the password reset page.
-      const url = new URL(window.location.href);
-      const type = url.searchParams.get("type");
-      if (type === "recovery") {
-        navigate({ to: "/reset-password" });
-        return;
-      }
       navigate({ to: intended || "/" });
     }
 
     async function run() {
       try {
         const url = new URL(window.location.href);
+        const hash = window.location.hash.startsWith("#")
+          ? window.location.hash.slice(1)
+          : window.location.hash;
+        const hashParams = new URLSearchParams(hash);
+        const accessToken = hashParams.get("access_token");
+        const refreshToken = hashParams.get("refresh_token");
+        const hashType = hashParams.get("type");
         const code = url.searchParams.get("code");
         const tokenHash = url.searchParams.get("token_hash");
-        const type = url.searchParams.get("type");
+        const queryType = url.searchParams.get("type");
         const errorDescription =
           url.searchParams.get("error_description") ||
           url.searchParams.get("error") ||
-          // implicit hash errors
-          new URLSearchParams(window.location.hash.replace(/^#/, "")).get(
-            "error_description",
-          );
-
-        console.log("[auth/callback]", {
-          hasCode: !!code,
-          hasTokenHash: !!tokenHash,
-          type,
-          hash: window.location.hash ? "present" : "none",
-        });
+          hashParams.get("error_description");
 
         if (errorDescription) {
           console.error("[auth/callback] provider error:", errorDescription);
@@ -92,68 +82,67 @@ function AuthCallback() {
           return;
         }
 
-        // Subscribe first so we don't miss the SIGNED_IN event that the
-        // client fires when it auto-detects the URL on init.
-        const sub = supabase.auth.onAuthStateChange((event, session) => {
-          console.log("[auth/callback] onAuthStateChange", event, !!session);
-          if (session) finish(session);
-        });
-        unsub = () => sub.data.subscription.unsubscribe();
-
-        // Email verification link: ?token_hash=...&type=signup|recovery|...
-        if (tokenHash && isEmailOtpType(type)) {
-          const { data, error } = await supabase.auth.verifyOtp({
-            token_hash: tokenHash,
-            type,
+        // Step 1: implicit flow — tokens in hash fragment
+        if (accessToken && refreshToken) {
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
           });
-          if (error) {
-            console.error("[auth/callback] verifyOtp error:", error);
-            navigate({ to: "/auth", search: { error: "google_callback_failed" } });
+          if (!error && data.session) {
+            window.history.replaceState(null, "", window.location.pathname);
+            goHomeOrIntended(hashType === "recovery");
             return;
           }
-          if (data.session) {
-            finish(data.session);
-            return;
-          }
-        } else if (code) {
-          // PKCE OAuth: exchange ?code=... for a session. The client's
-          // detectSessionInUrl may race with us; if it already consumed the
-          // code, this call errors — treat that as non-fatal and fall through
-          // to getSession() below.
+          console.error("[auth/callback] setSession failed:", error);
+        }
+
+        // Step 2: PKCE code exchange
+        if (code) {
           const { data, error } = await supabase.auth.exchangeCodeForSession(
             window.location.href,
           );
-          if (error) {
-            console.warn("[auth/callback] exchangeCodeForSession:", error.message);
-          } else if (data.session) {
-            finish(data.session);
+          if (!error && data.session) {
+            goHomeOrIntended(queryType === "recovery");
             return;
           }
+          if (error) console.warn("[auth/callback] exchangeCodeForSession:", error.message);
         }
 
-        // Implicit hash flow or already-consumed code: poll for a session.
+        // Step 3: email verification token
+        if (tokenHash && isEmailOtpType(queryType)) {
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: queryType,
+          });
+          if (!error && data.session) {
+            goHomeOrIntended(queryType === "recovery");
+            return;
+          }
+          if (error) console.error("[auth/callback] verifyOtp:", error);
+        }
+
+        // Step 4: session may already be set by detectSessionInUrl
         for (let i = 0; i < 20; i++) {
           if (cancelled) return;
           const { data } = await supabase.auth.getSession();
           if (data.session) {
-            finish(data.session);
+            goHomeOrIntended(hashType === "recovery" || queryType === "recovery");
             return;
           }
           await new Promise((r) => setTimeout(r, 150));
         }
 
-        console.error("[auth/callback] no session after polling");
-        navigate({ to: "/auth", search: { error: "no_session" } });
+        // Step 5: all methods failed
+        navigate({ to: "/auth", search: { error: "session_failed" } });
       } catch (err) {
         console.error("[auth/callback] unexpected:", err);
-        navigate({ to: "/auth", search: { error: "google_callback_failed" } });
+        navigate({ to: "/auth", search: { error: "session_failed" } });
       }
     }
 
     run();
     return () => {
       cancelled = true;
-      if (unsub) unsub();
     };
   }, [navigate]);
 

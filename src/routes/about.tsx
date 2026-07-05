@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Check } from "lucide-react";
-import josephImg from "@/assets/joseph.jpg";
+import josephImg from "@/assets/joseph.webp.asset.json";
 import { SiteLayout } from "@/components/site/SiteLayout";
 
 export const Route = createFileRoute("/about")({

@@ -42,7 +42,7 @@ function AboutPage() {
         <div className="grid gap-10 md:grid-cols-[260px_1fr] md:items-start">
           <div>
             <img
-              src={josephImg}
+              src={josephImg.url}
               alt="Joseph Mmwa, medical and health journalist"
               className="w-full rounded-xl border border-border object-cover"
               width={1024}

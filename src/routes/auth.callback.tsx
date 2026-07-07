@@ -84,11 +84,13 @@ function AuthCallback() {
 
         // Step 1: implicit flow — tokens in hash fragment
         if (accessToken && refreshToken) {
+          console.log("[auth/callback] hash tokens found, calling setSession");
           const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           });
           if (!error && data.session) {
+            console.log("[auth/callback] setSession succeeded");
             window.history.replaceState(null, "", window.location.pathname);
             goHomeOrIntended(hashType === "recovery");
             return;
@@ -96,36 +98,40 @@ function AuthCallback() {
           console.error("[auth/callback] setSession failed:", error);
         }
 
-        // Step 2: PKCE code exchange
+        // Step 2: PKCE code exchange — pass only the code string, not the full URL
         if (code) {
-          const { data, error } = await supabase.auth.exchangeCodeForSession(
-            window.location.href,
-          );
+          console.log("[auth/callback] code found, calling exchangeCodeForSession");
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
           if (!error && data.session) {
+            console.log("[auth/callback] exchangeCodeForSession succeeded");
             goHomeOrIntended(queryType === "recovery");
             return;
           }
-          if (error) console.warn("[auth/callback] exchangeCodeForSession:", error.message);
+          if (error) console.warn("[auth/callback] exchangeCodeForSession failed:", error.message);
         }
 
         // Step 3: email verification token
         if (tokenHash && isEmailOtpType(queryType)) {
+          console.log("[auth/callback] token_hash found, calling verifyOtp");
           const { data, error } = await supabase.auth.verifyOtp({
             token_hash: tokenHash,
             type: queryType,
           });
           if (!error && data.session) {
+            console.log("[auth/callback] verifyOtp succeeded");
             goHomeOrIntended(queryType === "recovery");
             return;
           }
-          if (error) console.error("[auth/callback] verifyOtp:", error);
+          if (error) console.error("[auth/callback] verifyOtp failed:", error);
         }
 
-        // Step 4: session may already be set by detectSessionInUrl
+        // Step 4: poll for session set by detectSessionInUrl
+        console.log("[auth/callback] polling for session...");
         for (let i = 0; i < 20; i++) {
           if (cancelled) return;
           const { data } = await supabase.auth.getSession();
           if (data.session) {
+            console.log("[auth/callback] session found on poll attempt", i + 1);
             goHomeOrIntended(hashType === "recovery" || queryType === "recovery");
             return;
           }
@@ -133,9 +139,10 @@ function AuthCallback() {
         }
 
         // Step 5: all methods failed
+        console.error("[auth/callback] all methods exhausted, redirecting to /auth");
         navigate({ to: "/auth", search: { error: "session_failed" } });
       } catch (err) {
-        console.error("[auth/callback] unexpected:", err);
+        console.error("[auth/callback] unexpected error:", err);
         navigate({ to: "/auth", search: { error: "session_failed" } });
       }
     }

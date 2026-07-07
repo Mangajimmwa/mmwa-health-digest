@@ -72,6 +72,8 @@ function createSupabaseClient() {
         autoRefreshToken: true,
 
         detectSessionInUrl: true,
+
+        flowType: 'pkce',
       },
     }
   );

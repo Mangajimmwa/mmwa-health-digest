@@ -48,11 +48,21 @@ export function ArticleEditor({ articleId }: { articleId?: string }) {
   const [saving, setSaving] = useState(false);
   const [slugTouched, setSlugTouched] = useState(!!articleId);
 
+  // 🛡️ Query Protection Fix: Catches RLS database errors to prevent interface crashes
   const { data: categories } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
-      const { data } = await supabase.from("categories").select("id,name").order("name");
-      return data ?? [];
+      try {
+        const { data, error } = await supabase.from("categories").select("id,name").order("name");
+        if (error) {
+          console.warn("Categories query limited by RLS configuration:", error.message);
+          return [];
+        }
+        return data ?? [];
+      } catch (e) {
+        console.error("Failed to safely resolve categories query:", e);
+        return [];
+      }
     },
   });
 
@@ -60,8 +70,17 @@ export function ArticleEditor({ articleId }: { articleId?: string }) {
     queryKey: ["admin", "article", articleId],
     queryFn: async () => {
       if (!articleId) return null;
-      const { data } = await supabase.from("articles").select("*").eq("id", articleId).maybeSingle();
-      return data;
+      try {
+        const { data, error } = await supabase.from("articles").select("*").eq("id", articleId).maybeSingle();
+        if (error) {
+          console.warn("Articles query limited by RLS configuration:", error.message);
+          return null;
+        }
+        return data;
+      } catch (e) {
+        console.error("Failed to safely resolve loaded article query:", e);
+        return null;
+      }
     },
     enabled: !!articleId,
   });
@@ -88,14 +107,12 @@ export function ArticleEditor({ articleId }: { articleId?: string }) {
     }
   }, [loaded]);
 
-  // 🛡️ Crash Protection Fix: Ensures empty text fields never break initialization
   const readTime = useMemo(() => {
     const cleanText = d.body ? stripHtml(d.body) : "";
-    if (!cleanText.trim()) return 1; // Default to 1 minute read for empty drafts
+    if (!cleanText.trim()) return 1;
     try {
       return estimateReadTime(cleanText) || 1;
     } catch (e) {
-      console.warn("Read time calculation skipped:", e);
       return 1;
     }
   }, [d.body]);

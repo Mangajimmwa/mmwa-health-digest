@@ -34,7 +34,7 @@ function ArticlePage() {
           excerpt,
           body,
           featured_image,
-          image_caption,
+          featured_image_caption,
           author,
           published_at,
           read_time_minutes,
@@ -110,14 +110,12 @@ function ArticlePage() {
     });
   }
 
+  // Sharing handlers using dynamic values
   function shareTwitter() {
-    window.open(
-      `https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title)}&url=${encodeURIComponent(articleUrl)}`,
-      "_blank",
-    );
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title)}&url=${encodeURIComponent(articleUrl)}`, "_blank");
   }
 
-  // Fallbacks configured matching your exact setup parameters
+  // Facebook share link integration
   function shareFacebook() {
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(articleUrl)}`, "_blank");
   }
@@ -133,7 +131,7 @@ function ArticlePage() {
 
       <article className="mx-auto max-w-3xl px-4 lg:px-6 py-14">
 
-        {/* Back link */}
+        {/* Back link navigation wrapper element */}
         <Link
           to="/news"
           className="inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-amber-400 mb-8"
@@ -141,7 +139,7 @@ function ArticlePage() {
           <ArrowLeft className="w-4 h-4" /> All stories
         </Link>
 
-        {/* Category */}
+        {/* Category badge rendering element */}
         {category && (
           <Link
             to="/category/$slug"
@@ -152,19 +150,19 @@ function ArticlePage() {
           </Link>
         )}
 
-        {/* Headline */}
+        {/* Headline container component */}
         <h1 className="mt-4 font-display font-black text-3xl sm:text-4xl lg:text-5xl leading-tight text-white">
           {article.title}
         </h1>
 
-        {/* Excerpt / standfirst */}
+        {/* Excerpt panel markup space */}
         {article.excerpt && (
           <p className="mt-5 text-lg text-zinc-300 font-serif leading-relaxed border-l-4 border-amber-500 pl-4 italic">
             {article.excerpt}
           </p>
         )}
 
-        {/* Meta */}
+        {/* Metadata info border lines */}
         <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-zinc-400 border-y border-zinc-800 py-4">
           <span className="font-semibold text-zinc-200">
             By {article.author || "Joseph Mmwa"}
@@ -183,7 +181,7 @@ function ArticlePage() {
           )}
         </div>
 
-        {/* Featured image */}
+        {/* Featured image element container rendering block */}
         {article.featured_image && (
           <figure className="mt-8 -mx-4 lg:-mx-6">
             <img
@@ -193,15 +191,15 @@ function ArticlePage() {
               decoding="async"
               className="w-full aspect-[16/9] object-cover rounded-lg border border-zinc-800"
             />
-            {article.image_caption && (
+            {article.featured_image_caption && (
               <figcaption className="mt-2 px-4 text-xs text-zinc-500 italic font-serif text-center">
-                {article.image_caption}
+                {article.featured_image_caption}
               </figcaption>
             )}
           </figure>
         )}
 
-        {/* Body */}
+        {/* Body content wrapper layout module */}
         <div className="mt-10">
           {article.body ? (
             <ArticleContent html={article.body} />
@@ -212,7 +210,7 @@ function ArticlePage() {
           )}
         </div>
 
-        {/* Share section */}
+        {/* Social distribution media tray container wrapper element */}
         <div className="mt-14 border-t border-zinc-800 pt-8">
           <p className="text-xs font-mono uppercase tracking-wider text-zinc-400 mb-4 flex items-center gap-2">
             <Share2 className="w-4 h-4 text-amber-500" /> Share this story
@@ -245,7 +243,7 @@ function ArticlePage() {
           </div>
         </div>
 
-        {/* Author bio card layout wrapper */}
+        {/* Bio signature layout block widget wrapper element */}
         <div
           className="mt-10 rounded-xl p-6 flex gap-5 items-start"
           style={{
@@ -270,7 +268,7 @@ function ArticlePage() {
         </div>
       </article>
 
-      {/* Related stories section correctly aligned with system props mapping updates */}
+      {/* Linked context column module mapping values updates */}
       {category && (
         <div className="mx-auto max-w-7xl px-4 lg:px-6 pb-20">
           <RelatedStories

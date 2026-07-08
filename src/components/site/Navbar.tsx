@@ -1,7 +1,9 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Menu, X, Mail, Phone, Search } from "lucide-react";
+import { Menu, X, Mail, Phone, Search, LogOut, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -17,8 +19,34 @@ export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [q, setQ] = useState("");
+  const [session, setSession] = useState<any>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
+
+  // Handle Dynamic Auth State Checks
+  useEffect(() => {
+    // Check current active session on load
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    // Listen for auth adjustments globally
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      setSession(currentSession);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  async function handleSignOut() {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error("Error signing out");
+    } else {
+      toast.success("Signed out successfully");
+      navigate({ to: "/" });
+    }
+  }
 
   // Lock body scroll when menu is open
   useEffect(() => {
@@ -85,12 +113,24 @@ export function Navbar() {
             >
               <Search className="w-5 h-5" />
             </button>
-            <Link
-              to="/auth"
-              className="nav-underline text-sm font-medium text-text-body hover:text-foreground"
-            >
-              Sign In
-            </Link>
+
+            {/* Dynamic Session Handling for Desktop */}
+            {session ? (
+              <button
+                onClick={handleSignOut}
+                className="flex items-center gap-1.5 text-sm font-medium text-text-body hover:text-red-400 transition-colors bg-transparent border-0 cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" /> Sign Out
+              </button>
+            ) : (
+              <Link
+                to="/auth"
+                className="nav-underline text-sm font-medium text-text-body hover:text-foreground"
+              >
+                Sign In
+              </Link>
+            )}
+
             <Link
               to="/premium"
               className="btn-glow text-sm font-semibold bg-gold text-primary-foreground px-4 py-2 rounded-md"
@@ -156,7 +196,7 @@ export function Navbar() {
         )}
       </header>
 
-      {/* Mobile full-screen menu — sibling of header so it covers everything */}
+      {/* Mobile full-screen menu */}
       <div
         id="mobile-menu"
         role="dialog"
@@ -203,13 +243,27 @@ export function Navbar() {
                 </Link>
               );
             })}
-            <Link
-              to="/auth"
-              onClick={() => setMenuOpen(false)}
-              className="py-3 text-[18px] font-medium border-b border-gold/10 min-h-[48px] flex items-center text-white hover:text-gold"
-            >
-              Sign In
-            </Link>
+
+            {/* Dynamic Session Handling for Mobile */}
+            {session ? (
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  handleSignOut();
+                }}
+                className="py-3 text-[18px] font-medium border-b border-gold/10 min-h-[48px] flex items-center text-left text-red-400 bg-transparent border-0 cursor-pointer w-full"
+              >
+                Sign Out
+              </button>
+            ) : (
+              <Link
+                to="/auth"
+                onClick={() => setMenuOpen(false)}
+                className="py-3 text-[18px] font-medium border-b border-gold/10 min-h-[48px] flex items-center text-white hover:text-gold"
+              >
+                Sign In
+              </Link>
+            )}
           </nav>
 
           <div className="px-6 pt-2 pb-4">

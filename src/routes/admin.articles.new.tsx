@@ -19,35 +19,21 @@ function NewArticle() {
           return;
         }
       } catch (err) {
-        console.error("Session lookup failure on new article view:", err);
+        console.error("Session lookup failure:", err);
       }
       setIsAuthenticated(false);
     }
     verifySession();
   }, []);
 
-  if (isAuthenticated === null) {
-    return (
-      <div className="p-8 text-sm text-text-mute animate-pulse font-sans">
-        Loading workspace environment...
-      </div>
-    );
-  }
-
-  // If unauthorized, show a safe internal warning rather than throwing a script crash
-  if (isAuthenticated === false) {
-    return (
-      <div className="p-8 text-sm text-destructive font-sans">
-        Access Denied. Please ensure you are logged into your administrator account.
-      </div>
-    );
-  }
+  if (isAuthenticated === null) return <div className="p-8 text-zinc-500">Loading workspace...</div>;
+  if (isAuthenticated === false) return <div className="p-8 text-red-400">Access Denied.</div>;
 
   return (
     <div className="p-6 max-w-7xl mx-auto font-sans">
       <div className="mb-6">
-        <p className="text-xs font-semibold tracking-wider text-gold uppercase font-mono">New Article</p>
-        <h1 className="mt-1 font-display font-bold text-2xl sm:text-3xl text-foreground">Write a story</h1>
+        <p className="text-xs font-semibold tracking-wider text-amber-500 uppercase font-mono">New Article</p>
+        <h1 className="mt-1 font-bold text-2xl sm:text-3xl text-white">Write a story</h1>
       </div>
       <ArticleEditor />
     </div>

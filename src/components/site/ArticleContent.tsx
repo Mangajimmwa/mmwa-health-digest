@@ -3,22 +3,37 @@ import { sanitizeArticleHtml } from "@/lib/utils/sanitize";
 import { NewsletterPrompt } from "./NewsletterPrompt";
 
 /**
- * Renders sanitized article HTML with a newsletter prompt injected
- * automatically after the third top-level <p> block.
+ * Renders sanitized article HTML or raw text with a newsletter prompt injected
+ * automatically after the third top-level block/paragraph.
  */
 export function ArticleContent({ html }: { html: string }) {
-  const { before, after } = useMemo(() => splitAfterThirdParagraph(html), [
-    html,
+  // 🔄 FIX: If the text is raw text with line breaks, convert them to standard paragraph tags first
+  const formattedHtml = useMemo(() => {
+    if (!html) return "";
+    // If it already contains HTML tags, return it as-is
+    if (/<p>|<\/p>|<br\s*\/?>/i.test(html)) return html;
+    
+    // Otherwise, split by line breaks and wrap chunks in proper <p> elements
+    return html
+      .split(/\n\s*\n/)
+      .map(para => para.trim() ? `<p>${para.replace(/\n/g, "<br />")}</p>` : "")
+      .join("");
+  }, [html]);
+
+  const { before, after } = useMemo(() => splitAfterThirdParagraph(formattedHtml), [
+    formattedHtml,
   ]);
 
   return (
-    <div className="prose-article">
+    <div className="prose-article text-zinc-300 font-sans leading-relaxed space-y-4">
       <div
+        className="prose prose-invert max-w-none"
         dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(before) }}
       />
       <NewsletterPrompt />
       {after && (
         <div
+          className="prose prose-invert max-w-none mt-4"
           dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(after) }}
         />
       )}
@@ -30,7 +45,6 @@ function splitAfterThirdParagraph(html: string): {
   before: string;
   after: string;
 } {
-  // find the end of the 3rd </p>
   const re = /<\/p>/gi;
   let match: RegExpExecArray | null;
   let count = 0;

@@ -48,19 +48,14 @@ export function ArticleEditor({ articleId }: { articleId?: string }) {
   const [saving, setSaving] = useState(false);
   const [slugTouched, setSlugTouched] = useState(!!articleId);
 
-  // 🛡️ Query Protection Fix: Catches RLS database errors to prevent interface crashes
   const { data: categories } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
       try {
         const { data, error } = await supabase.from("categories").select("id,name").order("name");
-        if (error) {
-          console.warn("Categories query limited by RLS configuration:", error.message);
-          return [];
-        }
+        if (error) return [];
         return data ?? [];
       } catch (e) {
-        console.error("Failed to safely resolve categories query:", e);
         return [];
       }
     },
@@ -72,13 +67,9 @@ export function ArticleEditor({ articleId }: { articleId?: string }) {
       if (!articleId) return null;
       try {
         const { data, error } = await supabase.from("articles").select("*").eq("id", articleId).maybeSingle();
-        if (error) {
-          console.warn("Articles query limited by RLS configuration:", error.message);
-          return null;
-        }
+        if (error) return null;
         return data;
       } catch (e) {
-        console.error("Failed to safely resolve loaded article query:", e);
         return null;
       }
     },
@@ -133,78 +124,99 @@ export function ArticleEditor({ articleId }: { articleId?: string }) {
     setTagInput("");
   }
   function removeTag(t: string) {
-    update(
-      "tags",
-      d.tags.filter((x) => x !== t),
-    );
+    update("tags", d.tags.filter((x) => x !== t));
   }
 
+  // 📸 Fixed Media Upload Utility Flow
   async function uploadFeatured(f: File) {
     try {
       const ext = f.name.split(".").pop() || "jpg";
       const path = `featured/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error } = await supabase.storage.from("article-media").upload(path, f, {
-        contentType: f.type,
-      });
-      if (error) throw error;
-      const url = `/api/public/media/${path}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from("article-media")
+        .upload(path, f, { contentType: f.type, cacheControl: "3600" });
+        
+      if (uploadError) throw uploadError;
+
+      // 🔗 Extract the correct browser-resolvable public link directly from the CDN
+      const { data: { publicUrl } } = supabase.storage
+        .from("article-media")
+        .getPublicUrl(path);
+
       await supabase.from("media").insert({
         path,
-        url,
+        url: publicUrl,
         filename: f.name,
         mime_type: f.type,
         size_bytes: f.size,
       });
-      update("featured_image", url);
-      toast.success("Featured image uploaded");
-    } catch (err) {
-      console.error(err);
-      toast.error("Upload failed");
+
+      update("featured_image", publicUrl);
+      toast.success("Featured image uploaded successfully!");
+    } catch (err: any) {
+      console.error("Media processing crashed:", err);
+      toast.error(err.message || "Upload failed. Verify storage bucket layout permissions.");
     }
   }
 
+  // 🚀 Fixed Article Publication / Saving Submission pipeline
   async function save(action: "draft" | "publish") {
     if (!d.title.trim()) return toast.error("Add a headline first");
     if (!d.slug.trim()) return toast.error("Slug is required");
+    
     setSaving(true);
+    
     const payload = {
       title: d.title,
       slug: d.slug,
-      excerpt: d.excerpt || null,
+      excerpt: d.excerpt.trim() || null,
       body: d.body,
       category_id: d.category_id,
       tags: d.tags,
       featured_image: d.featured_image,
-      region: d.region,
+      region: d.region ? d.region.trim() : null,
       author: d.author || "Joseph Mmwa",
       is_premium: d.is_premium,
       is_breaking: d.is_breaking,
       read_time_minutes: readTime,
       is_published: action === "publish" ? true : d.is_published,
-      published_at:
-        action === "publish"
-          ? d.published_at ?? new Date().toISOString()
-          : d.published_at,
+      published_at: action === "publish" 
+        ? (d.published_at ?? new Date().toISOString()) 
+        : d.published_at,
     };
+
     let error;
     let newId = d.id;
-    if (d.id) {
-      const r = await supabase.from("articles").update(payload).eq("id", d.id);
-      error = r.error;
-    } else {
-      const r = await supabase.from("articles").insert(payload).select("id").maybeSingle();
-      error = r.error;
-      newId = r.data?.id;
+
+    try {
+      if (d.id) {
+        const r = await supabase.from("articles").update(payload).eq("id", d.id);
+        error = r.error;
+      } else {
+        const r = await supabase.from("articles").insert(payload).select("id").maybeSingle();
+        error = r.error;
+        newId = r.data?.id;
+      }
+    } catch (err: any) {
+      error = err;
     }
+
     setSaving(false);
+
     if (error) {
-      console.error(error);
-      if (error.code === "23505") toast.error("Slug already exists — pick another");
-      else toast.error(error.message);
+      console.error("Publishing layout error state:", error);
+      if (error.code === "23505") {
+        toast.error("Slug already exists — pick another structural URL");
+      } else {
+        toast.error(error.message || "Failed to process database mutation.");
+      }
       return;
     }
-    toast.success(action === "publish" ? "Published" : "Draft saved");
+
+    toast.success(action === "publish" ? "Article Published Live!" : "Draft Saved Securely");
     qc.invalidateQueries({ queryKey: ["admin", "articles"] });
+    
     if (!d.id && newId) {
       navigate({ to: "/admin/articles/$id/edit", params: { id: newId } });
     }
@@ -222,9 +234,9 @@ export function ArticleEditor({ articleId }: { articleId?: string }) {
           value={d.title}
           onChange={(e) => onTitle(e.target.value)}
           placeholder="Headline"
-          className="w-full bg-transparent font-display font-bold text-3xl sm:text-4xl leading-tight focus:outline-none"
+          className="w-full bg-transparent font-display font-bold text-3xl sm:text-4xl leading-tight focus:outline-none text-white placeholder-zinc-600"
         />
-        <div className="mt-3 flex items-center gap-2 text-xs text-text-mute">
+        <div className="mt-3 flex items-center gap-2 text-xs text-zinc-400">
           <span>/news/</span>
           <input
             value={d.slug}
@@ -232,7 +244,7 @@ export function ArticleEditor({ articleId }: { articleId?: string }) {
               setSlugTouched(true);
               update("slug", slugify(e.target.value));
             }}
-            className="flex-1 bg-transparent border-b border-border focus:outline-none focus:border-gold text-gold"
+            className="flex-1 bg-transparent border-b border-zinc-800 focus:outline-none focus:border-amber-500 text-amber-400"
           />
         </div>
 
@@ -242,9 +254,9 @@ export function ArticleEditor({ articleId }: { articleId?: string }) {
             onChange={(e) => update("excerpt", e.target.value.slice(0, 300))}
             placeholder="Excerpt / summary (shown in cards, previews, and search results)"
             rows={2}
-            className="w-full bg-surface-1 border border-border rounded-md p-3 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-gold"
+            className="w-full bg-zinc-900/50 border border-zinc-800 rounded-md p-3 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-amber-500 text-white"
           />
-          <div className="text-xs text-text-mute text-right mt-1">{d.excerpt.length}/300</div>
+          <div className="text-xs text-zinc-500 text-right mt-1">{d.excerpt.length}/300</div>
         </div>
 
         <div className="mt-6">
@@ -259,7 +271,7 @@ export function ArticleEditor({ articleId }: { articleId?: string }) {
               type="button"
               onClick={() => save("draft")}
               disabled={saving}
-              className="inline-flex items-center gap-2 border border-border hover:border-gold text-foreground px-4 py-2 rounded-md text-sm"
+              className="inline-flex items-center gap-2 border border-zinc-800 hover:border-amber-500 text-white px-4 py-2 rounded-md text-sm transition-colors"
             >
               <Save className="w-4 h-4" /> Save draft
             </button>
@@ -267,29 +279,21 @@ export function ArticleEditor({ articleId }: { articleId?: string }) {
               type="button"
               onClick={() => save("publish")}
               disabled={saving}
-              className="btn-glow inline-flex items-center gap-2 bg-gold text-primary-foreground font-semibold px-4 py-2 rounded-md text-sm"
+              className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-black font-semibold px-4 py-2 rounded-md text-sm transition-colors"
             >
               <Send className="w-4 h-4" /> {d.is_published ? "Update" : "Publish"}
             </button>
             <button
               type="button"
               onClick={preview}
-              className="inline-flex items-center gap-2 border border-border text-foreground px-3 py-2 rounded-md text-sm"
+              className="inline-flex items-center gap-2 border border-zinc-800 text-white px-3 py-2 rounded-md text-sm transition-colors"
             >
               <Eye className="w-4 h-4" /> Preview
             </button>
           </div>
-          <div className="mt-4 space-y-2 text-sm">
-            <Toggle
-              label="Premium"
-              checked={d.is_premium}
-              onChange={(v) => update("is_premium", v)}
-            />
-            <Toggle
-              label="Breaking News"
-              checked={d.is_breaking}
-              onChange={(v) => update("is_breaking", v)}
-            />
+          <div className="mt-4 space-y-2 text-sm text-white">
+            <Toggle label="Premium" checked={d.is_premium} onChange={(v) => update("is_premium", v)} />
+            <Toggle label="Breaking News" checked={d.is_breaking} onChange={(v) => update("is_breaking", v)} />
           </div>
           <div className="mt-4">
             <Label>Publish date</Label>
@@ -307,17 +311,17 @@ export function ArticleEditor({ articleId }: { articleId?: string }) {
         <Card title="Featured image">
           {d.featured_image ? (
             <div className="space-y-2">
-              <img src={d.featured_image} alt="" className="w-full rounded-md border border-border" />
+              <img src={d.featured_image} alt="" className="w-full rounded-md border border-zinc-800" />
               <button
                 type="button"
                 onClick={() => update("featured_image", null)}
-                className="text-xs text-destructive hover:underline"
+                className="text-xs text-red-400 hover:underline"
               >
                 Remove
               </button>
             </div>
           ) : (
-            <label className="flex items-center justify-center gap-2 border border-dashed border-border rounded-md py-8 cursor-pointer hover:border-gold text-sm text-text-mute">
+            <label className="flex items-center justify-center gap-2 border border-dashed border-zinc-800 rounded-md py-8 cursor-pointer hover:border-amber-500 text-sm text-zinc-400 transition-colors">
               <ImageIcon className="w-4 h-4" /> Upload image
               <input
                 type="file"
@@ -351,10 +355,10 @@ export function ArticleEditor({ articleId }: { articleId?: string }) {
             {d.tags.map((t) => (
               <span
                 key={t}
-                className="inline-flex items-center gap-1 bg-gold/15 text-gold text-xs px-2 py-0.5 rounded"
+                className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-400 text-xs px-2 py-0.5 rounded border border-amber-500/20"
               >
                 {t}
-                <button type="button" onClick={() => removeTag(t)} className="hover:text-white">
+                <button type="button" onClick={() => removeTag(t)} className="hover:text-white ml-0.5">
                   ×
                 </button>
               </span>
@@ -376,7 +380,7 @@ export function ArticleEditor({ articleId }: { articleId?: string }) {
             <button
               type="button"
               onClick={addTag}
-              className="text-xs border border-border rounded px-3 hover:border-gold"
+              className="text-xs border border-zinc-800 rounded px-3 text-white hover:border-amber-500 transition-colors"
             >
               Add
             </button>
@@ -393,11 +397,7 @@ export function ArticleEditor({ articleId }: { articleId?: string }) {
         </Card>
 
         <Card title="Author">
-          <input
-            value={d.author}
-            onChange={(e) => update("author", e.target.value)}
-            className={fieldCls}
-          />
+          <input value={d.author} onChange={(e) => update("author", e.target.value)} className={fieldCls} />
         </Card>
       </aside>
     </div>
@@ -406,41 +406,31 @@ export function ArticleEditor({ articleId }: { articleId?: string }) {
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
-      <p className="label-eyebrow !mt-0">{title}</p>
+    <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-4">
+      <p className="text-xs font-semibold uppercase tracking-wider text-amber-500 font-mono">{title}</p>
       <div className="mt-3">{children}</div>
     </div>
   );
 }
-function Label({ children }: { children: React.ReactNode }) {
-  return <p className="text-xs text-text-mute mb-1">{children}</p>;
-}
-const fieldCls =
-  "w-full bg-surface-1 border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold";
 
-function Toggle({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) {
+function Label({ children }: { children: React.ReactNode }) {
+  return <p className="text-xs text-zinc-400 mb-1">{children}</p>;
+}
+
+const fieldCls =
+  "w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder-zinc-600";
+
+function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <label className="flex items-center justify-between gap-3 cursor-pointer">
-      <span>{label}</span>
+    <label className="flex items-center justify-between gap-3 cursor-pointer select-none">
+      <span className="text-sm font-medium">{label}</span>
       <button
         type="button"
         onClick={() => onChange(!checked)}
-        className={`relative w-10 h-6 rounded-full transition-colors ${
-          checked ? "bg-gold" : "bg-surface-2"
-        }`}
+        className={`relative w-10 h-6 rounded-full transition-colors ${checked ? "bg-amber-500" : "bg-zinc-800"}`}
       >
         <span
-          className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-            checked ? "translate-x-4" : ""
-          }`}
+          className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${checked ? "translate-x-4" : ""}`}
         />
       </button>
     </label>
@@ -451,10 +441,9 @@ function stripHtml(html: string) {
   if (!html) return "";
   return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
+
 function toLocalInput(iso: string) {
   const d = new Date(iso);
   const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
-    d.getHours(),
-  )}:${pad(d.getMinutes())}`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }

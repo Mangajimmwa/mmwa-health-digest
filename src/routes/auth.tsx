@@ -64,10 +64,11 @@ function friendlyCallbackError(code?: string): string | null {
   }
 }
 
-// Always use the non-www canonical domain for OAuth redirects.
-// This must exactly match one of the URLs listed in:
-// Supabase → Authentication → URL Configuration → Redirect URLs
-const CALLBACK_URL = "https://josephmmwa.com/auth/callback";
+// Dynamically matches whatever domain you are currently browsing on.
+// This prevents cross-domain session drops between Vercel and production.
+const CALLBACK_URL = typeof window !== "undefined" 
+  ? `${window.location.origin}/auth/callback` 
+  : "https://josephmmwa.com/auth/callback";
 
 function AuthPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");

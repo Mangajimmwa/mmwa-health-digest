@@ -64,12 +64,6 @@ function friendlyCallbackError(code?: string): string | null {
   }
 }
 
-// Dynamically matches whatever domain you are currently browsing on.
-// This prevents cross-domain session drops between Vercel and production.
-const CALLBACK_URL = typeof window !== "undefined" 
-  ? `${window.location.origin}/auth/callback` 
-  : "https://josephmmwa.com/auth/callback";
-
 function AuthPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
@@ -91,10 +85,17 @@ function AuthPage() {
     if (msg) toast.error(msg);
   }, [search.error]);
 
-  // Clear messages when user types
   function clearMessages() {
     setFormError(null);
     setFormSuccess(null);
+  }
+
+  // Returns the correct fallback depending on current origin context
+  function getCallbackURL() {
+    if (typeof window !== "undefined") {
+      return `${window.location.origin}/auth/callback`;
+    }
+    return "https://josephmmwa.com/auth/callback";
   }
 
   async function submit(e: React.FormEvent) {
@@ -114,7 +115,7 @@ function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: CALLBACK_URL,
+            emailRedirectTo: getCallbackURL(),
             data: { full_name: fullName },
           },
         });
@@ -158,7 +159,7 @@ function AuthPage() {
       const { error } = await supabase.auth.resend({
         type: "signup",
         email: awaitingConfirm,
-        options: { emailRedirectTo: CALLBACK_URL },
+        options: { emailRedirectTo: getCallbackURL() },
       });
       if (error) throw error;
       setFormSuccess("Confirmation email resent. Check your inbox.");
@@ -175,7 +176,7 @@ function AuthPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: CALLBACK_URL,
+          redirectTo: getCallbackURL(),
           queryParams: {
             access_type: "offline",
             prompt: "consent",

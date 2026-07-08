@@ -44,15 +44,26 @@ function AdminLayout() {
     );
   }
 
-  // If you match the master admin email, render the layout instantly
+  // If you match the master admin email, render the sub-pages instantly
   if (isAdmin === true) {
-    return <Outlet />;
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        {/* If your layout has a sidebar element or navbar wrapper around the admin view, it goes right here */}
+        <main className="w-full h-full">
+          <Outlet />
+        </main>
+      </div>
+    );
   }
 
   // Fallback protection for any non-admin users
   return (
     <AdminGate>
-      <Outlet />
+      <div className="min-h-screen bg-background text-foreground">
+        <main className="w-full h-full">
+          <Outlet />
+        </main>
+      </div>
     </AdminGate>
   );
 }

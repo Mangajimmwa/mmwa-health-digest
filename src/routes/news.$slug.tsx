@@ -39,7 +39,12 @@ function ArticlePage() {
     queryKey: ["article", slug],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase
+      // 🕵️‍♂️ 1. Verify user role profile details on the fly
+      const { data: session } = await supabase.auth.getUser();
+      const isAdmin = session?.user?.email === "mmwajoseph@gmail.com";
+
+      // 🔄 2. Construct our dynamic database record query string using case-insensitive matching
+      let articleQuery = supabase
         .from("articles")
         .select(
           `
@@ -61,9 +66,14 @@ function ArticlePage() {
           categories(id, name, slug)
         `,
         )
-        .eq("slug", slug)
-        .eq("is_published", true)
-        .maybeSingle();
+        .ilike("slug", slug.toLowerCase());
+
+      // 🛡️ 3. DYNAMIC GATE: If you aren't the editor, hide draft articles cleanly
+      if (!isAdmin) {
+        articleQuery = articleQuery.eq("is_published", true);
+      }
+
+      const { data, error } = await articleQuery.maybeSingle();
 
       if (error) {
         console.error("[ArticlePage] Supabase error:", JSON.stringify(error));
@@ -100,7 +110,7 @@ function ArticlePage() {
               Story not found
             </h1>
             <p className="mt-3 text-text-body font-serif">
-              This article may have been removed or the link may be incorrect.
+              This article may have been removed, is set to draft mode, or the link may be incorrect.
             </p>
             <Link
               to="/news"
@@ -166,6 +176,7 @@ function ArticlePage() {
     );
   }
 
+  // Distribution payload configurations matching your sharing handler methods
   function shareWhatsApp() {
     window.open(
       `https://wa.me/?text=${encodeURIComponent(
@@ -181,6 +192,14 @@ function ArticlePage() {
       <ReadingProgress />
 
       <article className="mx-auto max-w-3xl px-4 lg:px-6 py-14">
+        
+        {/* Dynamic Admin Notification Header Tag Elements */}
+        {!article.is_published && (
+          <div className="mb-6 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-md text-xs font-mono font-bold uppercase text-center tracking-wide">
+            ⚠️ Workspace Mode: Previewing Unpublished Draft
+          </div>
+        )}
+
         {/* Back link */}
         <Link
           to="/news"

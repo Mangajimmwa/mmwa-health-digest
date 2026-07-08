@@ -60,20 +60,16 @@ function createSupabaseClient() {
       global: {
         fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
       },
-
       auth: {
         storage:
           typeof window !== 'undefined'
             ? localStorage
             : undefined,
-
         persistSession: true,
-
         autoRefreshToken: true,
-
         detectSessionInUrl: true,
-
-        flowType: 'pkce',
+        // Do not force flowType — let Supabase handle both
+        // implicit (hash tokens) and PKCE (code param) automatically
       },
     }
   );
@@ -88,7 +84,6 @@ export const supabase = new Proxy(
       if (!_supabase) {
         _supabase = createSupabaseClient();
       }
-
       return Reflect.get(_supabase, prop, receiver);
     },
   }

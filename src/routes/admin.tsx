@@ -1,69 +1,55 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { AdminGate } from "@/components/admin/AdminLayout";
+import { createFileRoute } from "@tanstack/react-router";
+import { ArticleEditor } from "@/components/admin/ArticleEditor";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/admin")({
-  head: () => ({
-    meta: [
-      { title: "Admin — JOSEPH MMWA" },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
-  }),
-  component: AdminLayout,
+export const Route = createFileRoute("/admin/articles/new")({
+  component: NewArticle,
 });
 
-function AdminLayout() {
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+function NewArticle() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    async function checkAdminAccess() {
+    async function verifySession() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        
-        // 👑 Master Admin Email Override
         if (user && user.email === "mmwajoseph@gmail.com") {
-          setIsAdmin(true);
+          setIsAuthenticated(true);
           return;
         }
       } catch (err) {
-        console.error("Error checking admin status:", err);
+        console.error("Session lookup failure on new article view:", err);
       }
-      setIsAdmin(false);
+      setIsAuthenticated(false);
     }
-    
-    checkAdminAccess();
+    verifySession();
   }, []);
 
-  // Show a clean loading state while your credentials verify
-  if (isAdmin === null) {
+  if (isAuthenticated === null) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground font-sans">
-        Verifying admin access...
+      <div className="p-8 text-sm text-text-mute animate-pulse font-sans">
+        Loading workspace environment...
       </div>
     );
   }
 
-  // If you match the master admin email, render the sub-pages instantly
-  if (isAdmin === true) {
+  // If unauthorized, show a safe internal warning rather than throwing a script crash
+  if (isAuthenticated === false) {
     return (
-      <div className="min-h-screen bg-background text-foreground">
-        {/* If your layout has a sidebar element or navbar wrapper around the admin view, it goes right here */}
-        <main className="w-full h-full">
-          <Outlet />
-        </main>
+      <div className="p-8 text-sm text-destructive font-sans">
+        Access Denied. Please ensure you are logged into your administrator account.
       </div>
     );
   }
 
-  // Fallback protection for any non-admin users
   return (
-    <AdminGate>
-      <div className="min-h-screen bg-background text-foreground">
-        <main className="w-full h-full">
-          <Outlet />
-        </main>
+    <div className="p-6 max-w-7xl mx-auto font-sans">
+      <div className="mb-6">
+        <p className="text-xs font-semibold tracking-wider text-gold uppercase font-mono">New Article</p>
+        <h1 className="mt-1 font-display font-bold text-2xl sm:text-3xl text-foreground">Write a story</h1>
       </div>
-    </AdminGate>
+      <ArticleEditor />
+    </div>
   );
 }

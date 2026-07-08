@@ -1,449 +1,296 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { slugify, estimateReadTime } from "@/lib/utils/slug";
-import { RichTextEditor } from "@/components/site/RichTextEditor";
-import { Image as ImageIcon, Save, Send, Eye } from "lucide-react";
+import { Image, Loader2, Save } from "lucide-react";
 
-interface Draft {
-  id?: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  body: string;
-  category_id: string | null;
-  tags: string[];
-  featured_image: string | null;
-  region: string | null;
-  author: string;
-  is_premium: boolean;
-  is_breaking: boolean;
-  is_published: boolean;
-  published_at: string | null;
+interface ArticleEditorProps {
+  articleId?: string; // Passed automatically when editing an article
 }
 
-const EMPTY: Draft = {
-  title: "",
-  slug: "",
-  excerpt: "",
-  body: "",
-  category_id: null,
-  tags: [],
-  featured_image: null,
-  region: null,
-  author: "Joseph Mmwa",
-  is_premium: false,
-  is_breaking: false,
-  is_published: false,
-  published_at: null,
-};
-
-export function ArticleEditor({ articleId }: { articleId?: string }) {
-  const navigate = useNavigate();
-  const qc = useQueryClient();
-  const [d, setD] = useState<Draft>(EMPTY);
-  const [tagInput, setTagInput] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [slugTouched, setSlugTouched] = useState(!!articleId);
-
-  const { data: categories } = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase.from("categories").select("id,name").order("name");
-        if (error) return [];
-        return data ?? [];
-      } catch (e) {
-        return [];
-      }
-    },
+export function ArticleEditor({ articleId }: ArticleEditorProps) {
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    title: "",
+    slug: "",
+    excerpt: "",
+    content: "",
+    featured_image: "",
+    is_published: false,
+    category_id: ""
   });
 
-  const { data: loaded } = useQuery({
-    queryKey: ["admin", "article", articleId],
-    queryFn: async () => {
-      if (!articleId) return null;
-      try {
-        const { data, error } = await supabase.from("articles").select("*").eq("id", articleId).maybeSingle();
-        if (error) return null;
-        return data;
-      } catch (e) {
-        return null;
-      }
-    },
-    enabled: !!articleId,
-  });
+  const [categories, setCategories] = useState<any[]>([]);
 
+  // 1. Fetch categories and existing article data if editingId is present
   useEffect(() => {
-    if (loaded) {
-      setD({
-        id: loaded.id,
-        title: loaded.title ?? "",
-        slug: loaded.slug ?? "",
-        excerpt: loaded.excerpt ?? "",
-        body: loaded.body ?? "",
-        category_id: loaded.category_id,
-        tags: loaded.tags ?? [],
-        featured_image: loaded.featured_image,
-        region: (loaded as { region?: string | null }).region ?? null,
-        author: loaded.author ?? "Joseph Mmwa",
-        is_premium: loaded.is_premium,
-        is_breaking: loaded.is_breaking,
-        is_published: loaded.is_published,
-        published_at: loaded.published_at,
-      });
-      setSlugTouched(true);
+    async function loadEditorBasics() {
+      setFetching(true);
+      try {
+        // Fetch Categories
+        const { data: cats } = await supabase.from("categories").select("id, name");
+        if (cats) setCategories(cats);
+
+        // If we are editing an existing article, pull its current data
+        if (articleId) {
+          const { data: art, error } = await supabase
+            .from("articles")
+            .select("*")
+            .eq("id", articleId)
+            .single();
+
+          if (error) throw error;
+          if (art) {
+            setFormData({
+              title: art.title || "",
+              slug: art.slug || "",
+              excerpt: art.excerpt || "",
+              content: art.content || "",
+              featured_image: art.featured_image || "",
+              is_published: art.is_published || false,
+              category_id: art.category_id || ""
+            });
+          }
+        }
+      } catch (err: any) {
+        console.error("Error loading editor data:", err);
+        toast.error("Failed to load article details.");
+      } finally {
+        setFetching(false);
+      }
     }
-  }, [loaded]);
+    loadEditorBasics();
+  }, [articleId]);
 
-  const readTime = useMemo(() => {
-    const cleanText = d.body ? stripHtml(d.body) : "";
-    if (!cleanText.trim()) return 1;
+  // Helper to sync form state updates
+  const updateField = (field: string, value: any) => {
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: value };
+      // Auto-generate clean slug from title if user is typing headline
+      if (field === "title" && !articleId) {
+        updated.slug = value
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, "")
+          .replace(/\s+/g, "-");
+      }
+      return updated;
+    });
+  };
+
+  // 2. Repaired Direct Image Upload Function (Bypasses the buggy media table)
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
     try {
-      return estimateReadTime(cleanText) || 1;
-    } catch (e) {
-      return 1;
-    }
-  }, [d.body]);
-
-  function update<K extends keyof Draft>(k: K, v: Draft[K]) {
-    setD((prev) => ({ ...prev, [k]: v }));
-  }
-
-  function onTitle(v: string) {
-    update("title", v);
-    if (!slugTouched) update("slug", slugify(v));
-  }
-
-  function addTag() {
-    const t = tagInput.trim();
-    if (!t) return;
-    if (!d.tags.includes(t)) update("tags", [...d.tags, t]);
-    setTagInput("");
-  }
-  function removeTag(t: string) {
-    update("tags", d.tags.filter((x) => x !== t));
-  }
-
-  // 📸 Fixed Media Upload Utility Flow
-  async function uploadFeatured(f: File) {
-    try {
-      const ext = f.name.split(".").pop() || "jpg";
-      const path = `featured/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const fileExt = file.name.split(".").pop() || "jpg";
+      const fileName = `featured/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
       
+      // Upload binary straight to public bucket storage
       const { error: uploadError } = await supabase.storage
         .from("article-media")
-        .upload(path, f, { contentType: f.type, cacheControl: "3600" });
-        
+        .upload(fileName, file, { 
+          contentType: file.type,
+          cacheControl: "3600" 
+        });
+
       if (uploadError) throw uploadError;
 
-      // 🔗 Extract the correct browser-resolvable public link directly from the CDN
+      // Request direct secure public URL link asset
       const { data: { publicUrl } } = supabase.storage
         .from("article-media")
-        .getPublicUrl(path);
+        .getPublicUrl(fileName);
 
-      await supabase.from("media").insert({
-        path,
-        url: publicUrl,
-        filename: f.name,
-        mime_type: f.type,
-        size_bytes: f.size,
-      });
-
-      update("featured_image", publicUrl);
-      toast.success("Featured image uploaded successfully!");
+      updateField("featured_image", publicUrl);
+      toast.success("Image uploaded successfully and ready!");
     } catch (err: any) {
-      console.error("Media processing crashed:", err);
-      toast.error(err.message || "Upload failed. Verify storage bucket layout permissions.");
+      console.error("Storage upload crash caught:", err);
+      toast.error(err.message || "Upload failed. Verify storage bucket settings.");
+    } finally {
+      setUploading(false);
     }
   }
 
-  // 🚀 Fixed Article Publication / Saving Submission pipeline
-  async function save(action: "draft" | "publish") {
-    if (!d.title.trim()) return toast.error("Add a headline first");
-    if (!d.slug.trim()) return toast.error("Slug is required");
-    
-    setSaving(true);
-    
-    const payload = {
-      title: d.title,
-      slug: d.slug,
-      excerpt: d.excerpt.trim() || null,
-      body: d.body,
-      category_id: d.category_id,
-      tags: d.tags,
-      featured_image: d.featured_image,
-      region: d.region ? d.region.trim() : null,
-      author: d.author || "Joseph Mmwa",
-      is_premium: d.is_premium,
-      is_breaking: d.is_breaking,
-      read_time_minutes: readTime,
-      is_published: action === "publish" ? true : d.is_published,
-      published_at: action === "publish" 
-        ? (d.published_at ?? new Date().toISOString()) 
-        : d.published_at,
-    };
+  // 3. Save / Update Article Content Function
+  async function handlePublish(e: React.FormEvent) {
+    e.preventDefault();
+    if (!formData.title || !formData.slug) {
+      return toast.error("Please fill out the headline title field.");
+    }
 
-    let error;
-    let newId = d.id;
-
+    setLoading(true);
     try {
-      if (d.id) {
-        const r = await supabase.from("articles").update(payload).eq("id", d.id);
-        error = r.error;
+      if (articleId) {
+        // UPDATE existing article record
+        const { error } = await supabase
+          .from("articles")
+          .update({
+            title: formData.title,
+            slug: formData.slug,
+            excerpt: formData.excerpt,
+            content: formData.content,
+            featured_image: formData.featured_image,
+            is_published: formData.is_published,
+            category_id: formData.category_id || null,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", articleId);
+
+        if (error) throw error;
+        toast.success("Article updated smoothly!");
       } else {
-        const r = await supabase.from("articles").insert(payload).select("id").maybeSingle();
-        error = r.error;
-        newId = r.data?.id;
+        // INSERT brand new article entry
+        const { error } = await supabase
+          .from("articles")
+          .insert([
+            {
+              title: formData.title,
+              slug: formData.slug,
+              excerpt: formData.excerpt,
+              content: formData.content,
+              featured_image: formData.featured_image,
+              is_published: formData.is_published,
+              category_id: formData.category_id || null
+            }
+          ]);
+
+        if (error) throw error;
+        toast.success("Article published and live!");
+        
+        // Reset form if it's a new post creation
+        setFormData({
+          title: "",
+          slug: "",
+          excerpt: "",
+          content: "",
+          featured_image: "",
+          is_published: false,
+          category_id: ""
+        });
       }
     } catch (err: any) {
-      error = err;
-    }
-
-    setSaving(false);
-
-    if (error) {
-      console.error("Publishing layout error state:", error);
-      if (error.code === "23505") {
-        toast.error("Slug already exists — pick another structural URL");
-      } else {
-        toast.error(error.message || "Failed to process database mutation.");
-      }
-      return;
-    }
-
-    toast.success(action === "publish" ? "Article Published Live!" : "Draft Saved Securely");
-    qc.invalidateQueries({ queryKey: ["admin", "articles"] });
-    
-    if (!d.id && newId) {
-      navigate({ to: "/admin/articles/$id/edit", params: { id: newId } });
+      console.error("Database submission error:", err);
+      toast.error(err.message || "Failed to submit story payload data.");
+    } finally {
+      setLoading(false);
     }
   }
 
-  function preview() {
-    if (!d.slug) return toast.error("Save the article first");
-    window.open(`/news/${d.slug}?preview=1`, "_blank");
+  if (fetching) {
+    return (
+      <div className="p-12 text-center text-sm text-zinc-500 animate-pulse font-mono">
+        Retrieving workspace component parameters...
+      </div>
+    );
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-      <div>
+    <form onSubmit={handlePublish} className="space-y-6 max-w-4xl bg-zinc-900/40 p-6 rounded-lg border border-zinc-800">
+      
+      {/* Title & Slug Generation Layout */}
+      <div className="space-y-2">
+        <label className="text-xs font-mono text-zinc-400 uppercase tracking-wider">Headline Title</label>
         <input
-          value={d.title}
-          onChange={(e) => onTitle(e.target.value)}
-          placeholder="Headline"
-          className="w-full bg-transparent font-display font-bold text-3xl sm:text-4xl leading-tight focus:outline-none text-white placeholder-zinc-600"
+          type="text"
+          value={formData.title}
+          onChange={(e) => updateField("title", e.target.value)}
+          placeholder="Enter article breaking title..."
+          className="w-full bg-zinc-950 border border-zinc-800 rounded px-4 py-2.5 text-white focus:outline-none focus:border-amber-500 text-lg font-medium"
         />
-        <div className="mt-3 flex items-center gap-2 text-xs text-zinc-400">
-          <span>/news/</span>
-          <input
-            value={d.slug}
-            onChange={(e) => {
-              setSlugTouched(true);
-              update("slug", slugify(e.target.value));
-            }}
-            className="flex-1 bg-transparent border-b border-zinc-800 focus:outline-none focus:border-amber-500 text-amber-400"
-          />
-        </div>
-
-        <div className="mt-4">
-          <textarea
-            value={d.excerpt}
-            onChange={(e) => update("excerpt", e.target.value.slice(0, 300))}
-            placeholder="Excerpt / summary (shown in cards, previews, and search results)"
-            rows={2}
-            className="w-full bg-zinc-900/50 border border-zinc-800 rounded-md p-3 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-amber-500 text-white"
-          />
-          <div className="text-xs text-zinc-500 text-right mt-1">{d.excerpt.length}/300</div>
-        </div>
-
-        <div className="mt-6">
-          <RichTextEditor value={d.body} onChange={(html) => update("body", html)} />
-        </div>
+        <p className="text-xs text-zinc-500 font-mono mt-1">
+          Target URL: <span className="text-amber-500/80">/news/{formData.slug || "your-headline-slug"}</span>
+        </p>
       </div>
 
-      <aside className="space-y-6">
-        <Card title="Publishing">
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => save("draft")}
-              disabled={saving}
-              className="inline-flex items-center gap-2 border border-zinc-800 hover:border-amber-500 text-white px-4 py-2 rounded-md text-sm transition-colors"
-            >
-              <Save className="w-4 h-4" /> Save draft
-            </button>
-            <button
-              type="button"
-              onClick={() => save("publish")}
-              disabled={saving}
-              className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-black font-semibold px-4 py-2 rounded-md text-sm transition-colors"
-            >
-              <Send className="w-4 h-4" /> {d.is_published ? "Update" : "Publish"}
-            </button>
-            <button
-              type="button"
-              onClick={preview}
-              className="inline-flex items-center gap-2 border border-zinc-800 text-white px-3 py-2 rounded-md text-sm transition-colors"
-            >
-              <Eye className="w-4 h-4" /> Preview
-            </button>
-          </div>
-          <div className="mt-4 space-y-2 text-sm text-white">
-            <Toggle label="Premium" checked={d.is_premium} onChange={(v) => update("is_premium", v)} />
-            <Toggle label="Breaking News" checked={d.is_breaking} onChange={(v) => update("is_breaking", v)} />
-          </div>
-          <div className="mt-4">
-            <Label>Publish date</Label>
-            <input
-              type="datetime-local"
-              value={d.published_at ? toLocalInput(d.published_at) : ""}
-              onChange={(e) =>
-                update("published_at", e.target.value ? new Date(e.target.value).toISOString() : null)
-              }
-              className={fieldCls}
-            />
-          </div>
-        </Card>
-
-        <Card title="Featured image">
-          {d.featured_image ? (
-            <div className="space-y-2">
-              <img src={d.featured_image} alt="" className="w-full rounded-md border border-zinc-800" />
-              <button
-                type="button"
-                onClick={() => update("featured_image", null)}
-                className="text-xs text-red-400 hover:underline"
-              >
-                Remove
-              </button>
-            </div>
-          ) : (
-            <label className="flex items-center justify-center gap-2 border border-dashed border-zinc-800 rounded-md py-8 cursor-pointer hover:border-amber-500 text-sm text-zinc-400 transition-colors">
-              <ImageIcon className="w-4 h-4" /> Upload image
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) void uploadFeatured(f);
-                  e.target.value = "";
-                }}
-              />
-            </label>
-          )}
-        </Card>
-
-        <Card title="Category">
+      {/* Category Dropdown & Toggle Switch */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-xs font-mono text-zinc-400 uppercase tracking-wider">Category Sector</label>
           <select
-            value={d.category_id ?? ""}
-            onChange={(e) => update("category_id", e.target.value || null)}
-            className={fieldCls}
+            value={formData.category_id}
+            onChange={(e) => updateField("category_id", e.target.value)}
+            className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500"
           >
-            <option value="">— Choose —</option>
-            {(categories ?? []).map((c) => (
+            <option value="">Uncategorized General News</option>
+            {categories.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
-        </Card>
+        </div>
 
-        <Card title="Tags">
-          <div className="flex flex-wrap gap-1.5 mb-2">
-            {d.tags.map((t) => (
-              <span
-                key={t}
-                className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-400 text-xs px-2 py-0.5 rounded border border-amber-500/20"
-              >
-                {t}
-                <button type="button" onClick={() => removeTag(t)} className="hover:text-white ml-0.5">
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <input
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addTag();
-                }
-              }}
-              placeholder="Add tag + Enter"
-              className={fieldCls}
-            />
-            <button
-              type="button"
-              onClick={addTag}
-              className="text-xs border border-zinc-800 rounded px-3 text-white hover:border-amber-500 transition-colors"
-            >
-              Add
-            </button>
-          </div>
-        </Card>
-
-        <Card title="Region / Location">
+        <div className="flex items-center justify-between p-3 bg-zinc-950 border border-zinc-800 rounded-md mt-6">
+          <span className="text-sm font-medium text-zinc-300">Publish immediately to live feeds</span>
           <input
-            value={d.region ?? ""}
-            onChange={(e) => update("region", e.target.value || null)}
-            placeholder="e.g. East Africa, Kenya, Global"
-            className={fieldCls}
+            type="checkbox"
+            checked={formData.is_published}
+            onChange={(e) => updateField("is_published", e.target.checked)}
+            className="w-4 h-4 accent-amber-500 cursor-pointer"
           />
-        </Card>
+        </div>
+      </div>
 
-        <Card title="Author">
-          <input value={d.author} onChange={(e) => update("author", e.target.value)} className={fieldCls} />
-        </Card>
-      </aside>
-    </div>
-  );
-}
-
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-4">
-      <p className="text-xs font-semibold uppercase tracking-wider text-amber-500 font-mono">{title}</p>
-      <div className="mt-3">{children}</div>
-    </div>
-  );
-}
-
-function Label({ children }: { children: React.ReactNode }) {
-  return <p className="text-xs text-zinc-400 mb-1">{children}</p>;
-}
-
-const fieldCls =
-  "w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder-zinc-600";
-
-function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <label className="flex items-center justify-between gap-3 cursor-pointer select-none">
-      <span className="text-sm font-medium">{label}</span>
-      <button
-        type="button"
-        onClick={() => onChange(!checked)}
-        className={`relative w-10 h-6 rounded-full transition-colors ${checked ? "bg-amber-500" : "bg-zinc-800"}`}
-      >
-        <span
-          className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${checked ? "translate-x-4" : ""}`}
+      {/* Excerpt Summary Layout */}
+      <div className="space-y-2">
+        <label className="text-xs font-mono text-zinc-400 uppercase tracking-wider">Excerpt Summary</label>
+        <textarea
+          value={formData.excerpt}
+          onChange={(e) => updateField("excerpt", e.target.value)}
+          placeholder="Write a brief single-sentence summary description..."
+          rows={2}
+          className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500"
         />
+      </div>
+
+      {/* Featured Media Image Upload Area */}
+      <div className="space-y-2">
+        <label className="text-xs font-mono text-zinc-400 uppercase tracking-wider">Featured Cover Image</label>
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center p-4 bg-zinc-950 border border-zinc-800 rounded-lg">
+          <label className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded text-xs font-medium cursor-pointer flex items-center gap-2 transition-colors shrink-0">
+            {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" /> : <Image className="w-3.5 h-3.5" />}
+            {uploading ? "Processing Asset..." : "Choose Image file"}
+            <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading} className="hidden" />
+          </label>
+          
+          <input
+            type="text"
+            value={formData.featured_image}
+            onChange={(e) => updateField("featured_image", e.target.value)}
+            placeholder="Or paste an absolute graphic image asset URL directly..."
+            className="w-full bg-zinc-900 border border-zinc-800 rounded px-3 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-amber-500"
+          />
+        </div>
+        {formData.featured_image && (
+          <div className="mt-2 relative rounded overflow-hidden border border-zinc-800 w-48 h-28 bg-zinc-950">
+            <img src={formData.featured_image} alt="Preview" className="w-full h-full object-cover" />
+          </div>
+        )}
+      </div>
+
+      {/* Main Core Body Context Space */}
+      <div className="space-y-2">
+        <label className="text-xs font-mono text-zinc-400 uppercase tracking-wider">Article Content Body Script</label>
+        <textarea
+          value={formData.content}
+          onChange={(e) => updateField("content", e.target.value)}
+          placeholder="Draft the core story payload context script markup right here..."
+          rows={12}
+          className="w-full bg-zinc-950 border border-zinc-800 rounded px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500 font-sans leading-relaxed"
+        />
+      </div>
+
+      {/* Form Submission Button Layout */}
+      <button
+        type="submit"
+        disabled={loading || uploading}
+        className="w-full md:w-auto px-6 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:bg-zinc-800 text-black font-semibold text-sm rounded transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md"
+      >
+        {loading ? <Loader2 className="w-4 h-4 animate-spin text-black" /> : <Save className="w-4 h-4" />}
+        {loading ? "Processing News Database Entry..." : articleId ? "Save Story Updates" : "Publish Story Live"}
       </button>
-    </label>
+
+    </form>
   );
-}
-
-function stripHtml(html: string) {
-  if (!html) return "";
-  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-}
-
-function toLocalInput(iso: string) {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }

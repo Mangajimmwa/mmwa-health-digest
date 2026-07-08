@@ -1,227 +1,286 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Clock, User, MapPin, Share2, Twitter, Facebook, Linkedin, Link as LinkIcon, AlertCircle } from "lucide-react";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { Clock, ArrowLeft, Share2, Copy, Facebook, Twitter, Linkedin } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
+import { supabase } from "@/integrations/supabase/client";
 import { ArticleContent } from "@/components/site/ArticleContent";
 import { RelatedStories } from "@/components/site/RelatedStories";
 import { ReadingProgress } from "@/components/site/ReadingProgress";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createFileRoute("/news/$slug")({
-  // The loader now just passes down the slug parameter safely to prevent client-side initialization panic loops
-  loader: ({ params }) => ({ slug: params.slug }),
+  head: ({ params }) => ({
+    meta: [
+      { title: `${params.slug.replace(/-/g, " ")} — JOSEPH MMWA` },
+    ],
+  }),
   component: ArticlePage,
 });
 
 function ArticlePage() {
-  const { slug } = Route.useLoaderData();
-  const [article, setArticle] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [category, setCategory] = useState<{ name: string; slug: string } | null>(null);
+  const { slug } = Route.useParams();
 
-  useEffect(() => {
-    async function initializePageData() {
-      try {
-        // 1. Check if viewer is the master admin
-        const { data: session } = await supabase.auth.getUser();
-        if (session?.user && session.user.email === "mmwajoseph@gmail.com") {
-          setIsAdmin(true);
-        } else {
-          setIsAdmin(false);
-        }
+  const { data: article, isLoading, isError } = useQuery({
+    queryKey: ["article", slug],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("articles")
+        .select(`
+          id,
+          title,
+          slug,
+          excerpt,
+          body,
+          featured_image,
+          image_caption,
+          author,
+          published_at,
+          read_time_minutes,
+          is_premium,
+          category_id,
+          categories(id, name, slug)
+        `)
+        .eq("slug", slug)
+        .eq("is_published", true)
+        .maybeSingle();
 
-        // 2. Fetch the article based on your exact column schema keys
-        const { data: art, error } = await supabase
-          .from("articles")
-          .select("id,title,slug,excerpt,body,featured_image,author,region,tags,category_id,is_premium,is_published,read_time_minutes,published_at,updated_at")
-          .eq("slug", slug)
-          .maybeSingle();
-
-        if (error) throw error;
-        
-        if (art) {
-          setArticle(art);
-          
-          // 3. Fetch category details inline if present
-          if (art.category_id) {
-            const { data: cat } = await supabase
-              .from("categories")
-              .select("name, slug")
-              .eq("id", art.category_id)
-              .maybeSingle();
-            if (cat) setCategory(cat);
-          }
-
-          // 4. Log view counts seamlessly
-          const viewKey = `viewed:${art.id}`;
-          if (!sessionStorage.getItem(viewKey)) {
-            sessionStorage.setItem(viewKey, "1");
-            void supabase.from("article_views").insert({ article_id: art.id });
-          }
-        }
-      } catch (err) {
-        console.error("News context retrieval crash:", err);
-      } finally {
-        setLoading(false);
+      if (error) {
+        console.error("[ArticlePage] Supabase error:", error);
+        throw error;
       }
-    }
 
-    initializePageData();
-  }, [slug]);
+      if (!data) throw notFound();
+      return data;
+    },
+  });
 
-  const canonical = typeof window !== "undefined" ? window.location.href : "";
-
-  // 1. Loading State Screen
-  if (loading) {
+  if (isLoading) {
     return (
       <SiteLayout>
-        <div className="min-h-[60vh] bg-zinc-950 flex flex-col items-center justify-center space-y-3 font-mono text-xs text-zinc-500 animate-pulse">
-          <div>RETRIEVING NEWS PAYLOAD...</div>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="mt-4 text-zinc-500 font-serif text-sm animate-pulse">Loading story…</p>
+          </div>
         </div>
       </SiteLayout>
     );
   }
 
-  // 2. Not Found Safe Screen (Prevents route flash loops)
-  if (!article || (!article.is_published && isAdmin === false)) {
+  if (isError || !article) {
     return (
       <SiteLayout>
-        <div className="min-h-[60vh] bg-zinc-950 flex flex-col items-center justify-center space-y-4 p-4 text-center">
-          <AlertCircle className="w-8 h-8 text-amber-500/60" />
-          <h2 className="text-xl font-bold text-white">Story Not Found</h2>
-          <p className="text-sm text-zinc-400 max-w-sm leading-relaxed">
-            The article link you requested might be a draft, moved, or deleted from our news feeds.
-          </p>
-          <Link to="/" className="text-xs font-mono px-4 py-2 bg-zinc-900 border border-zinc-800 rounded text-amber-400 hover:bg-zinc-800 transition-colors">
-            Return to Homepage
-          </Link>
+        <div className="min-h-screen flex items-center justify-center px-4">
+          <div className="text-center max-w-md">
+            <p className="text-xs font-mono tracking-wider uppercase text-amber-500">404</p>
+            <h1 className="mt-3 font-display font-bold text-3xl text-white">Story not found</h1>
+            <p className="mt-3 text-zinc-400 font-serif">
+              This article may have been removed or the link may be incorrect.
+            </p>
+            <Link
+              to="/news"
+              className="mt-6 inline-flex items-center gap-2 bg-amber-500 text-black font-semibold px-5 py-2.5 rounded-md text-sm transition-opacity hover:opacity-90"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to news
+            </Link>
+          </div>
         </div>
       </SiteLayout>
     );
   }
 
-  // 3. Render Article Layout Space
+  const category = article.categories as { id: string; name: string; slug: string } | null;
+  const publishedDate = article.published_at
+    ? new Date(article.published_at).toLocaleDateString(undefined, {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : "";
+
+  const articleUrl = typeof window !== "undefined"
+    ? window.location.href
+    : `https://josephmmwa.com/news/${slug}`;
+
+  function copyLink() {
+    navigator.clipboard.writeText(articleUrl).then(() => {
+      toast.success("Link copied to clipboard");
+    });
+  }
+
+  function shareTwitter() {
+    window.open(
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title)}&url=${encodeURIComponent(articleUrl)}`,
+      "_blank",
+    );
+  }
+
+  // Fallbacks configured matching your exact setup parameters
+  function shareFacebook() {
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(articleUrl)}`, "_blank");
+  }
+
+  function shareLinkedIn() {
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(articleUrl)}`, "_blank");
+  }
+
   return (
     <SiteLayout>
+      <Toaster theme="dark" position="top-right" />
       <ReadingProgress />
-      <article className="mx-auto max-w-3xl px-4 lg:px-6 py-14">
-        
-        {!article.is_published && (
-          <div className="mb-6 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-md text-xs font-mono font-bold uppercase text-center tracking-wide">
-            ⚠️ Workspace Mode: Previewing Unpublished Story Draft
-          </div>
-        )}
 
+      <article className="mx-auto max-w-3xl px-4 lg:px-6 py-14">
+
+        {/* Back link */}
+        <Link
+          to="/news"
+          className="inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-amber-400 mb-8"
+        >
+          <ArrowLeft className="w-4 h-4" /> All stories
+        </Link>
+
+        {/* Category */}
         {category && (
           <Link
             to="/category/$slug"
             params={{ slug: category.slug }}
-            className="text-amber-500 text-xs font-bold tracking-wider uppercase hover:opacity-80 font-mono"
+            className="text-xs font-mono tracking-wider uppercase text-amber-500 hover:text-amber-400"
           >
             {category.name}
           </Link>
         )}
-        
-        <h1 className="mt-4 font-display font-bold text-4xl sm:text-5xl leading-[1.1] text-white">
+
+        {/* Headline */}
+        <h1 className="mt-4 font-display font-black text-3xl sm:text-4xl lg:text-5xl leading-tight text-white">
           {article.title}
         </h1>
-        
+
+        {/* Excerpt / standfirst */}
         {article.excerpt && (
-          <p className="mt-5 text-lg sm:text-xl text-zinc-300 font-serif leading-relaxed">
+          <p className="mt-5 text-lg text-zinc-300 font-serif leading-relaxed border-l-4 border-amber-500 pl-4 italic">
             {article.excerpt}
           </p>
         )}
-        
-        <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-zinc-500 font-medium">
-          <span className="inline-flex items-center gap-1.5">
-            <User className="w-4 h-4 text-amber-500" /> {article.author ?? "Joseph Mmwa"}
+
+        {/* Meta */}
+        <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-zinc-400 border-y border-zinc-800 py-4">
+          <span className="font-semibold text-zinc-200">
+            By {article.author || "Joseph Mmwa"}
           </span>
-          {article.published_at && (
-            <span>
-              {new Date(article.published_at).toLocaleDateString(undefined, {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })}
+          {publishedDate && <span>{publishedDate}</span>}
+          {article.read_time_minutes && (
+            <span className="flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5 text-amber-500" />
+              {article.read_time_minutes} min read
             </span>
           )}
-          <span className="inline-flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-amber-500" /> {article.read_time_minutes} min read
-          </span>
-          {article.region && (
-            <span className="inline-flex items-center gap-1.5">
-              <MapPin className="w-4 h-4 text-amber-500" /> {article.region}
+          {article.is_premium && (
+            <span className="text-xs font-mono uppercase text-amber-400 border border-amber-500/40 px-2 py-0.5 rounded">
+              Premium
             </span>
           )}
         </div>
 
+        {/* Featured image */}
         {article.featured_image && (
-          <figure className="mt-10 -mx-4 sm:mx-0">
+          <figure className="mt-8 -mx-4 lg:-mx-6">
             <img
               src={article.featured_image}
               alt={article.title}
               loading="eager"
-              className="w-full rounded-lg border border-zinc-800 object-cover max-h-[450px]"
+              decoding="async"
+              className="w-full aspect-[16/9] object-cover rounded-lg border border-zinc-800"
             />
+            {article.image_caption && (
+              <figcaption className="mt-2 px-4 text-xs text-zinc-500 italic font-serif text-center">
+                {article.image_caption}
+              </figcaption>
+            )}
           </figure>
         )}
 
+        {/* Body */}
         <div className="mt-10">
-          <ArticleContent html={article.body || ""} />
+          {article.body ? (
+            <ArticleContent html={article.body} />
+          ) : (
+            <p className="text-zinc-500 font-serif italic">
+              No content available for this article.
+            </p>
+          )}
         </div>
 
-        {article.tags && article.tags.length > 0 && (
-          <div className="mt-10 flex flex-wrap gap-2">
-            {article.tags.map((t: string) => (
-              <span
-                key={t}
-                className="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/25 px-3 py-1 rounded-full uppercase tracking-wider font-mono"
-              >
-                {t}
-              </span>
-            ))}
+        {/* Share section */}
+        <div className="mt-14 border-t border-zinc-800 pt-8">
+          <p className="text-xs font-mono uppercase tracking-wider text-zinc-400 mb-4 flex items-center gap-2">
+            <Share2 className="w-4 h-4 text-amber-500" /> Share this story
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={shareTwitter}
+              className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full px-4 py-2 text-sm font-medium text-zinc-300 hover:text-amber-500 hover:border-amber-500/40 transition-colors cursor-pointer"
+            >
+              <Twitter className="w-4 h-4" /> Twitter / X
+            </button>
+            <button
+              onClick={shareFacebook}
+              className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full px-4 py-2 text-sm font-medium text-zinc-300 hover:text-amber-500 hover:border-amber-500/40 transition-colors cursor-pointer"
+            >
+              <Facebook className="w-4 h-4" /> Facebook
+            </button>
+            <button
+              onClick={shareLinkedIn}
+              className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full px-4 py-2 text-sm font-medium text-zinc-300 hover:text-amber-500 hover:border-amber-500/40 transition-colors cursor-pointer"
+            >
+              <Linkedin className="w-4 h-4" /> LinkedIn
+            </button>
+            <button
+              onClick={copyLink}
+              className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full px-4 py-2 text-sm font-medium text-zinc-300 hover:text-amber-500 hover:border-amber-500/40 transition-colors cursor-pointer"
+            >
+              <Copy className="w-4 h-4" /> Copy link
+            </button>
           </div>
-        )}
+        </div>
 
-        <ShareRow title={article.title} url={canonical} />
+        {/* Author bio card layout wrapper */}
+        <div
+          className="mt-10 rounded-xl p-6 flex gap-5 items-start"
+          style={{
+            background: "radial-gradient(ellipse at top left, #1c1503 0%, #0c0800 40%, #09090b 100%)",
+            border: "1px solid rgba(245, 166, 35, 0.15)",
+          }}
+        >
+          <div className="shrink-0 w-14 h-14 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 font-bold text-xl font-display border border-amber-500/20">
+            JM
+          </div>
+          <div>
+            <p className="font-semibold text-white">
+              {article.author || "Joseph Mmwa"}
+            </p>
+            <p className="text-xs text-amber-500 mt-0.5 font-mono">Medical & Health Journalist</p>
+            <p className="mt-2 text-sm text-zinc-400 font-serif leading-relaxed">
+              Joseph Mmwa is an independent medical and health journalist delivering
+              accurate, evidence-based reporting on the stories shaping global
+              public health — with clarity, accuracy, and editorial independence.
+            </p>
+          </div>
+        </div>
       </article>
 
-      <div className="mx-auto max-w-6xl px-4 lg:px-6 pb-20">
-        <RelatedStories
-          currentId={article.id}
-          categoryId={article.category_id}
-          tags={article.tags ?? []}
-          region={article.region ?? null}
-        />
-      </div>
+      {/* Related stories section correctly aligned with system props mapping updates */}
+      {category && (
+        <div className="mx-auto max-w-7xl px-4 lg:px-6 pb-20">
+          <RelatedStories
+            currentId={article.id}
+            categoryId={category.id}
+            tags={[]}
+            region={null}
+          />
+        </div>
+      )}
     </SiteLayout>
-  );
-}
-
-function ShareRow({ title, url }: { title: string; url: string }) {
-  const enc = (s: string) => encodeURIComponent(s);
-  const share = {
-    twitter: `https://twitter.com/intent/tweet?text=${enc(title)}&url=${enc(url)}`,
-    facebook: `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`,
-    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${enc(url)}`,
-  };
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.success("Link copied");
-    } catch {
-      toast.error("Could not copy");
-    }
-  }
-  return (
-    <div className="mt-12 pt-6 border-t border-zinc-800 flex items-center gap-3 text-sm text-zinc-500">
-      <span className="inline-flex items-center gap-2"><Share2 className="w-4 h-4 text-amber-500" /> Share</span>
-      <a href={share.twitter} target="_blank" rel="noreferrer" className="p-2 hover:text-amber-500"><Twitter className="w-4 h-4" /></a>
-      <a href={share.facebook} target="_blank" rel="noreferrer" className="p-2 hover:text-amber-500"><Facebook className="w-4 h-4" /></a>
-      <a href={share.linkedin} target="_blank" rel="noreferrer" className="p-2 hover:text-amber-500"><Linkedin className="w-4 h-4" /></a>
-      <button onClick={copy} className="p-2 hover:text-amber-500" aria-label="Copy link"><LinkIcon className="w-4 h-4" /></button>
-    </div>
   );
 }

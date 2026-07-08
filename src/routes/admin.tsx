@@ -2,12 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ArticleEditor } from "@/components/admin/ArticleEditor";
-import { 
-  LayoutDashboard, 
-  FileText, 
-  Radio, 
-  LogOut 
-} from "lucide-react";
+import { LayoutDashboard, FileText, Radio, Trash2, Edit, Eye, LogOut } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
@@ -17,144 +12,120 @@ export const Route = createFileRoute("/admin")({
 function AdminUniversalDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [activeTab, setActiveTab] = useState<"dashboard" | "write" | "breaking">("dashboard");
+  const [articles, setArticles] = useState<any[]>([]);
+  const [editingId, setEditingId] = useState<string | undefined>(undefined);
   const navigate = useNavigate();
+
+  // Load live stories to allow editing or deletion
+  async function loadArticles() {
+    const { data } = await supabase.from("articles").select("id, title, slug, is_published, created_at").order("created_at", { ascending: false });
+    if (data) setArticles(data);
+  }
 
   useEffect(() => {
     async function verifyAdminSession() {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user && user.email === "mmwajoseph@gmail.com") {
-          setIsAuthenticated(true);
-          return;
-        }
-      } catch (err) {
-        console.error("Dashboard security handshake failed:", err);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && user.email === "mmwajoseph@gmail.com") {
+        setIsAuthenticated(true);
+        loadArticles();
+      } else {
+        setIsAuthenticated(false);
       }
-      setIsAuthenticated(false);
     }
     verifyAdminSession();
-  }, []);
+  }, [activeTab]);
+
+  async function handleDelete(id: string) {
+    if (!confirm("Are you absolute sure you want to delete this story?")) return;
+    const { error } = await supabase.from("articles").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Story removed completely");
+    loadArticles();
+  }
+
+  function startEdit(id: string) {
+    setEditingId(id);
+    setActiveTab("write");
+  }
 
   async function handleSignOut() {
     await supabase.auth.signOut();
-    toast.success("Logged out of workspace");
     navigate({ to: "/auth" });
   }
 
-  if (isAuthenticated === null) {
-    return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-sm text-zinc-500 animate-pulse font-sans">
-        Loading workspace console structure...
-      </div>
-    );
-  }
-
-  if (isAuthenticated === false) {
-    return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-sm text-red-400 font-sans p-6 text-center">
-        Access Denied. Please log in with your admin profile.
-      </div>
-    );
-  }
+  if (isAuthenticated === null) return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-500 animate-pulse">Loading Workspace...</div>;
+  if (isAuthenticated === false) return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-red-500">Access Denied.</div>;
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex font-sans">
-      
-      {/* 🧭 Left Sidebar Panel */}
       <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col shrink-0">
         <div className="p-6 border-b border-zinc-800">
           <p className="text-xs font-bold tracking-widest text-amber-500 uppercase font-mono">Newsroom Center</p>
           <h2 className="text-sm font-semibold text-white mt-1">JOSEPH MMWA</h2>
         </div>
-
-        {/* 🛠️ Dynamic Tab Switches bypassing file collisions */}
         <nav className="flex-1 p-4 space-y-1">
-          <button 
-            onClick={() => setActiveTab("dashboard")} 
-            className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors text-left ${
-              activeTab === "dashboard" 
-                ? "bg-amber-500/10 text-amber-400 font-semibold" 
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800"
-            }`}
-          >
-            <LayoutDashboard className="w-4 h-4" /> Dashboard Overview
+          <button onClick={() => { setActiveTab("dashboard"); setEditingId(undefined); }} className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-left ${activeTab === "dashboard" ? "bg-amber-500/10 text-amber-400 font-semibold" : "text-zinc-400 hover:text-white"}`}>
+            <LayoutDashboard className="w-4 h-4" /> Manage Stories
           </button>
-          
-          <button 
-            onClick={() => setActiveTab("write")} 
-            className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors text-left ${
-              activeTab === "write" 
-                ? "bg-amber-500/10 text-amber-400 font-semibold" 
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800"
-            }`}
-          >
+          <button onClick={() => { setActiveTab("write"); setEditingId(undefined); }} className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-left ${activeTab === "write" && !editingId ? "bg-amber-500/10 text-amber-400 font-semibold" : "text-zinc-400 hover:text-white"}`}>
             <FileText className="w-4 h-4" /> Write Story
           </button>
-          
-          <button 
-            onClick={() => setActiveTab("breaking")} 
-            className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors text-left ${
-              activeTab === "breaking" 
-                ? "bg-amber-500/10 text-amber-400 font-semibold" 
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800"
-            }`}
-          >
+          <button onClick={() => setActiveTab("breaking")} className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-left ${activeTab === "breaking" ? "bg-amber-500/10 text-amber-400 font-semibold" : "text-zinc-400 hover:text-white"}`}>
             <Radio className="w-4 h-4" /> Live Breaking News
           </button>
         </nav>
-
         <div className="p-4 border-t border-zinc-800">
-          <button 
-            onClick={handleSignOut} 
-            className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10 rounded-md transition-colors text-left"
-          >
-            <LogOut className="w-4 h-4" /> Sign Out
-          </button>
+          <button onClick={handleSignOut} className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10 rounded-md text-left"><LogOut className="w-4 h-4" /> Sign Out</button>
         </div>
       </aside>
 
-      {/* 📺 Direct UI Projection Canvas */}
-      <main className="flex-1 overflow-y-auto bg-zinc-950 p-6">
+      <main className="flex-1 p-6 overflow-y-auto">
         {activeTab === "dashboard" && (
           <div>
-            <h1 className="text-2xl font-bold text-white mb-2">Workspace Overview</h1>
-            <p className="text-sm text-zinc-400">Welcome back to your news desk dashboard system.</p>
-            <div className="mt-6 p-12 border border-dashed border-zinc-800 rounded-lg text-center text-zinc-500 text-sm">
-              Select an activity from the side panel layout to manage public assets.
+            <h1 className="text-2xl font-bold text-white mb-4">Newsroom Desk Articles</h1>
+            <div className="border border-zinc-800 rounded-lg overflow-hidden bg-zinc-900/50">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-zinc-900 text-zinc-400 border-b border-zinc-800 text-xs font-mono">
+                  <tr>
+                    <th className="p-3">Headline</th>
+                    <th className="p-3">Status</th>
+                    <th className="p-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800 text-white">
+                  {articles.map((art) => (
+                    <tr key={art.id} className="hover:bg-zinc-900/30">
+                      <td className="p-3 font-medium max-w-md truncate">{art.title}</td>
+                      <td className="p-3">
+                        <span className={`px-2 py-0.5 text-xs rounded-full ${art.is_published ? "bg-green-500/15 text-green-400" : "bg-zinc-700 text-zinc-300"}`}>{art.is_published ? "Live" : "Draft"}</span>
+                      </td>
+                      <td className="p-3 text-right space-x-2">
+                        <button onClick={() => window.open(`/news/${art.slug}`, "_blank")} className="p-1 hover:text-amber-400 inline-flex" title="View"><Eye className="w-4 h-4" /></button>
+                        <button onClick={() => startEdit(art.id)} className="p-1 hover:text-blue-400 inline-flex" title="Edit"><Edit className="w-4 h-4" /></button>
+                        <button onClick={() => handleDelete(art.id)} className="p-1 hover:text-red-400 inline-flex" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
 
         {activeTab === "write" && (
           <div>
-            <div className="mb-6">
-              <p className="text-xs font-semibold tracking-wider text-amber-500 uppercase font-mono">New Entry</p>
-              <h1 className="mt-1 font-bold text-2xl text-white">Write a story</h1>
-            </div>
-            {/* The Article Editor component renders right here */}
-            <ArticleEditor />
+            <h1 className="text-2xl font-bold text-white mb-4">{editingId ? "Edit Article" : "Write a story"}</h1>
+            <ArticleEditor articleId={editingId} />
           </div>
         )}
 
         {activeTab === "breaking" && (
           <div>
-            <h1 className="text-2xl font-bold text-white mb-2">Live Breaking News</h1>
-            <p className="text-sm text-zinc-400 mb-6">Broadcast immediate alert banners straight onto your homepage tickers.</p>
-            <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-lg max-w-xl">
-              <p className="text-xs text-zinc-500 mb-2">Ticker Content Script Input</p>
-              <input 
-                type="text" 
-                placeholder="Type real-time alert headline..." 
-                className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500"
-              />
-              <button className="mt-4 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black font-semibold text-xs rounded transition-colors">
-                Deploy Live Alert
-              </button>
-            </div>
+            <h1 className="text-2xl font-bold text-white mb-4">Live Breaking News</h1>
+            {/* Ticker settings */}
           </div>
         )}
       </main>
-
     </div>
   );
 }

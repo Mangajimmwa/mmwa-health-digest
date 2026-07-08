@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -20,6 +20,7 @@ export const Route = createFileRoute("/admin")({
 function AdminMasterLayout() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     async function verifyAdminSession() {
@@ -42,6 +43,11 @@ function AdminMasterLayout() {
     toast.success("Signed out of newsroom workspace");
     navigate({ to: "/auth" });
   }
+
+  // Helper function to handle programmatic navigation smoothly
+  const navigateTo = (path: string) => {
+    navigate({ to: path });
+  };
 
   if (isAuthenticated === null) {
     return (
@@ -69,19 +75,42 @@ function AdminMasterLayout() {
         </div>
 
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          <Link to="/admin" className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 [&.active]:bg-amber-500/10 [&.active]:text-amber-400" activeOptions={{ exact: true }}>
+          <button 
+            onClick={() => navigateTo("/admin")} 
+            className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors text-left ${
+              location.pathname === "/admin" 
+                ? "bg-amber-500/10 text-amber-400" 
+                : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+            }`}
+          >
             <LayoutDashboard className="w-4 h-4" /> Dashboard Overview
-          </Link>
-          <Link to="/admin/articles/new" className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 [&.active]:bg-amber-500/10 [&.active]:text-amber-400">
+          </button>
+          
+          <button 
+            onClick={() => navigateTo("/admin/articles/new")} 
+            className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors text-left ${
+              location.pathname === "/admin/articles/new" 
+                ? "bg-amber-500/10 text-amber-400" 
+                : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+            }`}
+          >
             <FileText className="w-4 h-4" /> Write Story
-          </Link>
-          <Link to="/admin/breaking" className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 [&.active]:bg-amber-500/10 [&.active]:text-amber-400">
+          </button>
+          
+          <button 
+            onClick={() => navigateTo("/admin/breaking")} 
+            className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors text-left ${
+              location.pathname === "/admin/breaking" 
+                ? "bg-amber-500/10 text-amber-400" 
+                : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+            }`}
+          >
             <Radio className="w-4 h-4" /> Live Breaking News
-          </Link>
+          </button>
         </nav>
 
         <div className="p-4 border-t border-zinc-800">
-          <button onClick={handleSignOut} className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10 rounded-md transition-colors">
+          <button onClick={handleSignOut} className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10 rounded-md transition-colors text-left">
             <LogOut className="w-4 h-4" /> Sign Out
           </button>
         </div>

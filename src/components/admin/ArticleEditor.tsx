@@ -88,7 +88,17 @@ export function ArticleEditor({ articleId }: { articleId?: string }) {
     }
   }, [loaded]);
 
-  const readTime = useMemo(() => estimateReadTime(stripHtml(d.body)), [d.body]);
+  // 🛡️ Crash Protection Fix: Ensures empty text fields never break initialization
+  const readTime = useMemo(() => {
+    const cleanText = d.body ? stripHtml(d.body) : "";
+    if (!cleanText.trim()) return 1; // Default to 1 minute read for empty drafts
+    try {
+      return estimateReadTime(cleanText) || 1;
+    } catch (e) {
+      console.warn("Read time calculation skipped:", e);
+      return 1;
+    }
+  }, [d.body]);
 
   function update<K extends keyof Draft>(k: K, v: Draft[K]) {
     setD((prev) => ({ ...prev, [k]: v }));
@@ -421,6 +431,7 @@ function Toggle({
 }
 
 function stripHtml(html: string) {
+  if (!html) return "";
   return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
 function toLocalInput(iso: string) {

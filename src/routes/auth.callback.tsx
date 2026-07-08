@@ -6,11 +6,9 @@ import { Logo } from "@/components/site/Logo";
 // Supabase Auth → URL Configuration → Redirect URLs must include:
 //   https://josephmmwa.com/auth/callback
 //   https://www.josephmmwa.com/auth/callback
-//   http://localhost:8080/auth/callback (for local dev)
 //
-// Google Cloud Console → Authorized redirect URIs must point to Supabase's
-// callback (e.g. https://<project-ref>.supabase.co/auth/v1/callback), NOT to
-// josephmmwa.com.
+// Google Cloud Console → Authorized redirect URIs must include:
+//   https://mjvpcfetbvvcnhdwwjrl.supabase.co/auth/v1/callback
 
 export const Route = createFileRoute("/auth/callback")({
   ssr: false,
@@ -42,108 +40,133 @@ function AuthCallback() {
   useEffect(() => {
     let cancelled = false;
 
-    function goHomeOrIntended(recovery = false) {
-      if (cancelled) return;
-      if (recovery) {
-        navigate({ to: "/reset-password" });
-        return;
-      }
-      const intended =
-        typeof window !== "undefined"
-          ? sessionStorage.getItem("post_auth_redirect")
-          : null;
-      if (typeof window !== "undefined") {
-        sessionStorage.removeItem("post_auth_redirect");
-      }
-      navigate({ to: intended || "/" });
+    function goHome() {
+      if (!cancelled) navigate({ to: "/" });
+    }
+
+    function goRecovery() {
+      if (!cancelled) navigate({ to: "/reset-password" });
+    }
+
+    function goError() {
+      if (!cancelled)
+        navigate({ to: "/auth", search: { error: "session_failed" } });
     }
 
     async function run() {
       try {
-        const url = new URL(window.location.href);
-        const hash = window.location.hash.startsWith("#")
-          ? window.location.hash.slice(1)
-          : window.location.hash;
-        const hashParams = new URLSearchParams(hash);
-        const accessToken = hashParams.get("access_token");
-        const refreshToken = hashParams.get("refresh_token");
-        const hashType = hashParams.get("type");
-        const code = url.searchParams.get("code");
-        const tokenHash = url.searchParams.get("token_hash");
-        const queryType = url.searchParams.get("type");
-        const errorDescription =
-          url.searchParams.get("error_description") ||
-          url.searchParams.get("error") ||
-          hashParams.get("error_description");
+        // Read URL params
+        const search = new URLSearchParams(window.location.search);
+        const hash = new URLSearchParams(
+          window.location.hash.startsWith("#")
+            ? window.location.hash.slice(1)
+            : window.location.hash,
+        );
 
-        if (errorDescription) {
-          console.error("[auth/callback] provider error:", errorDescription);
-          navigate({ to: "/auth", search: { error: "google_callback_failed" } });
+        const code = search.get("code");
+        const queryType = search.get("type");
+        const tokenHash = search.get("token_hash");
+        const errorParam =
+          search.get("error_description") ||
+          search.get("error") ||
+          hash.get("error_description");
+
+        const accessToken = hash.get("access_token");
+        const refreshToken = hash.get("refresh_token");
+        const hashType = hash.get("type");
+
+        // If provider returned an error, bail immediately
+        if (errorParam) {
+          console.error("[callback] provider error:", errorParam);
+          goError();
           return;
         }
 
-        // Step 1: implicit flow — tokens in hash fragment
+        // ── Step 1: PKCE code exchange ──────────────────────────────────────
+        // Pass ONLY the code string, never the full URL
+        if (code) {
+          console.log("[callback] exchanging code...");
+          const { data, error } =
+            await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            console.error("[callback] exchangeCodeForSession failed:", error.message);
+          } else if (data.session) {
+            console.log("[callback] PKCE exchange succeeded");
+            if (queryType === "recovery") {
+              goRecovery();
+            } else {
+              goHome();
+            }
+            return;
+          }
+        }
+
+        // ── Step 2: Implicit flow — hash fragment tokens ─────────────────────
         if (accessToken && refreshToken) {
-          console.log("[auth/callback] hash tokens found, calling setSession");
+          console.log("[callback] setting session from hash tokens...");
           const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           });
-          if (!error && data.session) {
-            console.log("[auth/callback] setSession succeeded");
+          if (error) {
+            console.error("[callback] setSession failed:", error.message);
+          } else if (data.session) {
+            console.log("[callback] implicit flow succeeded");
             window.history.replaceState(null, "", window.location.pathname);
-            goHomeOrIntended(hashType === "recovery");
+            if (hashType === "recovery") {
+              goRecovery();
+            } else {
+              goHome();
+            }
             return;
           }
-          console.error("[auth/callback] setSession failed:", error);
         }
 
-        // Step 2: PKCE code exchange — pass only the code string, not the full URL
-        if (code) {
-          console.log("[auth/callback] code found, calling exchangeCodeForSession");
-          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-          if (!error && data.session) {
-            console.log("[auth/callback] exchangeCodeForSession succeeded");
-            goHomeOrIntended(queryType === "recovery");
-            return;
-          }
-          if (error) console.warn("[auth/callback] exchangeCodeForSession failed:", error.message);
-        }
-
-        // Step 3: email verification token
+        // ── Step 3: Email OTP verification ───────────────────────────────────
         if (tokenHash && isEmailOtpType(queryType)) {
-          console.log("[auth/callback] token_hash found, calling verifyOtp");
+          console.log("[callback] verifying OTP...");
           const { data, error } = await supabase.auth.verifyOtp({
             token_hash: tokenHash,
             type: queryType,
           });
-          if (!error && data.session) {
-            console.log("[auth/callback] verifyOtp succeeded");
-            goHomeOrIntended(queryType === "recovery");
+          if (error) {
+            console.error("[callback] verifyOtp failed:", error.message);
+          } else if (data.session) {
+            console.log("[callback] OTP verification succeeded");
+            if (queryType === "recovery") {
+              goRecovery();
+            } else {
+              goHome();
+            }
             return;
           }
-          if (error) console.error("[auth/callback] verifyOtp failed:", error);
         }
 
-        // Step 4: poll for session set by detectSessionInUrl
-        console.log("[auth/callback] polling for session...");
+        // ── Step 4: Poll — detectSessionInUrl may have handled it ────────────
+        console.log("[callback] polling for session...");
         for (let i = 0; i < 20; i++) {
           if (cancelled) return;
           const { data } = await supabase.auth.getSession();
           if (data.session) {
-            console.log("[auth/callback] session found on poll attempt", i + 1);
-            goHomeOrIntended(hashType === "recovery" || queryType === "recovery");
+            console.log("[callback] session found on poll", i + 1);
+            const isRecovery =
+              hashType === "recovery" || queryType === "recovery";
+            if (isRecovery) {
+              goRecovery();
+            } else {
+              goHome();
+            }
             return;
           }
-          await new Promise((r) => setTimeout(r, 150));
+          await new Promise((r) => setTimeout(r, 200));
         }
 
-        // Step 5: all methods failed
-        console.error("[auth/callback] all methods exhausted, redirecting to /auth");
-        navigate({ to: "/auth", search: { error: "session_failed" } });
+        // ── Step 5: Give up ──────────────────────────────────────────────────
+        console.error("[callback] all methods exhausted");
+        goError();
       } catch (err) {
-        console.error("[auth/callback] unexpected error:", err);
-        navigate({ to: "/auth", search: { error: "session_failed" } });
+        console.error("[callback] unexpected error:", err);
+        goError();
       }
     }
 

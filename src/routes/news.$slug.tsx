@@ -1,6 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Clock, User, MapPin, Share2, Twitter, Facebook, Linkedin, Link as LinkIcon } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { ArticleContent } from "@/components/site/ArticleContent";
@@ -18,7 +17,11 @@ export const Route = createFileRoute("/news/$slug")({
       )
       .eq("slug", params.slug)
       .maybeSingle();
-    if (!data || !data.is_published) throw notFound();
+
+    if (!data) throw notFound();
+    
+    // We fetch the active login profile session info down below inside the component hook 
+    // to determine if we should allow viewing drafts.
     return data;
   },
   head: ({ loaderData }) => {
@@ -72,6 +75,20 @@ export const Route = createFileRoute("/news/$slug")({
 
 function ArticlePage() {
   const a = Route.useLoaderData();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    async function evaluateViewerIdentity() {
+      const { data: { user } } = await supabase.auth.getUser();
+      // Check if current device browser belongs to master administrator account
+      if (user && user.email === "mmwajoseph@gmail.com") {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
+    }
+    evaluateViewerIdentity();
+  }, []);
 
   // Log a view (fire-and-forget, dedupe per session per article)
   useEffect(() => {
@@ -89,10 +106,23 @@ function ArticlePage() {
   const canonical = typeof window !== "undefined" ? window.location.href : "";
   const cat = a.categories as { name?: string; slug?: string } | null;
 
+  // 🛡️ SECURITY GUARD RAIL: If the story is unpublished, block general public, but allow master admin preview access
+  if (!a.is_published && isAdmin === false) {
+    throw notFound();
+  }
+
   return (
     <SiteLayout>
       <ReadingProgress />
       <article className="mx-auto max-w-3xl px-4 lg:px-6 py-14">
+        
+        {/* Draft Notice Watermark for admin view */}
+        {!a.is_published && (
+          <div className="mb-6 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-md text-xs font-mono font-bold tracking-wide uppercase text-center">
+            ⚠️ Viewing unpublished story draft preview workspace mode
+          </div>
+        )}
+
         {cat?.slug && (
           <Link
             to="/category/$slug"

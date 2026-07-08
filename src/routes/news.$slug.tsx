@@ -10,18 +10,16 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
+    // 🛡️ SAFEST APPROACH: Fetch only the raw article columns directly first to guarantee zero relation crashes
     const { data } = await supabase
       .from("articles")
       .select(
-        "id,title,slug,excerpt,body,featured_image,author,region,tags,category_id,is_premium,is_published,read_time_minutes,published_at,updated_at,categories(name,slug)",
+        "id,title,slug,excerpt,body,featured_image,author,region,tags,category_id,is_premium,is_published,read_time_minutes,published_at,updated_at"
       )
       .eq("slug", params.slug)
       .maybeSingle();
 
     if (!data) throw notFound();
-    
-    // We fetch the active login profile session info down below inside the component hook 
-    // to determine if we should allow viewing drafts.
     return data;
   },
   head: ({ loaderData }) => {
@@ -30,23 +28,7 @@ export const Route = createFileRoute("/news/$slug")({
     const description = loaderData.excerpt ?? "Health and medical journalism from Joseph Mmwa.";
     const image = loaderData.featured_image ?? "/world-map.svg";
     const publishedAt = loaderData.published_at ?? undefined;
-    const jsonLd = {
-      "@context": "https://schema.org",
-      "@type": "NewsArticle",
-      headline: loaderData.title,
-      description,
-      image: image ? [image] : undefined,
-      datePublished: publishedAt,
-      dateModified: loaderData.updated_at,
-      author: [{ "@type": "Person", name: loaderData.author ?? "Joseph Mmwa" }],
-      publisher: {
-        "@type": "Organization",
-        name: "JOSEPH MMWA",
-      },
-      articleSection:
-        (loaderData.categories as { name?: string } | null)?.name ?? undefined,
-      keywords: (loaderData.tags ?? []).join(", "),
-    };
+    
     return {
       meta: [
         { title },
@@ -61,13 +43,7 @@ export const Route = createFileRoute("/news/$slug")({
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
         { name: "twitter:image", content: image },
-      ],
-      scripts: [
-        {
-          type: "application/ld+json",
-          children: JSON.stringify(jsonLd),
-        },
-      ],
+      ]
     };
   },
   component: ArticlePage,
@@ -76,21 +52,39 @@ export const Route = createFileRoute("/news/$slug")({
 function ArticlePage() {
   const a = Route.useLoaderData();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [categoryName, setCategoryName] = useState<string | null>(null);
+  const [categorySlug, setCategorySlug] = useState<string | null>(null);
 
   useEffect(() => {
     async function evaluateViewerIdentity() {
       const { data: { user } } = await supabase.auth.getUser();
-      // Check if current device browser belongs to master administrator account
       if (user && user.email === "mmwajoseph@gmail.com") {
         setIsAdmin(true);
       } else {
         setIsAdmin(false);
       }
     }
-    evaluateViewerIdentity();
-  }, []);
+    
+    // 🔄 Fetch category data cleanly on the side to prevent the page loader from breaking
+    async function fetchAttachedCategory() {
+      if (!a.category_id) return;
+      const { data } = await supabase
+        .from("categories")
+        .select("name, slug")
+        .eq("id", a.category_id)
+        .maybeSingle();
+      
+      if (data) {
+        setCategoryName(data.name);
+        setCategorySlug(data.slug);
+      }
+    }
 
-  // Log a view (fire-and-forget, dedupe per session per article)
+    evaluateViewerIdentity();
+    fetchAttachedCategory();
+  }, [a.category_id, a.id]);
+
+  // Log a view (fire-and-forget)
   useEffect(() => {
     try {
       const key = `viewed:${a.id}`;
@@ -104,9 +98,8 @@ function ArticlePage() {
   }, [a.id]);
 
   const canonical = typeof window !== "undefined" ? window.location.href : "";
-  const cat = a.categories as { name?: string; slug?: string } | null;
 
-  // 🛡️ SECURITY GUARD RAIL: If the story is unpublished, block general public, but allow master admin preview access
+  // 🛡️ Security block handling draft previews cleanly
   if (!a.is_published && isAdmin === false) {
     throw notFound();
   }
@@ -116,33 +109,35 @@ function ArticlePage() {
       <ReadingProgress />
       <article className="mx-auto max-w-3xl px-4 lg:px-6 py-14">
         
-        {/* Draft Notice Watermark for admin view */}
         {!a.is_published && (
-          <div className="mb-6 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-md text-xs font-mono font-bold tracking-wide uppercase text-center">
+          <div className="mb-6 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-md text-xs font-mono font-bold uppercase text-center">
             ⚠️ Viewing unpublished story draft preview workspace mode
           </div>
         )}
 
-        {cat?.slug && (
+        {categorySlug && categoryName && (
           <Link
             to="/category/$slug"
-            params={{ slug: cat.slug }}
-            className="label-eyebrow !text-gold hover:opacity-80"
+            params={{ slug: categorySlug }}
+            className="text-amber-500 text-xs font-bold tracking-wider uppercase hover:opacity-80"
           >
-            {cat.name}
+            {categoryName}
           </Link>
         )}
+        
         <h1 className="mt-4 font-display font-bold text-4xl sm:text-5xl leading-[1.1] text-white">
           {a.title}
         </h1>
+        
         {a.excerpt && (
-          <p className="mt-5 text-lg sm:text-xl text-text-body font-serif leading-relaxed">
+          <p className="mt-5 text-lg sm:text-xl text-zinc-400 font-serif leading-relaxed">
             {a.excerpt}
           </p>
         )}
-        <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-text-mute">
+        
+        <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-zinc-500">
           <span className="inline-flex items-center gap-1.5">
-            <User className="w-4 h-4 text-gold" /> {a.author ?? "Joseph Mmwa"}
+            <User className="w-4 h-4 text-amber-500" /> {a.author ?? "Joseph Mmwa"}
           </span>
           {a.published_at && (
             <span>
@@ -154,11 +149,11 @@ function ArticlePage() {
             </span>
           )}
           <span className="inline-flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-gold" /> {a.read_time_minutes} min read
+            <Clock className="w-4 h-4 text-amber-500" /> {a.read_time_minutes} min read
           </span>
           {a.region && (
             <span className="inline-flex items-center gap-1.5">
-              <MapPin className="w-4 h-4 text-gold" /> {a.region}
+              <MapPin className="w-4 h-4 text-amber-500" /> {a.region}
             </span>
           )}
         </div>
@@ -169,13 +164,13 @@ function ArticlePage() {
               src={a.featured_image}
               alt={a.title}
               loading="eager"
-              className="w-full rounded-lg border border-border"
+              className="w-full rounded-lg border border-zinc-800"
             />
           </figure>
         )}
 
         <div className="mt-10">
-          <ArticleContent html={a.body ?? ""} />
+          <ArticleContent html={a.body || (a as any).content || ""} />
         </div>
 
         {a.tags && a.tags.length > 0 && (
@@ -183,7 +178,7 @@ function ArticlePage() {
             {a.tags.map((t: string) => (
               <span
                 key={t}
-                className="text-xs bg-gold/10 text-gold border border-gold/25 px-3 py-1 rounded-full uppercase tracking-wider"
+                className="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/25 px-3 py-1 rounded-full uppercase tracking-wider"
               >
                 {t}
               </span>
@@ -222,12 +217,12 @@ function ShareRow({ title, url }: { title: string; url: string }) {
     }
   }
   return (
-    <div className="mt-12 pt-6 border-t border-border flex items-center gap-3 text-sm text-text-mute">
-      <span className="inline-flex items-center gap-2"><Share2 className="w-4 h-4 text-gold" /> Share</span>
-      <a href={share.twitter} target="_blank" rel="noreferrer" className="p-2 hover:text-gold"><Twitter className="w-4 h-4" /></a>
-      <a href={share.facebook} target="_blank" rel="noreferrer" className="p-2 hover:text-gold"><Facebook className="w-4 h-4" /></a>
-      <a href={share.linkedin} target="_blank" rel="noreferrer" className="p-2 hover:text-gold"><Linkedin className="w-4 h-4" /></a>
-      <button onClick={copy} className="p-2 hover:text-gold" aria-label="Copy link"><LinkIcon className="w-4 h-4" /></button>
+    <div className="mt-12 pt-6 border-t border-zinc-800 flex items-center gap-3 text-sm text-zinc-500">
+      <span className="inline-flex items-center gap-2"><Share2 className="w-4 h-4 text-amber-500" /> Share</span>
+      <a href={share.twitter} target="_blank" rel="noreferrer" className="p-2 hover:text-amber-500"><Twitter className="w-4 h-4" /></a>
+      <a href={share.facebook} target="_blank" rel="noreferrer" className="p-2 hover:text-amber-500"><Facebook className="w-4 h-4" /></a>
+      <a href={share.linkedin} target="_blank" rel="noreferrer" className="p-2 hover:text-amber-500"><Linkedin className="w-4 h-4" /></a>
+      <button onClick={copy} className="p-2 hover:text-amber-500" aria-label="Copy link"><LinkIcon className="w-4 h-4" /></button>
     </div>
   );
 }

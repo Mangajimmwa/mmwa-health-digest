@@ -12,9 +12,11 @@ import {
   LogOut,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { isCurrentUserAdmin } from "@/lib/admin-guard";
 import { Toaster } from "@/components/ui/sonner";
 import { Logo } from "@/components/site/Logo";
+
+// Hardcoded admin email — this account always has full access
+const ADMIN_EMAIL = "mmwajoseph@gmail.com";
 
 type NavItem = {
   to: string;
@@ -22,6 +24,7 @@ type NavItem = {
   icon: typeof LayoutDashboard;
   exact?: boolean;
 };
+
 const NAV: NavItem[] = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
   { to: "/admin/articles", label: "Articles", icon: FileText },
@@ -39,24 +42,66 @@ export function AdminGate({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      const r = await isCurrentUserAdmin();
-      if (cancelled) return;
-      if (!r.ok) {
-        // If signed out entirely, send to /auth. If signed in but not admin, home.
-        navigate({ to: r.email ? "/" : "/auth" });
+
+    async function check() {
+      try {
+        // Get current session
+        const { data } = await supabase.auth.getSession();
+        const user = data.session?.user;
+
+        if (cancelled) return;
+
+        // No session at all — redirect to sign in
+        if (!user) {
+          navigate({ to: "/auth" });
+          setState("denied");
+          return;
+        }
+
+        const userEmail = (user.email ?? "").toLowerCase().trim();
+
+        // Hardcoded admin check — mmwajoseph@gmail.com always gets access
+        if (userEmail === ADMIN_EMAIL.toLowerCase()) {
+          setEmail(user.email!);
+          setState("ok");
+          return;
+        }
+
+        // Check user_roles table for other potential admins
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id);
+
+        if (cancelled) return;
+
+        const isAdmin = !!roles?.some((r) => r.role === "admin");
+
+        if (isAdmin) {
+          setEmail(user.email ?? "");
+          setState("ok");
+          return;
+        }
+
+        // Signed in but not admin — send to homepage
+        navigate({ to: "/" });
         setState("denied");
-        return;
+      } catch (err) {
+        console.error("[AdminGate] error checking admin status:", err);
+        if (!cancelled) {
+          navigate({ to: "/auth" });
+          setState("denied");
+        }
       }
-      setEmail(r.email ?? "");
-      setState("ok");
-    })();
+    }
+
+    check();
     return () => {
       cancelled = true;
     };
   }, [navigate]);
 
-  if (state !== "ok") {
+  if (state === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background text-text-mute">
         Verifying access…
@@ -64,10 +109,20 @@ export function AdminGate({ children }: { children: ReactNode }) {
     );
   }
 
+  if (state === "denied") {
+    return null;
+  }
+
   return <AdminShell email={email}>{children}</AdminShell>;
 }
 
-function AdminShell({ email, children }: { email: string; children: ReactNode }) {
+function AdminShell({
+  email,
+  children,
+}: {
+  email: string;
+  children: ReactNode;
+}) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
 
@@ -86,7 +141,9 @@ function AdminShell({ email, children }: { email: string; children: ReactNode })
         </div>
         <nav className="flex-1 p-3 space-y-1">
           {NAV.map((n) => {
-            const active = n.exact ? pathname === n.to : pathname.startsWith(n.to);
+            const active = n.exact
+              ? pathname === n.to
+              : pathname.startsWith(n.to);
             return (
               <Link
                 key={n.to}
@@ -136,7 +193,9 @@ function AdminShell({ email, children }: { email: string; children: ReactNode })
         </div>
         <nav className="flex overflow-x-auto gap-1 px-2 pb-2">
           {NAV.map((n) => {
-            const active = n.exact ? pathname === n.to : pathname.startsWith(n.to);
+            const active = n.exact
+              ? pathname === n.to
+              : pathname.startsWith(n.to);
             return (
               <Link
                 key={n.to}

@@ -34,12 +34,14 @@ function ArticlePage() {
           excerpt,
           body,
           featured_image,
-          featured_image_caption,
+          image_caption,
           author,
           published_at,
           read_time_minutes,
           is_premium,
           category_id,
+          tags,
+          region,
           categories(id, name, slug)
         `)
         .eq("slug", slug)
@@ -110,16 +112,16 @@ function ArticlePage() {
     });
   }
 
-  // Sharing handlers using dynamic values
   function shareTwitter() {
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title)}&url=${encodeURIComponent(articleUrl)}`, "_blank");
   }
 
-  // Facebook share link integration
+  // Distribution triggers mapped to current location configurations
   function shareFacebook() {
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(articleUrl)}`, "_blank");
   }
 
+  // LinkedIn link engine parameters configuration
   function shareLinkedIn() {
     window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(articleUrl)}`, "_blank");
   }
@@ -131,7 +133,7 @@ function ArticlePage() {
 
       <article className="mx-auto max-w-3xl px-4 lg:px-6 py-14">
 
-        {/* Back link navigation wrapper element */}
+        {/* Home navigation feed layout wrapper elements */}
         <Link
           to="/news"
           className="inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-amber-400 mb-8"
@@ -139,7 +141,7 @@ function ArticlePage() {
           <ArrowLeft className="w-4 h-4" /> All stories
         </Link>
 
-        {/* Category badge rendering element */}
+        {/* Dynamic Category display badge link setup component */}
         {category && (
           <Link
             to="/category/$slug"
@@ -150,19 +152,19 @@ function ArticlePage() {
           </Link>
         )}
 
-        {/* Headline container component */}
+        {/* Editorial Title block heading elements container */}
         <h1 className="mt-4 font-display font-black text-3xl sm:text-4xl lg:text-5xl leading-tight text-white">
           {article.title}
         </h1>
 
-        {/* Excerpt panel markup space */}
+        {/* Story Standfirst panel text block component wrapper */}
         {article.excerpt && (
           <p className="mt-5 text-lg text-zinc-300 font-serif leading-relaxed border-l-4 border-amber-500 pl-4 italic">
             {article.excerpt}
           </p>
         )}
 
-        {/* Metadata info border lines */}
+        {/* Meta layout section layout element space borders */}
         <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-zinc-400 border-y border-zinc-800 py-4">
           <span className="font-semibold text-zinc-200">
             By {article.author || "Joseph Mmwa"}
@@ -181,7 +183,7 @@ function ArticlePage() {
           )}
         </div>
 
-        {/* Featured image element container rendering block */}
+        {/* Story Media featured cover element layout rendering space */}
         {article.featured_image && (
           <figure className="mt-8 -mx-4 lg:-mx-6">
             <img
@@ -191,15 +193,15 @@ function ArticlePage() {
               decoding="async"
               className="w-full aspect-[16/9] object-cover rounded-lg border border-zinc-800"
             />
-            {article.featured_image_caption && (
+            {article.image_caption && (
               <figcaption className="mt-2 px-4 text-xs text-zinc-500 italic font-serif text-center">
-                {article.featured_image_caption}
+                {article.image_caption}
               </figcaption>
             )}
           </figure>
         )}
 
-        {/* Body content wrapper layout module */}
+        {/* Text core rendering module logic parsing entry layout container */}
         <div className="mt-10">
           {article.body ? (
             <ArticleContent html={article.body} />
@@ -210,7 +212,7 @@ function ArticlePage() {
           )}
         </div>
 
-        {/* Social distribution media tray container wrapper element */}
+        {/* Distribution channels social links layout tray setup elements wrapper */}
         <div className="mt-14 border-t border-zinc-800 pt-8">
           <p className="text-xs font-mono uppercase tracking-wider text-zinc-400 mb-4 flex items-center gap-2">
             <Share2 className="w-4 h-4 text-amber-500" /> Share this story
@@ -243,7 +245,7 @@ function ArticlePage() {
           </div>
         </div>
 
-        {/* Bio signature layout block widget wrapper element */}
+        {/* Signature Editorial signature block elements wrap component styling layout */}
         <div
           className="mt-10 rounded-xl p-6 flex gap-5 items-start"
           style={{
@@ -268,14 +270,14 @@ function ArticlePage() {
         </div>
       </article>
 
-      {/* Linked context column module mapping values updates */}
+      {/* Relational stories carousel context components layout parameters mapping block */}
       {category && (
         <div className="mx-auto max-w-7xl px-4 lg:px-6 pb-20">
           <RelatedStories
             currentId={article.id}
             categoryId={category.id}
-            tags={[]}
-            region={null}
+            tags={article.tags ?? []}
+            region={article.region ?? null}
           />
         </div>
       )}

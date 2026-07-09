@@ -28,7 +28,7 @@ export const Route = createFileRoute("/news/$slug")({
     const { data: session } = await supabase.auth.getUser();
     const isAdmin = session?.user?.email === "mmwajoseph@gmail.com";
 
-    // 2. Build the optimized left-join query structure
+    // 2. Build the optimized left-join query structure (Removed missing category columns)
     let articleQuery = supabase
       .from("articles")
       .select(
@@ -45,10 +45,8 @@ export const Route = createFileRoute("/news/$slug")({
         read_time_minutes,
         is_premium,
         is_published,
-        category_id,
         tags,
-        region,
-        categories!left(id, name, slug)
+        region
       `,
       )
       .ilike("slug", slugLower);
@@ -88,11 +86,8 @@ function ArticlePage() {
   // Use the loaded data directly from the route context wrapper
   const { article } = Route.useLoaderData();
 
-  const category = article.categories as {
-    id: string;
-    name: string;
-    slug: string;
-  } | null;
+  // Safety assignment: forced to null since category_id column doesn't exist in the table structure
+  const category = null;
 
   const publishedDate = article.published_at
     ? new Date(article.published_at).toLocaleDateString(undefined, {
@@ -103,6 +98,13 @@ function ArticlePage() {
     : "";
 
   const articleUrl = typeof window !== "undefined" ? window.location.href : "";
+
+  // Safe tags parser fallback mechanism to protect against text formatting crashes
+  const processedTags = Array.isArray(article.tags)
+    ? article.tags
+    : typeof article.tags === "string" && (article.tags as string).startsWith("{")
+    ? (article.tags as string).replace(/[{}]/g, "").split(",").filter(Boolean)
+    : [];
 
   function copyLink() {
     if (typeof window !== "undefined") {
@@ -161,19 +163,6 @@ function ArticlePage() {
         >
           <ArrowLeft className="w-4 h-4" /> All stories
         </Link>
-
-        {/* Category tag */}
-        {category && (
-          <div className="mb-4">
-            <Link
-              to="/category/$slug"
-              params={{ slug: category.slug }}
-              className="label-eyebrow hover:text-gold-hover transition-colors"
-            >
-              {category.name}
-            </Link>
-          </div>
-        )}
 
         {/* Headline */}
         <h1 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl leading-tight text-foreground">
@@ -305,17 +294,15 @@ function ArticlePage() {
         </div>
       </article>
 
-      {/* Related stories */}
-      {category && (
-        <div className="mx-auto max-w-7xl px-4 lg:px-6 pb-20">
-          <RelatedStories
-            currentId={article.id}
-            categoryId={category.id}
-            tags={article.tags ?? []}
-            region={article.region ?? null}
-          />
-        </div>
-      )}
-    </SiteLayout>
+      {/* Related stories section (Always safely executes without filtering by categoryId) */}
+      <div className="mx-auto max-w-7xl px-4 lg:px-6 pb-20">
+        <RelatedStories
+          currentId={article.id}
+          categoryId={null}
+          tags={processedTags}
+          region={article.region ?? null}
+        />
+      </div>
+    </main>
   );
 }

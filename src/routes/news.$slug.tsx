@@ -17,7 +17,14 @@ import { ReadingProgress } from "@/components/site/ReadingProgress";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 
+// ✅ FIXED DYNAMIC ROUTE BLOCK: Added loader context for TanStack Start routing architecture
 export const Route = createFileRoute("/news/$slug")({
+  parseParams: (params) => ({
+    slug: String(params.slug),
+  }),
+  loader: async ({ params }) => {
+    return { slug: params.slug.toLowerCase() };
+  },
   head: ({ params }) => ({
     meta: [
       {
@@ -149,7 +156,6 @@ function ArticlePage() {
       .then(() => toast.success("Link copied to clipboard"));
   }
 
-  // Distribution channels configurations
   function shareTwitter() {
     window.open(
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(
@@ -168,7 +174,6 @@ function ArticlePage() {
     );
   }
 
-  // LinkedIn tracking payload routing parameters setup
   function shareLinkedIn() {
     window.open(
       `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(

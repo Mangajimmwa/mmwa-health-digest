@@ -137,9 +137,9 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   getParentRoute: () => AdminRoute,
 } as any)
 const NewsSlugRoute = NewsSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => NewsRoute,
+  id: '/news/$slug',
+  path: '/news/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const CategorySlugRoute = CategorySlugRouteImport.update({
   id: '/category/$slug',
@@ -206,7 +206,7 @@ export interface FileRoutesByFullPath {
   '/categories': typeof CategoriesRoute
   '/contact': typeof ContactRoute
   '/forgot-password': typeof ForgotPasswordRoute
-  '/news': typeof NewsRouteWithChildren
+  '/news': typeof NewsRoute
   '/notifications': typeof NotificationsRoute
   '/podcasts': typeof PodcastsRoute
   '/premium': typeof PremiumRoute
@@ -238,7 +238,7 @@ export interface FileRoutesByTo {
   '/categories': typeof CategoriesRoute
   '/contact': typeof ContactRoute
   '/forgot-password': typeof ForgotPasswordRoute
-  '/news': typeof NewsRouteWithChildren
+  '/news': typeof NewsRoute
   '/notifications': typeof NotificationsRoute
   '/podcasts': typeof PodcastsRoute
   '/premium': typeof PremiumRoute
@@ -272,7 +272,7 @@ export interface FileRoutesById {
   '/categories': typeof CategoriesRoute
   '/contact': typeof ContactRoute
   '/forgot-password': typeof ForgotPasswordRoute
-  '/news': typeof NewsRouteWithChildren
+  '/news': typeof NewsRoute
   '/notifications': typeof NotificationsRoute
   '/podcasts': typeof PodcastsRoute
   '/premium': typeof PremiumRoute
@@ -406,7 +406,7 @@ export interface RootRouteChildren {
   CategoriesRoute: typeof CategoriesRoute
   ContactRoute: typeof ContactRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
-  NewsRoute: typeof NewsRouteWithChildren
+  NewsRoute: typeof NewsRoute
   NotificationsRoute: typeof NotificationsRoute
   PodcastsRoute: typeof PodcastsRoute
   PremiumRoute: typeof PremiumRoute
@@ -416,6 +416,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   VideosRoute: typeof VideosRoute
+  NewsSlugRoute: typeof NewsSlugRoute
   CategorySlugRoute: typeof CategorySlugRoute
   ApiPublicMediaSplatRoute: typeof ApiPublicMediaSplatRoute
 }
@@ -557,10 +558,10 @@ declare module '@tanstack/react-router' {
     }
     '/news/$slug': {
       id: '/news/$slug'
-      path: '/$slug'
+      path: '/news/$slug'
       fullPath: '/news/$slug'
       preLoaderRoute: typeof NewsSlugRouteImport
-      parentRoute: typeof NewsRoute
+      parentRoute: typeof rootRouteImport
     }
     '/category/$slug': {
       id: '/category/$slug'
@@ -688,16 +689,6 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
-interface NewsRouteChildren {
-  NewsSlugRoute: typeof NewsSlugRoute
-}
-
-const NewsRouteChildren: NewsRouteChildren = {
-  NewsSlugRoute: NewsSlugRoute,
-}
-
-const NewsRouteWithChildren = NewsRoute._addFileChildren(NewsRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -707,7 +698,7 @@ const rootRouteChildren: RootRouteChildren = {
   CategoriesRoute: CategoriesRoute,
   ContactRoute: ContactRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
-  NewsRoute: NewsRouteWithChildren,
+  NewsRoute: NewsRoute,
   NotificationsRoute: NotificationsRoute,
   PodcastsRoute: PodcastsRoute,
   PremiumRoute: PremiumRoute,
@@ -717,6 +708,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   VideosRoute: VideosRoute,
+  NewsSlugRoute: NewsSlugRoute,
   CategorySlugRoute: CategorySlugRoute,
   ApiPublicMediaSplatRoute: ApiPublicMediaSplatRoute,
 }

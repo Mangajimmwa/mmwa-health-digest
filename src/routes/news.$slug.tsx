@@ -39,7 +39,12 @@ function ArticlePage() {
     queryKey: ["article", slug],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase
+      // 1. Dynamic authentication check to allow you to preview your drafts safely
+      const { data: session } = await supabase.auth.getUser();
+      const isAdmin = session?.user?.email === "mmwajoseph@gmail.com";
+
+      // 2. Select columns with a Left Join (!left) so articles load even without a valid category
+      let articleQuery = supabase
         .from("articles")
         .select(
           `
@@ -58,12 +63,17 @@ function ArticlePage() {
           category_id,
           tags,
           region,
-          categories(id, name, slug)
+          categories!left(id, name, slug)
         `,
         )
-        .eq("slug", slug)
-        .eq("is_published", true)
-        .maybeSingle();
+        .ilike("slug", slug.toLowerCase());
+
+      // 3. Keep drafts safely hidden from standard public readers
+      if (!isAdmin) {
+        articleQuery = articleQuery.eq("is_published", true);
+      }
+
+      const { data, error } = await articleQuery.maybeSingle();
 
       if (error) {
         console.error("[ArticlePage] Supabase error:", JSON.stringify(error));
@@ -100,7 +110,7 @@ function ArticlePage() {
               Story not found
             </h1>
             <p className="mt-3 text-text-body font-serif">
-              This article may have been removed or the link may be incorrect.
+              This article may have been removed, is set to draft mode, or the link may be incorrect.
             </p>
             <Link
               to="/news"
@@ -139,6 +149,7 @@ function ArticlePage() {
       .then(() => toast.success("Link copied to clipboard"));
   }
 
+  // Distribution channels configurations
   function shareTwitter() {
     window.open(
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(
@@ -157,6 +168,7 @@ function ArticlePage() {
     );
   }
 
+  // LinkedIn tracking payload routing parameters setup
   function shareLinkedIn() {
     window.open(
       `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
@@ -181,6 +193,14 @@ function ArticlePage() {
       <ReadingProgress />
 
       <article className="mx-auto max-w-3xl px-4 lg:px-6 py-14">
+        
+        {/* Dynamic Admin Workspace Draft Banner Indicator */}
+        {!article.is_published && (
+          <div className="mb-6 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-md text-xs font-mono font-bold uppercase text-center tracking-wide">
+            ⚠️ Workspace Mode: Previewing Unpublished Draft
+          </div>
+        )}
+
         {/* Back link */}
         <Link
           to="/news"

@@ -35,12 +35,23 @@ function NewsPage() {
   const { data: articles } = useQuery({
     queryKey: ["articles", "all", activeSlug],
     queryFn: async () => {
+      // 1. Dynamic authentication check to allow admin previews of drafts on the feed
+      const { data: session } = await supabase.auth.getUser();
+      const isAdmin = session?.user?.email === "mmwajoseph@gmail.com";
+
+      // 2. Changed !inner to !left so articles without a category don't vanish
       let query = supabase
         .from("articles")
-        .select("id,title,slug,excerpt,read_time_minutes,published_at,categories!inner(name,slug)")
-        .eq("is_published", true)
+        .select("id,title,slug,excerpt,read_time_minutes,published_at,categories!left(name,slug)")
         .order("published_at", { ascending: false });
+
+      // 3. Keep drafts safely hidden from standard readers
+      if (!isAdmin) {
+        query = query.eq("is_published", true);
+      }
+
       if (activeSlug) query = query.eq("categories.slug", activeSlug);
+      
       const { data } = await query;
       return data ?? [];
     },
@@ -108,7 +119,7 @@ function NewsPage() {
               >
                 <div className="aspect-[16/10] bg-gradient-to-br from-surface-2 to-surface-1" />
                 <div className="p-6">
-                  <span className="label-eyebrow">{a.categories?.name}</span>
+                  <span className="label-eyebrow">{a.categories?.name || "Uncategorized"}</span>
                   <h3 className="mt-3 font-display font-bold text-xl leading-snug group-hover:text-gold transition-colors">
                     {a.title}
                   </h3>

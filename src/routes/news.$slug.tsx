@@ -28,7 +28,7 @@ export const Route = createFileRoute("/news/$slug")({
     const { data: session } = await supabase.auth.getUser();
     const isAdmin = session?.user?.email === "mmwajoseph@gmail.com";
 
-    // 2. Build the optimized left-join query structure (Removed missing category columns)
+    // 2. Build the optimized structure (Removed missing category columns)
     let articleQuery = supabase
       .from("articles")
       .select(
@@ -294,7 +294,7 @@ function ArticlePage() {
         </div>
       </article>
 
-      {/* Related stories section (Always safely executes without filtering by categoryId) */}
+      {/* Related stories section */}
       <div className="mx-auto max-w-7xl px-4 lg:px-6 pb-20">
         <RelatedStories
           currentId={article.id}
@@ -303,6 +303,6 @@ function ArticlePage() {
           region={article.region ?? null}
         />
       </div>
-    </main>
+    </SiteLayout>
   );
 }

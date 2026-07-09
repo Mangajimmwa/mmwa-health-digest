@@ -39,12 +39,7 @@ function ArticlePage() {
     queryKey: ["article", slug],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      // 1. Check if you are logged in as admin to allow draft previews
-      const { data: session } = await supabase.auth.getUser();
-      const isAdmin = session?.user?.email === "mmwajoseph@gmail.com";
-
-      // 2. Query articles table with an optional left join on categories
-      let articleQuery = supabase
+      const { data, error } = await supabase
         .from("articles")
         .select(
           `
@@ -63,17 +58,12 @@ function ArticlePage() {
           category_id,
           tags,
           region,
-          categories!left(id, name, slug)
+          categories(id, name, slug)
         `,
         )
-        .ilike("slug", slug.toLowerCase());
-
-      // 3. Keep drafts hidden from the public, but visible to you
-      if (!isAdmin) {
-        articleQuery = articleQuery.eq("is_published", true);
-      }
-
-      const { data, error } = await articleQuery.maybeSingle();
+        .eq("slug", slug)
+        .eq("is_published", true)
+        .maybeSingle();
 
       if (error) {
         console.error("[ArticlePage] Supabase error:", JSON.stringify(error));
@@ -110,7 +100,7 @@ function ArticlePage() {
               Story not found
             </h1>
             <p className="mt-3 text-text-body font-serif">
-              This article may have been removed, is set to draft mode, or the link may be incorrect.
+              This article may have been removed or the link may be incorrect.
             </p>
             <Link
               to="/news"
@@ -158,7 +148,6 @@ function ArticlePage() {
     );
   }
 
-  // Distribution triggers mapped to current location configurations
   function shareFacebook() {
     window.open(
       `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
@@ -192,14 +181,6 @@ function ArticlePage() {
       <ReadingProgress />
 
       <article className="mx-auto max-w-3xl px-4 lg:px-6 py-14">
-        
-        {/* Dynamic Admin Notification Header Tag Elements */}
-        {!article.is_published && (
-          <div className="mb-6 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-md text-xs font-mono font-bold uppercase text-center tracking-wide">
-            ⚠️ Workspace Mode: Previewing Unpublished Draft
-          </div>
-        )}
-
         {/* Back link */}
         <Link
           to="/news"

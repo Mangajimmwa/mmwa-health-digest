@@ -32,12 +32,6 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-
-
-
-
-
-
 function Home() {
   return (
     <SiteLayout>
@@ -58,7 +52,6 @@ function Home() {
 function Hero() {
   return (
     <section className="relative bg-background overflow-hidden min-h-[90vh] flex items-center">
-      {/* Flat world map background */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 flex items-center justify-center"
@@ -69,7 +62,6 @@ function Hero() {
           className="w-[120%] max-w-none opacity-[0.10] md:opacity-[0.12] [filter:blur(3px)] max-md:opacity-[0.06]"
         />
       </div>
-      {/* Warm gold ground glow rising from the bottom */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(61,40,0,0.55)_0%,rgba(10,10,10,0)_65%)] max-md:bg-[linear-gradient(to_top,rgba(61,40,0,0.35)_0%,rgba(10,10,10,0)_65%)]"
@@ -125,12 +117,23 @@ function Latest() {
   const { data: articles } = useQuery({
     queryKey: ["articles", "latest"], staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase
+      // 1. Authenticate user to allow previewing unpublished drafts on the homepage grid
+      const { data: session } = await supabase.auth.getUser();
+      const isAdmin = session?.user?.email === "mmwajoseph@gmail.com";
+
+      // 2. Changed to categories!left so uncategorized items appear cleanly
+      let query = supabase
         .from("articles")
-        .select("id,title,slug,excerpt,featured_image,read_time_minutes,published_at,categories(name)")
-        .eq("is_published", true)
+        .select("id,title,slug,excerpt,featured_image,read_time_minutes,published_at,categories!left(name)")
         .order("published_at", { ascending: false })
         .limit(6);
+
+      // 3. Keep working files hidden from readers
+      if (!isAdmin) {
+        query = query.eq("is_published", true);
+      }
+
+      const { data } = await query;
       return data ?? [];
     },
   });
@@ -241,7 +244,6 @@ function SectionDivider() {
   );
 }
 
-
 function Newsletter() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -249,9 +251,9 @@ function Newsletter() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.includes("@")) return toast.error("Enter a valid email");
-    setLoading(true);
+    loading(true);
     const { error } = await supabase.from("subscribers").insert({ email });
-    setLoading(false);
+    loading(false);
     if (error) {
       if (error.code === "23505") toast.success("You're already subscribed.");
       else toast.error("Could not subscribe. Try again.");
@@ -294,106 +296,4 @@ function Newsletter() {
           />
           <button
             disabled={loading}
-            className="bg-gold text-primary-foreground font-semibold px-5 py-3 rounded-md hover:bg-gold-hover disabled:opacity-60"
-          >
-            {loading ? "..." : "Subscribe Free"}
-          </button>
-        </form>
-      </div>
-    </section>
-  );
-}
-
-function PremiumUpsell() {
-  return (
-    <section className="mx-auto max-w-7xl px-4 lg:px-6 py-20">
-      <div
-        className="relative overflow-hidden rounded-xl grid lg:grid-cols-2 gap-0"
-        style={{
-          background:
-            "radial-gradient(ellipse at top left, #3D2800 0%, #251800 45%, #0A0A0A 100%)",
-          border: "1px solid rgba(245, 166, 35, 0.35)",
-          boxShadow: "inset 0 0 80px rgba(245, 166, 35, 0.08)",
-        }}
-      >
-        <div className="order-1 lg:order-1 p-8 sm:p-10 lg:p-14">
-          <p className="label-eyebrow">Members Only</p>
-          <h2 className="mt-3 font-display font-bold text-4xl sm:text-5xl">
-            Unlock <span className="text-gold">Premium</span>
-          </h2>
-          <p className="mt-5 max-w-xl text-text-body font-serif text-lg">
-            Exclusive global health and medical reporting, in-depth outbreak
-            analysis, early access to major health stories, premium video updates,
-            and detailed coverage of the medical developments shaping the world.
-          </p>
-          <Link
-            to="/premium"
-            className="btn-glow mt-8 inline-flex items-center gap-2 bg-gold text-primary-foreground font-semibold px-6 py-3 rounded-md"
-          >
-            Go Premium <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-        <div className="order-0 lg:order-2 relative min-h-[240px] lg:min-h-[420px]">
-          <img
-            src="https://images.unsplash.com/photo-1609220136736-443140cffec6?auto=format&fit=crop&w=1200&q=80"
-            srcSet="https://images.unsplash.com/photo-1609220136736-443140cffec6?auto=format&fit=crop&w=600&q=80 600w, https://images.unsplash.com/photo-1609220136736-443140cffec6?auto=format&fit=crop&w=1200&q=80 1200w"
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            alt="Global health and wellbeing"
-            loading="lazy"
-            decoding="async"
-            onError={(e) => {
-              const img = e.currentTarget;
-              const fallbacks = [
-                "https://images.unsplash.com/photo-1581579186913-45ac3e6efe93?auto=format&fit=crop&w=1200&q=80",
-                "https://images.unsplash.com/photo-1529390079861-591de354faf5?auto=format&fit=crop&w=1200&q=80",
-              ];
-              const next = Number(img.dataset.fallback ?? "0");
-              if (next < fallbacks.length) {
-                img.dataset.fallback = String(next + 1);
-                img.removeAttribute("srcset");
-                img.src = fallbacks[next];
-              }
-            }}
-            className="absolute inset-0 w-full h-full object-cover rounded-[12px] lg:rounded-l-none lg:rounded-r-[12px]"
-          />
-          {/* Left-edge fade into the dark card on desktop, top fade on mobile */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 lg:bg-[linear-gradient(to_right,#0A0A0A_0%,rgba(10,10,10,0.5)_18%,transparent_45%)] bg-[linear-gradient(to_top,#0A0A0A_0%,rgba(10,10,10,0.4)_35%,transparent_70%)]"
-          />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function CategoriesStrip() {
-  const { data } = useQuery({
-    queryKey: ["categories"], staleTime: 5 * 60 * 1000,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("categories")
-        .select("id,name,slug")
-        .order("sort_order");
-      return data ?? [];
-    },
-  });
-  return (
-    <section className="mx-auto max-w-7xl px-4 lg:px-6 py-20">
-      <p className="label-eyebrow">Explore</p>
-      <h2 className="mt-2 font-display font-bold text-3xl">Browse by topic</h2>
-      <div className="mt-6 flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
-        {(data ?? []).map((c) => (
-          <Link
-            key={c.id}
-            to="/category/$slug"
-            params={{ slug: c.slug }}
-            className="shrink-0 bg-card border border-border rounded-lg px-5 py-3 text-sm font-medium text-text-body hover:text-gold hover:border-gold/40 transition-colors whitespace-nowrap"
-          >
-            {c.name}
-          </Link>
-        ))}
-      </div>
-    </section>
-  );
-}
+            className="bg-gold text-primary-foreground font-semibold px-5 py-3 rounded-md hover:bg-gold-hover disabled

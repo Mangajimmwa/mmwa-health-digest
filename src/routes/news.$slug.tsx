@@ -39,11 +39,11 @@ function ArticlePage() {
     queryKey: ["article", slug],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      // 🕵️‍♂️ 1. Verify user role profile details on the fly
+      // 1. Check if you are logged in as admin to allow draft previews
       const { data: session } = await supabase.auth.getUser();
       const isAdmin = session?.user?.email === "mmwajoseph@gmail.com";
 
-      // 🔄 2. Construct our dynamic database record query string using case-insensitive matching
+      // 2. Query articles table with an optional left join on categories
       let articleQuery = supabase
         .from("articles")
         .select(
@@ -63,12 +63,12 @@ function ArticlePage() {
           category_id,
           tags,
           region,
-          categories(id, name, slug)
+          categories!left(id, name, slug)
         `,
         )
         .ilike("slug", slug.toLowerCase());
 
-      // 🛡️ 3. DYNAMIC GATE: If you aren't the editor, hide draft articles cleanly
+      // 3. Keep drafts hidden from the public, but visible to you
       if (!isAdmin) {
         articleQuery = articleQuery.eq("is_published", true);
       }
@@ -158,6 +158,7 @@ function ArticlePage() {
     );
   }
 
+  // Distribution triggers mapped to current location configurations
   function shareFacebook() {
     window.open(
       `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
@@ -176,7 +177,6 @@ function ArticlePage() {
     );
   }
 
-  // Distribution payload configurations matching your sharing handler methods
   function shareWhatsApp() {
     window.open(
       `https://wa.me/?text=${encodeURIComponent(

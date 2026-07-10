@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Check } from "lucide-react";
-import josephImg from "@/assets/joseph.webp.asset.json";
 import { SiteLayout } from "@/components/site/SiteLayout";
 
 export const Route = createFileRoute("/about")({
@@ -36,17 +35,18 @@ const COVERAGE = [
 ];
 
 function AboutPage() {
+  // Direct, verified link to your public profile image layer
+  const profileImageUrl = "https://mjvpcfetbvvcnhdwwjrl.supabase.co/storage/v1/object/public/avatars/joseph.jpeg.jpeg";
+
   return (
     <SiteLayout>
       <section className="mx-auto max-w-5xl px-4 lg:px-6 py-16">
         <div className="grid gap-10 md:grid-cols-[260px_1fr] md:items-start">
-          <div>
+          <div className="w-full max-w-[260px] aspect-[4/5] rounded-xl overflow-hidden border border-border bg-zinc-900">
             <img
-              src={josephImg.url}
+              src={profileImageUrl}
               alt="Joseph Mmwa, medical and health journalist"
-              className="w-full rounded-xl border border-border object-cover"
-              width={1024}
-              height={1280}
+              className="w-full h-full object-cover"
               loading="lazy"
             />
           </div>

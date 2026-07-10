@@ -16,7 +16,6 @@ function AdminUniversalDashboard() {
   const [breakingNews, setBreakingNews] = useState<any[]>([]);
   const [editingId, setEditingId] = useState<string | undefined>(undefined);
   
-  // State aligned exactly to types.ts public.Tables.breaking_news.Insert schema layout
   const [newTicker, setNewTicker] = useState({ 
     headline: "", 
     link: "",
@@ -25,7 +24,6 @@ function AdminUniversalDashboard() {
   const [tickerLoading, setTickerLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Load live stories
   async function loadArticles() {
     try {
       const { data, error } = await supabase
@@ -42,7 +40,6 @@ function AdminUniversalDashboard() {
     }
   }
 
-  // Load active and past breaking news tickers
   async function loadBreakingNews() {
     try {
       const { data, error } = await supabase
@@ -61,7 +58,7 @@ function AdminUniversalDashboard() {
   useEffect(() => {
     async function verifyAdminSession() {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user && (user.email === "mmwajoseph@gmail.com" || user.email === "mmwajoseph@outlook.com")) {
+      if (user && user.email === "mmwajoseph@gmail.com") {
         setIsAuthenticated(true);
         loadArticles();
         loadBreakingNews();
@@ -80,20 +77,17 @@ function AdminUniversalDashboard() {
     loadArticles();
   }
 
-  // 🚨 Repaired Live Ticker Submission matching exact database properties
   async function handleDeployTicker(e: React.FormEvent) {
     e.preventDefault();
     if (!newTicker.headline.trim()) return toast.error("Please enter an alert headline script.");
     
     setTickerLoading(true);
     try {
-      // 1. Reset old tickers to false so only your newest broadcast takes center stage
       await supabase
         .from("breaking_news")
         .update({ is_active: false })
         .eq("is_active", true);
 
-      // 2. Insert payload using your exact compiled database schema columns
       const payload = {
         headline: newTicker.headline.trim(),
         link: newTicker.link.trim() || null,
@@ -118,7 +112,6 @@ function AdminUniversalDashboard() {
     }
   }
 
-  // 🚨 Remove/Delete a breaking news alert row
   async function handleDeleteTicker(id: string) {
     if (!confirm("Remove this breaking news alert from history and live layout feeds?")) return;
     const { error } = await supabase.from("breaking_news").delete().eq("id", id);
@@ -143,7 +136,6 @@ function AdminUniversalDashboard() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex font-sans">
       
-      {/* 🧭 Sidebar Menu Panels */}
       <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col shrink-0">
         <div className="p-6 border-b border-zinc-800">
           <p className="text-xs font-bold tracking-widest text-amber-500 uppercase font-mono">Newsroom Center</p>
@@ -165,7 +157,6 @@ function AdminUniversalDashboard() {
         </div>
       </aside>
 
-      {/* 📺 Context Core Projection Views */}
       <main className="flex-1 p-6 overflow-y-auto">
         {activeTab === "dashboard" && (
           <div>
@@ -218,7 +209,6 @@ function AdminUniversalDashboard() {
               <p className="text-sm text-zinc-400">Broadcast immediate alert banners straight onto homepage ticker layers.</p>
             </div>
 
-            {/* Form to deploy new live alert ticker item */}
             <form onSubmit={handleDeployTicker} className="p-6 bg-zinc-900 border border-zinc-800 rounded-lg max-w-2xl space-y-4">
               <div className="space-y-1">
                 <label className="text-xs font-mono text-zinc-400 uppercase">Alert Headline Text Content</label>
@@ -268,7 +258,6 @@ function AdminUniversalDashboard() {
               </button>
             </form>
 
-            {/* Real-time Ticker list history panel layout with delete switches */}
             <div className="border border-zinc-800 rounded-lg overflow-hidden bg-zinc-900/50 max-w-4xl">
               <div className="p-4 bg-zinc-900 border-b border-zinc-800">
                 <h3 className="text-sm font-semibold text-white">Live System Ticker Deployments</h3>

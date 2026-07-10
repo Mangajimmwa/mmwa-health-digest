@@ -15,6 +15,7 @@ function ArticlePage() {
   const { slug } = Route.useParams();
   const articleUrl = typeof window !== "undefined" ? window.location.href : "";
 
+  // Instantly reject automated scanner paths before hitting the database
   const isScannerPath = slug.includes("_profiler") || slug.includes("phpinfo") || slug.includes(".env") || slug.includes("wp-admin");
 
   const { data: article, isLoading, error } = useQuery({
@@ -23,6 +24,7 @@ function ArticlePage() {
       if (isScannerPath) return null;
 
       const targetSlug = String(slug).toLowerCase().trim();
+      console.log("👉 [DEBUG]: Browser is requesting this slug from Supabase:", targetSlug);
       
       const { data, error: fetchError } = await supabase
         .from("articles")
@@ -43,11 +45,17 @@ function ArticlePage() {
         .ilike("slug", targetSlug)
         .maybeSingle();
 
-      if (fetchError) throw fetchError;
+      console.log("👉 [DEBUG]: Database response payload returned:", data);
+      
+      if (fetchError) {
+        console.error("❌ [DEBUG]: Supabase connection error details:", fetchError);
+        throw fetchError;
+      }
+      
       return data;
     },
     enabled: !isScannerPath,
-    staleTime: 10000,
+    staleTime: 5000, // Keeps query response reactive during quick reloads
   });
 
   if (isLoading) {
@@ -130,7 +138,7 @@ function ArticlePage() {
           </figure>
         )}
 
-        {/* 🛡️ Safe Render Pipeline: Bypasses faulty component breaks */}
+        {/* Safe Clean HTML/Text Render Engine */}
         <div className="mt-10 text-foreground font-serif text-base leading-relaxed space-y-6 whitespace-pre-wrap">
           {article.body ? (
             article.body.includes("<p>") || article.body.includes("</div>") ? (

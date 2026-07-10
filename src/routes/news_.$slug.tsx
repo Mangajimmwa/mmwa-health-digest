@@ -7,7 +7,41 @@ import { ReadingProgress } from "@/components/site/ReadingProgress";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 
+// 🎯 Fetching the payload before loading so meta tags have instant access to the database metrics
 export const Route = createFileRoute("/news/$slug")({
+  loader: async ({ params }) => {
+    const targetSlug = String(params.slug).toLowerCase().trim();
+    const { data } = await supabase
+      .from("articles")
+      .select("title, excerpt, featured_image, slug")
+      .ilike("slug", targetSlug)
+      .maybeSingle();
+    return { articleMeta: data };
+  },
+  // 🔮 DYNAMIC METADATA ENGINE: This injects the dynamic image preview context into social media headers
+  head: ({ loaderData }) => {
+    const meta = loaderData?.articleMeta;
+    const title = meta?.title ? `${meta.title} — Joseph Mmwa` : "Global Health News — Joseph Mmwa";
+    const description = meta?.excerpt || "Breaking medical news, verified health reporting, and evidence-based journalism from Joseph Mmwa.";
+    const image = meta?.featured_image || "https://mjvpcfetbvvcnhdwwjrl.supabase.co/storage/v1/object/public/avatars/joseph.jpeg.jpeg";
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        // Facebook & LinkedIn Open Graph Assets
+        { property: "og:type", content: "article" },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:image", content: image },
+        // X (Twitter) Card Assets
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: image },
+      ],
+    };
+  },
   component: ArticlePage,
 });
 

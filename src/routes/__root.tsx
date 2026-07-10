@@ -132,7 +132,7 @@ function RootShell({ children }: { children: ReactNode }) {
       <body>
         {children}
         <Scripts />
-      </head>
+      </body> {/* 🎯 FIXED: Changed from </head> to </body> to solve the compilation crash */}
     </html>
   );
 }

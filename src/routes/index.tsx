@@ -123,7 +123,7 @@ function Latest() {
 
       let query = supabase
         .from("articles")
-        .select("id,title,slug,excerpt,featured_image,read_time_minutes,published_at,categories!left(name)")
+        .select("id,title,slug,excerpt,featured_image,read_time_minutes,published_at")
         .order("published_at", { ascending: false })
         .limit(6);
 
@@ -138,7 +138,7 @@ function Latest() {
 
   const items = (articles ?? []).map((a) => ({
     slug: a.slug,
-    category: (a.categories as { name?: string } | null)?.name ?? "News",
+    category: "News",
     title: a.title,
     excerpt: a.excerpt ?? "",
     date: a.published_at
@@ -249,9 +249,9 @@ function Newsletter() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.includes("@")) return toast.error("Enter a valid email");
-    loading(true);
+    setLoading(true); // ✅ FIXED: correctly calling state setter function
     const { error } = await supabase.from("subscribers").insert({ email });
-    loading(false);
+    setLoading(false); // ✅ FIXED: correctly calling state setter function
     if (error) {
       if (error.code === "23505") toast.success("You're already subscribed.");
       else toast.error("Could not subscribe. Try again.");

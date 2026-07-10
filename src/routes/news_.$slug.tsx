@@ -23,6 +23,9 @@ export const Route = createFileRoute("/news/$slug")({
     const description = meta?.excerpt || "Breaking medical news, verified health reporting, and evidence-based journalism from Joseph Mmwa.";
     const image = meta?.featured_image || "https://mjvpcfetbvvcnhdwwjrl.supabase.co/storage/v1/object/public/avatars/joseph.jpeg.jpeg";
 
+    // 🎯 THE CANONICAL FIX: Dynamically maps the clean non-www link path for Google
+    const canonicalUrl = `https://josephmmwa.com/news/${meta?.slug || ""}`;
+
     return {
       meta: [
         { title },
@@ -41,6 +44,10 @@ export const Route = createFileRoute("/news/$slug")({
         { name: "twitter:description", content: description },
         { name: "twitter:image", content: image },
       ],
+      // 🎯 INJECT THE LINK LAYOUT ELEMENT GOOGLE SEARCH CONSOLE IS LOOKING FOR:
+      links: [
+        { rel: "canonical", href: canonicalUrl }
+      ]
     };
   },
   component: ArticlePage,
@@ -207,7 +214,7 @@ function ArticlePage() {
           </div>
         </div>
 
-        {/* Author Biography Section */}
+        /* Author Biography Section */
         <div className="mt-10 rounded-xl p-6 flex gap-5 items-start" style={{ background: "radial-gradient(ellipse at top left, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)", border: "1px solid rgba(245, 166, 35, 0.15)" }}>
           <div className="shrink-0 w-14 h-14 rounded-full overflow-hidden border border-gold/30 bg-surface-1 relative flex items-center justify-center">
             <img 

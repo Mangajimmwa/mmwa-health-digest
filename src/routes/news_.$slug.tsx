@@ -7,7 +7,6 @@ import { ReadingProgress } from "@/components/site/ReadingProgress";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 
-// 🎯 Fetching the payload before loading so meta tags have instant access to the database metrics
 export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
     const targetSlug = String(params.slug).toLowerCase().trim();
@@ -18,7 +17,6 @@ export const Route = createFileRoute("/news/$slug")({
       .maybeSingle();
     return { articleMeta: data };
   },
-  // 🔮 DYNAMIC METADATA ENGINE: This injects the dynamic image preview context into social media headers
   head: ({ loaderData }) => {
     const meta = loaderData?.articleMeta;
     const title = meta?.title ? `${meta.title} — Joseph Mmwa` : "Global Health News — Joseph Mmwa";
@@ -29,12 +27,10 @@ export const Route = createFileRoute("/news/$slug")({
       meta: [
         { title },
         { name: "description", content: description },
-        // Facebook & LinkedIn Open Graph Assets
         { property: "og:type", content: "article" },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:image", content: image },
-        // X (Twitter) Card Assets
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
@@ -49,7 +45,6 @@ function ArticlePage() {
   const { slug } = Route.useParams();
   const articleUrl = typeof window !== "undefined" ? window.location.href : "";
 
-  // Guard block against automated bots scanning framework endpoints
   const isScannerPath = slug.includes("_profiler") || slug.includes("phpinfo") || slug.includes(".env") || slug.includes("wp-admin");
 
   const { data: article, isLoading, error } = useQuery({
@@ -58,7 +53,6 @@ function ArticlePage() {
       if (isScannerPath) return null;
 
       const targetSlug = String(slug).toLowerCase().trim();
-      console.log("👉 [DEBUG]: Routing pipeline requesting slug:", targetSlug);
       
       const { data, error: fetchError } = await supabase
         .from("articles")
@@ -79,10 +73,8 @@ function ArticlePage() {
         .ilike("slug", targetSlug)
         .maybeSingle();
 
-      console.log("👉 [DEBUG]: Payload matched in Supabase database:", data);
-      
       if (fetchError) {
-        console.error("❌ [DEBUG]: Query connection failure:", fetchError);
+        console.error("❌ Database query failure:", fetchError);
         throw fetchError;
       }
       
@@ -130,6 +122,15 @@ function ArticlePage() {
       })
     : "";
 
+  // 🛠️ FIXED: Smart layout parsing check. If it contains HTML elements, compile them smoothly.
+  const hasHtmlTags = article.body && (
+    article.body.includes("<p>") || 
+    article.body.includes("</div>") || 
+    article.body.includes("<img") || 
+    article.body.includes("<strong>") ||
+    article.body.includes("<h2")
+  );
+
   return (
     <SiteLayout>
       <Toaster theme="dark" position="top-right" />
@@ -173,12 +174,12 @@ function ArticlePage() {
         )}
 
         {/* Universal HTML & Text Content Rendering Layer */}
-        <div className="mt-10 text-foreground font-serif text-base leading-relaxed space-y-6 whitespace-pre-wrap">
+        <div className="mt-10 text-foreground font-serif text-base leading-relaxed space-y-6">
           {article.body ? (
-            article.body.includes("<p>") || article.body.includes("</div>") ? (
-              <div dangerouslySetInnerHTML={{ __html: article.body }} />
+            hasHtmlTags ? (
+              <div dangerouslySetInnerHTML={{ __html: article.body }} className="space-y-6 prose prose-invert max-w-none" />
             ) : (
-              <div>{article.body}</div>
+              <div className="whitespace-pre-wrap">{article.body}</div>
             )
           ) : (
             <p className="text-text-mute font-serif italic">No text content parsed in this document row.</p>

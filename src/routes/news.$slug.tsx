@@ -8,14 +8,13 @@ import { ReadingProgress } from "@/components/site/ReadingProgress";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 
-export const Route = createFileRoute("/news/$slug")({
-  // ✅ REMOVED PARSEPARAMS TO PREVENT ROUTER TRANSITION FREEZES
+// ✅ FIXED: Using flat-routing underscore mapping pattern for news.$slug.tsx file structure layout
+export const Route = createFileRoute("/news_.$slug")({
   loader: async ({ params }) => {
-    // Directly query using the exact parameter from the URL path
+    // Direct path query injection safely handling parameters without middleware freezes
     const { data, error } = await supabase
       .from("articles")
-      .select(
-        `
+      .select(`
         id,
         title,
         slug,
@@ -30,20 +29,16 @@ export const Route = createFileRoute("/news/$slug")({
         is_published,
         tags,
         region
-      `,
-      )
+      `)
       .ilike("slug", params.slug)
       .maybeSingle();
 
     if (error) {
-      console.error("[Loader Error]:", error);
+      console.error("[Loader Execution Fault]:", error);
       throw error;
     }
 
-    if (!data) {
-      throw notFound();
-    }
-
+    if (!data) throw notFound();
     return { article: data };
   },
   component: ArticlePage,
@@ -63,8 +58,8 @@ function ArticlePage() {
     : "";
 
   const articleUrl = typeof window !== "undefined" ? window.location.href : "";
-
-  // Pure array fallback check
+  
+  // Safe array execution protection engine against string database variations
   const processedTags = Array.isArray(article.tags) ? article.tags : [];
 
   return (
@@ -73,6 +68,13 @@ function ArticlePage() {
       <ReadingProgress />
 
       <article className="mx-auto max-w-3xl px-4 lg:px-6 py-14">
+        
+        {!article.is_published && (
+          <div className="mb-6 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-md text-xs font-mono font-bold uppercase text-center tracking-wide">
+            ⚠️ Workspace Mode: Previewing Unpublished Draft
+          </div>
+        )}
+
         <Link
           to="/news"
           className="inline-flex items-center gap-1.5 text-sm text-text-mute hover:text-gold transition-colors mb-8"
@@ -108,6 +110,7 @@ function ArticlePage() {
             <img
               src={article.featured_image}
               alt={article.title}
+              loading="eager"
               className="w-full aspect-[16/9] object-cover rounded-lg"
             />
             {article.image_caption && (
@@ -132,17 +135,50 @@ function ArticlePage() {
           <p className="label-eyebrow mb-4 flex items-center gap-2">
             <Share2 className="w-4 h-4" /> Share this story
           </p>
-          <button
-            onClick={() => {
-              if (typeof window !== "undefined") {
-                navigator.clipboard.writeText(articleUrl);
-                toast.success("Link copied!");
-              }
-            }}
-            className="flex items-center gap-2 bg-surface-2 border border-border rounded-full px-4 py-2 text-sm font-medium hover:text-gold hover:border-gold/40 transition-colors"
-          >
-            <Copy className="w-4 h-4" /> Copy link
-          </button>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title)}&url=${encodeURIComponent(articleUrl)}`, "_blank")}
+              className="flex items-center gap-2 bg-surface-2 border border-border rounded-full px-4 py-2 text-sm font-medium hover:text-gold transition-colors"
+            >
+              Twitter / X
+            </button>
+            <button
+              onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(articleUrl)}`, "_blank")}
+              className="flex items-center gap-2 bg-surface-2 border border-border rounded-full px-4 py-2 text-sm font-medium hover:text-gold transition-colors"
+            >
+              Facebook
+            </button>
+            <button
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  navigator.clipboard.writeText(articleUrl);
+                  toast.success("Link copied!");
+                }
+              }}
+              className="flex items-center gap-2 bg-surface-2 border border-border rounded-full px-4 py-2 text-sm font-medium hover:text-gold transition-colors"
+            >
+              <Copy className="w-4 h-4" /> Copy link
+            </button>
+          </div>
+        </div>
+
+        <div
+          className="mt-10 rounded-xl p-6 flex gap-5 items-start"
+          style={{
+            background: "radial-gradient(ellipse at top left, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)",
+            border: "1px solid rgba(245, 166, 35, 0.15)",
+          }}
+        >
+          <div className="shrink-0 w-14 h-14 rounded-full bg-gold/20 flex items-center justify-center text-gold font-bold text-xl font-display select-none">
+            JM
+          </div>
+          <div>
+            <p className="font-semibold text-foreground">{article.author || "Joseph Mmwa"}</p>
+            <p className="text-xs text-gold mt-0.5">Medical &amp; Health Journalist</p>
+            <p className="mt-2 text-sm text-text-body font-serif leading-relaxed">
+              Joseph Mmwa is an independent medical and health journalist delivering accurate, evidence-based reporting on the stories shaping global public health — with clarity, accuracy, and editorial independence.
+            </p>
+          </div>
         </div>
       </article>
 

@@ -17,7 +17,6 @@ function ArticlePage() {
   const { slug } = Route.useParams();
   const articleUrl = typeof window !== "undefined" ? window.location.href : "";
 
-  // ✅ SAFELY FETCH VIA USEQUERY (Bypasses server freezes completely, just like the homepage)
   const { data: article, isLoading, error } = useQuery({
     queryKey: ["article", slug],
     queryFn: async () => {
@@ -50,7 +49,6 @@ function ArticlePage() {
     staleTime: 2 * 60 * 1000,
   });
 
-  // 1. Loading State
   if (isLoading) {
     return (
       <SiteLayout>
@@ -62,7 +60,6 @@ function ArticlePage() {
     );
   }
 
-  // 2. Error or Missing Data State (Clean 404 Fallback)
   if (error || !article) {
     return (
       <SiteLayout>
@@ -103,10 +100,7 @@ function ArticlePage() {
           </div>
         )}
 
-        <Link
-          to="/news"
-          className="inline-flex items-center gap-1.5 text-sm text-text-mute hover:text-gold transition-colors mb-8"
-        >
+        <Link to="/news" className="inline-flex items-center gap-1.5 text-sm text-text-mute hover:text-gold transition-colors mb-8">
           <ArrowLeft className="w-4 h-4" /> All stories
         </Link>
 
@@ -121,101 +115,35 @@ function ArticlePage() {
         )}
 
         <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-text-mute border-y border-border py-4">
-          <span className="font-semibold text-foreground">
-            By {article.author || "Joseph Mmwa"}
-          </span>
+          <span className="font-semibold text-foreground">By {article.author || "Joseph Mmwa"}</span>
           {publishedDate && <span>{publishedDate}</span>}
           {article.read_time_minutes > 0 && (
-            <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" />
-              {article.read_time_minutes} min read
-            </span>
+            <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{article.read_time_minutes} min read</span>
           )}
         </div>
 
         {article.featured_image && (
           <figure className="mt-8 -mx-4 lg:-mx-6">
-            <img
-              src={article.featured_image}
-              alt={article.title}
-              className="w-full aspect-[16/9] object-cover rounded-lg"
-            />
-            {article.image_caption && (
-              <figcaption className="mt-2 px-4 text-xs text-text-mute italic font-serif text-center">
-                {article.image_caption}
-              </figcaption>
-            )}
+            <img src={article.featured_image} alt={article.title} className="w-full aspect-[16/9] object-cover rounded-lg" />
+            {article.image_caption && <figcaption className="mt-2 px-4 text-xs text-text-mute italic font-serif text-center">{article.image_caption}</figcaption>}
           </figure>
         )}
 
         <div className="mt-10">
-          {article.body ? (
-            <ArticleContent html={article.body} />
-          ) : (
-            <p className="text-text-mute font-serif italic">
-              No content available for this article.
-            </p>
-          )}
+          {article.body ? <ArticleContent html={article.body} /> : <p className="text-text-mute font-serif italic">No content available.</p>}
         </div>
 
         <div className="mt-14 border-t border-border pt-8">
-          <p className="label-eyebrow mb-4 flex items-center gap-2">
-            <Share2 className="w-4 h-4" /> Share this story
-          </p>
           <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title)}&url=${encodeURIComponent(articleUrl)}`, "_blank")}
-              className="flex items-center gap-2 bg-surface-2 border border-border rounded-full px-4 py-2 text-sm font-medium hover:text-gold transition-colors"
-            >
-              Twitter / X
-            </button>
-            <button
-              onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(articleUrl)}`, "_blank")}
-              className="flex items-center gap-2 bg-surface-2 border border-border rounded-full px-4 py-2 text-sm font-medium hover:text-gold transition-colors"
-            >
-              Facebook
-            </button>
-            <button
-              onClick={() => {
-                if (typeof window !== "undefined") {
-                  navigator.clipboard.writeText(articleUrl);
-                  toast.success("Link copied!");
-                }
-              }}
-              className="flex items-center gap-2 bg-surface-2 border border-border rounded-full px-4 py-2 text-sm font-medium hover:text-gold transition-colors"
-            >
+            <button onClick={() => { if (typeof window !== "undefined") { navigator.clipboard.writeText(articleUrl); toast.success("Link copied!"); } }} className="flex items-center gap-2 bg-surface-2 border border-border rounded-full px-4 py-2 text-sm font-medium hover:text-gold transition-colors">
               <Copy className="w-4 h-4" /> Copy link
             </button>
-          </div>
-        </div>
-
-        <div
-          className="mt-10 rounded-xl p-6 flex gap-5 items-start"
-          style={{
-            background: "radial-gradient(ellipse at top left, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)",
-            border: "1px solid rgba(245, 166, 35, 0.15)",
-          }}
-        >
-          <div className="shrink-0 w-14 h-14 rounded-full bg-gold/20 flex items-center justify-center text-gold font-bold text-xl font-display select-none">
-            JM
-          </div>
-          <div>
-            <p className="font-semibold text-foreground">{article.author || "Joseph Mmwa"}</p>
-            <p className="text-xs text-gold mt-0.5">Medical &amp; Health Journalist</p>
-            <p className="mt-2 text-sm text-text-body font-serif leading-relaxed">
-              Joseph Mmwa is an independent medical and health journalist delivering accurate, evidence-based reporting on the stories shaping global public health — with clarity, accuracy, and editorial independence.
-            </p>
           </div>
         </div>
       </article>
 
       <div className="mx-auto max-w-7xl px-4 lg:px-6 pb-20">
-        <RelatedStories
-          currentId={article.id}
-          categoryId={null}
-          tags={processedTags}
-          region={article.region ?? null}
-        />
+        <RelatedStories currentId={article.id} categoryId={null} tags={processedTags} region={article.region ?? null} />
       </div>
     </SiteLayout>
   );

@@ -177,7 +177,8 @@ function ArticlePage() {
         <div className="mt-10 text-foreground font-serif text-base leading-relaxed space-y-6">
           {article.body ? (
             hasHtmlTags ? (
-              <div dangerouslySetInnerHTML={{ __html: article.body }} className="space-y-6 prose prose-invert max-w-none" />
+              /* Added whitespace-pre-wrap down here to make sure manual formatting enters are fully preserved */
+              <div dangerouslySetInnerHTML={{ __html: article.body }} className="space-y-6 prose prose-invert max-w-none whitespace-pre-wrap" />
             ) : (
               <div className="whitespace-pre-wrap">{article.body}</div>
             )

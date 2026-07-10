@@ -26,7 +26,8 @@ function NewsPage() {
 
       let query = supabase
         .from("articles")
-        .select("id,title,slug,excerpt,read_time_minutes,published_at,is_published")
+        /* 🎯 THE SELECTION FIX: Added featured_image to the query list */
+        .select("id,title,slug,excerpt,read_time_minutes,published_at,is_published,featured_image")
         .order("published_at", { ascending: false });
 
       if (!isAdmin) {
@@ -61,7 +62,22 @@ function NewsPage() {
           ) : (
             filtered.map((a) => (
               <Link key={a.id} to="/news/$slug" params={{ slug: a.slug }} className="group block bg-card border border-border rounded-lg overflow-hidden card-lift cursor-pointer">
-                <div className="aspect-[16/10] bg-gradient-to-br from-surface-2 to-surface-1" />
+                {/* 🎯 THE RENDERING FIX: Displays the database featured image cleanly with a smooth hover zoom effect */}
+                <div className="aspect-[16/10] w-full bg-surface-1 relative overflow-hidden border-b border-border">
+                  {a.featured_image ? (
+                    <img 
+                      src={a.featured_image} 
+                      alt={a.title} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-surface-2 to-surface-1 flex items-center justify-center text-text-mute font-mono text-xs">
+                      Mmwa Health Digest
+                    </div>
+                  )}
+                </div>
+                
                 <div className="p-6">
                   <span className="label-eyebrow">News</span>
                   <h3 className="mt-3 font-display font-bold text-xl leading-snug group-hover:text-gold transition-colors">{a.title}</h3>

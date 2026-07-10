@@ -14,7 +14,7 @@ function NewArticle() {
     async function verifySession() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (user && (user.email === "mmwajoseph@gmail.com" || user.email === "mmwajoseph@outlook.com")) {
+        if (user && user.email === "mmwajoseph@gmail.com") {
           setIsAuthenticated(true);
           return;
         }

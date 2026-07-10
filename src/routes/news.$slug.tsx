@@ -16,19 +16,14 @@ function ArticlePage() {
   const { slug } = Route.useParams();
   const articleUrl = typeof window !== "undefined" ? window.location.href : "";
 
-  // 1. Instantly reject automated scanner paths before hitting the database
   const isScannerPath = slug.includes("_profiler") || slug.includes("phpinfo") || slug.includes(".env");
 
   const { data: article, isLoading, error } = useQuery({
     queryKey: ["article", slug],
     queryFn: async () => {
-      if (isScannerPath) {
-        console.warn("[Security Shield]: Blocked malicious scanner routing attempt:", slug);
-        return null;
-      }
+      if (isScannerPath) return null;
 
       const targetSlug = String(slug).toLowerCase().trim();
-      console.log("[Data Engine]: Fetching article with slug:", targetSlug);
       
       const { data, error: fetchError } = await supabase
         .from("articles")
@@ -49,19 +44,13 @@ function ArticlePage() {
         .ilike("slug", targetSlug)
         .maybeSingle();
 
-      if (fetchError) {
-        console.error("[Data Engine]: Database retrieval failure:", fetchError);
-        throw fetchError;
-      }
-      
-      console.log("[Data Engine]: Successfully retrieved payload:", data);
+      if (fetchError) throw fetchError;
       return data;
     },
     enabled: !isScannerPath,
-    staleTime: 30000, // Keep cache fresh during rapid reloads
+    staleTime: 30000,
   });
 
-  // Loading UI State
   if (isLoading) {
     return (
       <SiteLayout>
@@ -73,7 +62,6 @@ function ArticlePage() {
     );
   }
 
-  // Error / 404 UI Fallback State
   if (error || !article || isScannerPath) {
     return (
       <SiteLayout>

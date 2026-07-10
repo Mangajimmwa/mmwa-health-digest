@@ -167,9 +167,18 @@ function ArticlePage() {
           </div>
         </div>
 
+        {/* Author Biography Section */}
         <div className="mt-10 rounded-xl p-6 flex gap-5 items-start" style={{ background: "radial-gradient(ellipse at top left, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)", border: "1px solid rgba(245, 166, 35, 0.15)" }}>
-          <div className="shrink-0 w-14 h-14 rounded-full bg-gold/20 flex items-center justify-center text-gold font-bold text-xl font-display select-none">
-            JM
+          <div className="shrink-0 w-14 h-14 rounded-full overflow-hidden border border-gold/30 bg-surface-1 relative flex items-center justify-center">
+            <img 
+              src="/__l5e/assets-v1/a1018335-f473-4d54-9eb8-2b9d287da3e2/joseph.webp" 
+              alt="Joseph Mmwa" 
+              className="w-full h-full object-cover relative z-10"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+            <span className="text-gold font-bold text-xl font-display select-none absolute z-0">JM</span>
           </div>
           <div>
             <p className="font-semibold text-foreground">{article.author || "Joseph Mmwa"}</p>

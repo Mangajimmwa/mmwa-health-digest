@@ -27,26 +27,41 @@ function AdminUniversalDashboard() {
 
   // Load live stories
   async function loadArticles() {
-    const { data } = await supabase
-      .from("articles")
-      .select("id, title, slug, is_published, created_at")
-      .order("created_at", { ascending: false });
-    if (data) setArticles(data);
+    try {
+      const { data, error } = await supabase
+        .from("articles")
+        .select("id, title, slug, is_published, created_at")
+        .order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      setArticles(data || []);
+    } catch (err: any) {
+      console.error("Error pulling newsroom logs:", err);
+      toast.error("Database connection lag caught. Check console.");
+      setArticles([]);
+    }
   }
 
   // Load active and past breaking news tickers
   async function loadBreakingNews() {
-    const { data } = await supabase
-      .from("breaking_news")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (data) setBreakingNews(data);
+    try {
+      const { data, error } = await supabase
+        .from("breaking_news")
+        .select("*")
+        .order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      setBreakingNews(data || []);
+    } catch (err: any) {
+      console.error("Error pulling system ticker alerts:", err);
+      setBreakingNews([]);
+    }
   }
 
   useEffect(() => {
     async function verifyAdminSession() {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user && user.email === "mmwajoseph@gmail.com") {
+      if (user && (user.email === "mmwajoseph@gmail.com" || user.email === "mmwajoseph@outlook.com")) {
         setIsAuthenticated(true);
         loadArticles();
         loadBreakingNews();
@@ -165,19 +180,24 @@ function AdminUniversalDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800 text-white">
-                  {articles.map((art) => (
-                    <tr key={art.id} className="hover:bg-zinc-900/30">
-                      <td className="p-3 font-medium max-w-md truncate">{art.title}</td>
+                  {(articles || []).map((art) => (
+                    <tr key={art?.id} className="hover:bg-zinc-900/30">
+                      <td className="p-3 font-medium max-w-md truncate">{art?.title || "Untitled Article"}</td>
                       <td className="p-3">
-                        <span className={`px-2 py-0.5 text-xs rounded-full ${art.is_published ? "bg-green-500/15 text-green-400" : "bg-zinc-700 text-zinc-300"}`}>{art.is_published ? "Live" : "Draft"}</span>
+                        <span className={`px-2 py-0.5 text-xs rounded-full ${art?.is_published ? "bg-green-500/15 text-green-400" : "bg-zinc-700 text-zinc-300"}`}>{art?.is_published ? "Live" : "Draft"}</span>
                       </td>
                       <td className="p-3 text-right space-x-2">
-                        <button onClick={() => window.open(`/news/${art.slug}`, "_blank")} className="p-1 hover:text-amber-400 inline-flex" title="View"><Eye className="w-4 h-4" /></button>
-                        <button onClick={() => startEdit(art.id)} className="p-1 hover:text-blue-400 inline-flex" title="Edit"><Edit className="w-4 h-4" /></button>
-                        <button onClick={() => handleDelete(art.id)} className="p-1 hover:text-red-400 inline-flex" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => window.open(`/news/${art?.slug}`, "_blank")} className="p-1 hover:text-amber-400 inline-flex" title="View"><Eye className="w-4 h-4" /></button>
+                        <button onClick={() => startEdit(art?.id)} className="p-1 hover:text-blue-400 inline-flex" title="Edit"><Edit className="w-4 h-4" /></button>
+                        <button onClick={() => handleDelete(art?.id)} className="p-1 hover:text-red-400 inline-flex" title="Delete"><Trash2 className="w-4 h-4" /></button>
                       </td>
                     </tr>
                   ))}
+                  {(!articles || articles.length === 0) && (
+                    <tr>
+                      <td colSpan={3} className="p-8 text-center text-sm text-zinc-500 font-mono">No articles in layout. Click "Write Story" to add your test work.</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -231,8 +251,8 @@ function AdminUniversalDashboard() {
                     className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500 h-[38px]"
                   >
                     <option value="">Do not bind to an article</option>
-                    {articles.map(art => (
-                      <option key={art.id} value={art.id}>{art.title}</option>
+                    {(articles || []).map(art => (
+                      <option key={art?.id} value={art?.id}>{art?.title}</option>
                     ))}
                   </select>
                 </div>
@@ -262,17 +282,17 @@ function AdminUniversalDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800 text-white">
-                  {breakingNews.map((tick) => (
-                    <tr key={tick.id} className="hover:bg-zinc-900/30">
-                      <td className="p-3 font-medium max-w-lg truncate">{tick.headline}</td>
+                  {(breakingNews || []).map((tick) => (
+                    <tr key={tick?.id} className="hover:bg-zinc-900/30">
+                      <td className="p-3 font-medium max-w-lg truncate">{tick?.headline}</td>
                       <td className="p-3">
-                        <span className={`px-2 py-0.5 text-xs rounded-full ${tick.is_active ? "bg-amber-500/10 text-amber-400 font-bold border border-amber-500/20" : "bg-zinc-800 text-zinc-400"}`}>
-                          {tick.is_active ? "Live Onsite Ticker" : "Archived Alert"}
+                        <span className={`px-2 py-0.5 text-xs rounded-full ${tick?.is_active ? "bg-amber-500/10 text-amber-400 font-bold border border-amber-500/20" : "bg-zinc-800 text-zinc-400"}`}>
+                          {tick?.is_active ? "Live Onsite Ticker" : "Archived Alert"}
                         </span>
                       </td>
                       <td className="p-3 text-right">
                         <button 
-                          onClick={() => handleDeleteTicker(tick.id)} 
+                          onClick={() => handleDeleteTicker(tick?.id)} 
                           className="p-1 text-zinc-500 hover:text-red-400 inline-flex transition-colors" 
                           title="Delete Alert Row"
                         >
@@ -281,7 +301,7 @@ function AdminUniversalDashboard() {
                       </td>
                     </tr>
                   ))}
-                  {breakingNews.length === 0 && (
+                  {(!breakingNews || breakingNews.length === 0) && (
                     <tr>
                       <td colSpan={3} className="p-8 text-center text-sm text-zinc-500 font-mono">No live breaking news alerts deployed yet.</td>
                     </tr>

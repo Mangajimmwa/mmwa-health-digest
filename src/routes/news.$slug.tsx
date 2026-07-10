@@ -1,5 +1,6 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { Clock, ArrowLeft, Share2, Copy } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { Clock, ArrowLeft, Share2, Copy, Loader2 } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { ArticleContent } from "@/components/site/ArticleContent";
@@ -8,77 +9,76 @@ import { ReadingProgress } from "@/components/site/ReadingProgress";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 
-// ✅ STANDARD ROUTE REGISTRY: Matches the exact path template your admin panel generates
 export const Route = createFileRoute("/news/$slug")({
-  loader: async ({ params }) => {
-    // 1. Safety check to guarantee param existence before running network requests
-    if (!params?.slug) {
-      throw notFound();
-    }
-
-    const targetSlug = String(params.slug).toLowerCase().trim();
-
-    // 2. Query target record using clean core parameters isolated from missing category links
-    const { data, error } = await supabase
-      .from("articles")
-      .select(`
-        id,
-        title,
-        slug,
-        excerpt,
-        body,
-        featured_image,
-        image_caption,
-        author,
-        published_at,
-        read_time_minutes,
-        is_premium,
-        is_published,
-        tags,
-        region
-      `)
-      .ilike("slug", targetSlug)
-      .maybeSingle();
-
-    if (error) {
-      console.error("[Database Layer Error]:", error);
-      throw error;
-    }
-
-    // 3. Fallback to router's notFound layout if no matching row is returned
-    if (!data) {
-      throw notFound();
-    }
-
-    return { article: data };
-  },
   component: ArticlePage,
-  // ✅ ROUTER FLOW INSURANCE: If something fails during parsing, show this inline component instead of crashing
-  notFoundComponent: () => <ArticleNotFoundFallback />,
 });
 
-function ArticleNotFoundFallback() {
-  return (
-    <SiteLayout>
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 max-w-md mx-auto">
-        <div className="w-16 h-16 bg-gold/10 text-gold rounded-full flex items-center justify-center mb-6 text-2xl font-bold font-display">404</div>
-        <h1 className="text-3xl font-display font-black text-foreground mb-3">Report Not Found</h1>
-        <p className="text-text-mute font-serif mb-8 text-sm leading-relaxed">
-          The requested health news dispatch or surgical reporting document cannot be retrieved from our database records.
-        </p>
-        <Link to="/news" className="inline-flex items-center justify-center bg-gold text-primary-foreground font-bold px-6 py-3 rounded-full hover:bg-gold-hover text-sm transition-colors w-full">
-          Return to Newsroom
-        </Link>
-      </div>
-    </SiteLayout>
-  );
-}
-
 function ArticlePage() {
-  const { article } = Route.useLoaderData();
+  const { slug } = Route.useParams();
+  const articleUrl = typeof window !== "undefined" ? window.location.href : "";
 
-  // Safeguard against missing payload fields during client hydration cycles
-  if (!article) return <ArticleNotFoundFallback />;
+  // ✅ SAFELY FETCH VIA USEQUERY (Bypasses server freezes completely, just like the homepage)
+  const { data: article, isLoading, error } = useQuery({
+    queryKey: ["article", slug],
+    queryFn: async () => {
+      const targetSlug = String(slug).toLowerCase().trim();
+      
+      const { data, error: fetchError } = await supabase
+        .from("articles")
+        .select(`
+          id,
+          title,
+          slug,
+          excerpt,
+          body,
+          featured_image,
+          image_caption,
+          author,
+          published_at,
+          read_time_minutes,
+          is_premium,
+          is_published,
+          tags,
+          region
+        `)
+        .ilike("slug", targetSlug)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+      return data;
+    },
+    staleTime: 2 * 60 * 1000,
+  });
+
+  // 1. Loading State
+  if (isLoading) {
+    return (
+      <SiteLayout>
+        <div className="flex flex-col items-center justify-center min-h-[50vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-gold" />
+          <p className="text-text-mute text-sm mt-4 font-mono">Loading report...</p>
+        </div>
+      </SiteLayout>
+    );
+  }
+
+  // 2. Error or Missing Data State (Clean 404 Fallback)
+  if (error || !article) {
+    return (
+      <SiteLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 max-w-md mx-auto">
+          <div className="w-16 h-16 bg-gold/10 text-gold rounded-full flex items-center justify-center mb-6 text-2xl font-bold font-display">404</div>
+          <h1 className="text-3xl font-display font-black text-foreground mb-3">Report Not Found</h1>
+          <p className="text-text-mute font-serif mb-8 text-sm leading-relaxed">
+            The requested health news dispatch or surgical reporting document cannot be retrieved from our database records.
+          </p>
+          <Link to="/news" className="inline-flex items-center justify-center bg-gold text-primary-foreground font-bold px-6 py-3 rounded-full hover:bg-gold-hover text-sm transition-colors w-full">
+            Return to Newsroom
+          </Link>
+        </div>
+      </SiteLayout>
+    );
+  }
 
   const publishedDate = article.published_at
     ? new Date(article.published_at).toLocaleDateString(undefined, {
@@ -88,7 +88,6 @@ function ArticlePage() {
       })
     : "";
 
-  const articleUrl = typeof window !== "undefined" ? window.location.href : "";
   const processedTags = Array.isArray(article.tags) ? article.tags : [];
 
   return (

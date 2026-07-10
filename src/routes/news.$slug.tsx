@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Clock, ArrowLeft, Copy, Loader2, AlertTriangle } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
-import { ArticleContent } from "@/components/site/ArticleContent";
 import { ReadingProgress } from "@/components/site/ReadingProgress";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
@@ -16,7 +15,7 @@ function ArticlePage() {
   const { slug } = Route.useParams();
   const articleUrl = typeof window !== "undefined" ? window.location.href : "";
 
-  const isScannerPath = slug.includes("_profiler") || slug.includes("phpinfo") || slug.includes(".env");
+  const isScannerPath = slug.includes("_profiler") || slug.includes("phpinfo") || slug.includes(".env") || slug.includes("wp-admin");
 
   const { data: article, isLoading, error } = useQuery({
     queryKey: ["article", slug],
@@ -48,7 +47,7 @@ function ArticlePage() {
       return data;
     },
     enabled: !isScannerPath,
-    staleTime: 30000,
+    staleTime: 10000,
   });
 
   if (isLoading) {
@@ -131,11 +130,16 @@ function ArticlePage() {
           </figure>
         )}
 
-        <div className="mt-10">
+        {/* 🛡️ Safe Render Pipeline: Bypasses faulty component breaks */}
+        <div className="mt-10 text-foreground font-serif text-base leading-relaxed space-y-6 whitespace-pre-wrap">
           {article.body ? (
-            <ArticleContent html={article.body} />
+            article.body.includes("<p>") || article.body.includes("</div>") ? (
+              <div dangerouslySetInnerHTML={{ __html: article.body }} />
+            ) : (
+              <div>{article.body}</div>
+            )
           ) : (
-            <p className="text-text-mute font-serif italic">No content available for this article.</p>
+            <p className="text-text-mute font-serif italic">No text content parsed in this document row.</p>
           )}
         </div>
 

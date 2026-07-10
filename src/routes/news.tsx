@@ -85,7 +85,7 @@ function EmptyState() {
     <div className="col-span-full bg-card border border-border rounded-xl p-12 text-center">
       <div className="mx-auto w-14 h-14 rounded-full bg-gold/15 text-gold flex items-center justify-center"><Newspaper className="w-6 h-6" /></div>
       <h3 className="mt-5 font-display font-bold text-2xl text-foreground">No stories published yet</h3>
-      <Link to="/" className="mt-6 inline-flex items-center gap-2 border border-gold text-gold font-semibold px-5 py-2.5 rounded-full hover:bg-gold/10">Back to home</Link>
+      <Link to="/" className="mt-6 inline-flex items-center gap-2 border border-gold text-gold font-semibold px-5 py-2.5 rounded-full hover:bg-gold/10">Back to home</OriginLink>
     </div>
   );
 }

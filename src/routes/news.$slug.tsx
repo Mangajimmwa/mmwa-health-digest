@@ -8,10 +8,17 @@ import { ReadingProgress } from "@/components/site/ReadingProgress";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 
-// ✅ FIXED: Using flat-routing underscore mapping pattern for news.$slug.tsx file structure layout
-export const Route = createFileRoute("/news_.$slug")({
+// ✅ STANDARD ROUTE REGISTRY: Matches the exact path template your admin panel generates
+export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
-    // Direct path query injection safely handling parameters without middleware freezes
+    // 1. Safety check to guarantee param existence before running network requests
+    if (!params?.slug) {
+      throw notFound();
+    }
+
+    const targetSlug = String(params.slug).toLowerCase().trim();
+
+    // 2. Query target record using clean core parameters isolated from missing category links
     const { data, error } = await supabase
       .from("articles")
       .select(`
@@ -30,24 +37,48 @@ export const Route = createFileRoute("/news_.$slug")({
         tags,
         region
       `)
-      .ilike("slug", params.slug)
+      .ilike("slug", targetSlug)
       .maybeSingle();
 
     if (error) {
-      console.error("[Loader Execution Fault]:", error);
+      console.error("[Database Layer Error]:", error);
       throw error;
     }
 
-    if (!data) throw notFound();
+    // 3. Fallback to router's notFound layout if no matching row is returned
+    if (!data) {
+      throw notFound();
+    }
+
     return { article: data };
   },
   component: ArticlePage,
+  // ✅ ROUTER FLOW INSURANCE: If something fails during parsing, show this inline component instead of crashing
+  notFoundComponent: () => <ArticleNotFoundFallback />,
 });
+
+function ArticleNotFoundFallback() {
+  return (
+    <SiteLayout>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 max-w-md mx-auto">
+        <div className="w-16 h-16 bg-gold/10 text-gold rounded-full flex items-center justify-center mb-6 text-2xl font-bold font-display">404</div>
+        <h1 className="text-3xl font-display font-black text-foreground mb-3">Report Not Found</h1>
+        <p className="text-text-mute font-serif mb-8 text-sm leading-relaxed">
+          The requested health news dispatch or surgical reporting document cannot be retrieved from our database records.
+        </p>
+        <Link to="/news" className="inline-flex items-center justify-center bg-gold text-primary-foreground font-bold px-6 py-3 rounded-full hover:bg-gold-hover text-sm transition-colors w-full">
+          Return to Newsroom
+        </Link>
+      </div>
+    </SiteLayout>
+  );
+}
 
 function ArticlePage() {
   const { article } = Route.useLoaderData();
 
-  if (!article) return null;
+  // Safeguard against missing payload fields during client hydration cycles
+  if (!article) return <ArticleNotFoundFallback />;
 
   const publishedDate = article.published_at
     ? new Date(article.published_at).toLocaleDateString(undefined, {
@@ -58,8 +89,6 @@ function ArticlePage() {
     : "";
 
   const articleUrl = typeof window !== "undefined" ? window.location.href : "";
-  
-  // Safe array execution protection engine against string database variations
   const processedTags = Array.isArray(article.tags) ? article.tags : [];
 
   return (
@@ -110,7 +139,6 @@ function ArticlePage() {
             <img
               src={article.featured_image}
               alt={article.title}
-              loading="eager"
               className="w-full aspect-[16/9] object-cover rounded-lg"
             />
             {article.image_caption && (

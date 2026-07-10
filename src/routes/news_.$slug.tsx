@@ -174,11 +174,7 @@ function ArticlePage() {
               src="https://mjvpcfetbvvcnhdwwjrl.supabase.co/storage/v1/object/public/avatars/joseph.jpeg.jpeg" 
               alt="Joseph Mmwa" 
               className="w-full h-full object-cover relative z-10"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
             />
-            <span className="text-gold font-bold text-xl font-display select-none absolute z-0">JM</span>
           </div>
           <div>
             <p className="font-semibold text-foreground">{article.author || "Joseph Mmwa"}</p>

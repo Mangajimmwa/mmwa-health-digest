@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, ArrowLeft, Copy, Loader2 } from "lucide-react";
+import { Clock, ArrowLeft, Copy, Loader2, AlertTriangle } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { ArticleContent } from "@/components/site/ArticleContent";
@@ -16,10 +16,19 @@ function ArticlePage() {
   const { slug } = Route.useParams();
   const articleUrl = typeof window !== "undefined" ? window.location.href : "";
 
+  // 1. Instantly reject automated scanner paths before hitting the database
+  const isScannerPath = slug.includes("_profiler") || slug.includes("phpinfo") || slug.includes(".env");
+
   const { data: article, isLoading, error } = useQuery({
     queryKey: ["article", slug],
     queryFn: async () => {
+      if (isScannerPath) {
+        console.warn("[Security Shield]: Blocked malicious scanner routing attempt:", slug);
+        return null;
+      }
+
       const targetSlug = String(slug).toLowerCase().trim();
+      console.log("[Data Engine]: Fetching article with slug:", targetSlug);
       
       const { data, error: fetchError } = await supabase
         .from("articles")
@@ -40,12 +49,19 @@ function ArticlePage() {
         .ilike("slug", targetSlug)
         .maybeSingle();
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error("[Data Engine]: Database retrieval failure:", fetchError);
+        throw fetchError;
+      }
+      
+      console.log("[Data Engine]: Successfully retrieved payload:", data);
       return data;
     },
-    staleTime: 2 * 60 * 1000,
+    enabled: !isScannerPath,
+    staleTime: 30000, // Keep cache fresh during rapid reloads
   });
 
+  // Loading UI State
   if (isLoading) {
     return (
       <SiteLayout>
@@ -57,16 +73,19 @@ function ArticlePage() {
     );
   }
 
-  if (error || !article) {
+  // Error / 404 UI Fallback State
+  if (error || !article || isScannerPath) {
     return (
       <SiteLayout>
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 max-w-md mx-auto">
-          <div className="w-16 h-16 bg-gold/10 text-gold rounded-full flex items-center justify-center mb-6 text-2xl font-bold font-display">404</div>
+          <div className="w-16 h-16 bg-gold/10 text-gold rounded-full flex items-center justify-center mb-6">
+            <AlertTriangle className="w-8 h-8" />
+          </div>
           <h1 className="text-3xl font-display font-black text-foreground mb-3">Report Not Found</h1>
           <p className="text-text-mute font-serif mb-8 text-sm leading-relaxed">
             The requested health news dispatch or surgical reporting document cannot be retrieved from our database records.
           </p>
-          <Link to="/news" className="inline-flex items-center justify-center bg-gold text-primary-foreground font-bold px-6 py-3 rounded-full hover:bg-gold-hover text-sm transition-colors w-full">
+          <Link to="/news" className="inline-flex items-center justify-center bg-gold text-primary-foreground font-bold px-6 py-3 rounded-full hover:bg-gold-hover text-sm transition-colors w-full cursor-pointer">
             Return to Newsroom
           </Link>
         </div>
@@ -95,7 +114,7 @@ function ArticlePage() {
           </div>
         )}
 
-        <Link to="/news" className="inline-flex items-center gap-1.5 text-sm text-text-mute hover:text-gold transition-colors mb-8">
+        <Link to="/news" className="inline-flex items-center gap-1.5 text-sm text-text-mute hover:text-gold transition-colors mb-8 cursor-pointer">
           <ArrowLeft className="w-4 h-4" /> All stories
         </Link>
 
@@ -128,13 +147,21 @@ function ArticlePage() {
           {article.body ? (
             <ArticleContent html={article.body} />
           ) : (
-            <p className="text-text-mute font-serif italic">No content available.</p>
+            <p className="text-text-mute font-serif italic">No content available for this article.</p>
           )}
         </div>
 
         <div className="mt-14 border-t border-border pt-8">
           <div className="flex flex-wrap gap-3">
-            <button onClick={() => { if (typeof window !== "undefined") { navigator.clipboard.writeText(articleUrl); toast.success("Link copied!"); } }} className="flex items-center gap-2 bg-surface-2 border border-border rounded-full px-4 py-2 text-sm font-medium hover:text-gold transition-colors">
+            <button 
+              onClick={() => { 
+                if (typeof window !== "undefined") { 
+                  navigator.clipboard.writeText(articleUrl); 
+                  toast.success("Link copied!"); 
+                } 
+              }} 
+              className="flex items-center gap-2 bg-surface-2 border border-border rounded-full px-4 py-2 text-sm font-medium hover:text-gold transition-colors cursor-pointer"
+            >
               <Copy className="w-4 h-4" /> Copy link
             </button>
           </div>

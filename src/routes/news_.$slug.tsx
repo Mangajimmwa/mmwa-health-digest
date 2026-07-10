@@ -185,7 +185,8 @@ function ArticlePage() {
         )}
 
         {/* Universal HTML & Text Content Rendering Layer */}
-        <div className="mt-10 text-foreground font-serif text-base leading-relaxed space-y-6">
+        {/* 🎯 THE TYPOGRAPHY FIX: Changed font-serif to font-sans to make article content clean and highly legible */}
+        <div className="mt-10 text-foreground font-sans text-base leading-relaxed space-y-6">
           {article.body ? (
             hasHtmlTags ? (
               /* 🎯 THE SPACE FIX: Added whitespace-pre-wrap to guarantee custom spacing handles paragraph separation properly */
@@ -194,7 +195,7 @@ function ArticlePage() {
               <div className="whitespace-pre-wrap">{article.body}</div>
             )
           ) : (
-            <p className="text-text-mute font-serif italic">No text content parsed in this document row.</p>
+            <p className="text-text-mute font-sans italic">No text content parsed in this document row.</p>
           )}
         </div>
 
@@ -214,7 +215,6 @@ function ArticlePage() {
           </div>
         </div>
 
-        {/* 🎯 FIXED: Wrapped the comment safely so it will never leak onto your web page screen */}
         {/* Author Biography Section */}
         <div className="mt-10 rounded-xl p-6 flex gap-5 items-start" style={{ background: "radial-gradient(ellipse at top left, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)", border: "1px solid rgba(245, 166, 35, 0.15)" }}>
           <div className="shrink-0 w-14 h-14 rounded-full overflow-hidden border border-gold/30 bg-surface-1 relative flex items-center justify-center">

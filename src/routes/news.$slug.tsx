@@ -1,10 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, ArrowLeft, Share2, Copy, Loader2 } from "lucide-react";
+import { Clock, ArrowLeft, Copy, Loader2 } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { ArticleContent } from "@/components/site/ArticleContent";
-import { RelatedStories } from "@/components/site/RelatedStories";
 import { ReadingProgress } from "@/components/site/ReadingProgress";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
@@ -36,9 +35,7 @@ function ArticlePage() {
           published_at,
           read_time_minutes,
           is_premium,
-          is_published,
-          tags,
-          region
+          is_published
         `)
         .ilike("slug", targetSlug)
         .maybeSingle();
@@ -85,8 +82,6 @@ function ArticlePage() {
       })
     : "";
 
-  const processedTags = Array.isArray(article.tags) ? article.tags : [];
-
   return (
     <SiteLayout>
       <Toaster theme="dark" position="top-right" />
@@ -130,7 +125,11 @@ function ArticlePage() {
         )}
 
         <div className="mt-10">
-          {article.body ? <ArticleContent html={article.body} /> : <p className="text-text-mute font-serif italic">No content available.</p>}
+          {article.body ? (
+            <ArticleContent html={article.body} />
+          ) : (
+            <p className="text-text-mute font-serif italic">No content available.</p>
+          )}
         </div>
 
         <div className="mt-14 border-t border-border pt-8">
@@ -140,11 +139,20 @@ function ArticlePage() {
             </button>
           </div>
         </div>
-      </article>
 
-      <div className="mx-auto max-w-7xl px-4 lg:px-6 pb-20">
-        <RelatedStories currentId={article.id} categoryId={null} tags={processedTags} region={article.region ?? null} />
-      </div>
+        <div className="mt-10 rounded-xl p-6 flex gap-5 items-start" style={{ background: "radial-gradient(ellipse at top left, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)", border: "1px solid rgba(245, 166, 35, 0.15)" }}>
+          <div className="shrink-0 w-14 h-14 rounded-full bg-gold/20 flex items-center justify-center text-gold font-bold text-xl font-display select-none">
+            JM
+          </div>
+          <div>
+            <p className="font-semibold text-foreground">{article.author || "Joseph Mmwa"}</p>
+            <p className="text-xs text-gold mt-0.5">Medical &amp; Health Journalist</p>
+            <p className="mt-2 text-sm text-text-body font-serif leading-relaxed">
+              Joseph Mmwa is an independent medical and health journalist delivering accurate, evidence-based reporting on the stories shaping global public health — with clarity, accuracy, and editorial independence.
+            </p>
+          </div>
+        </div>
+      </article>
     </SiteLayout>
   );
 }

@@ -19,10 +19,21 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
     excerpt: "",
     body: "",
     featured_image: "",
+    category: "News", // 🎯 CATEGORY STATE: Tracks the selected option string
     is_published: false,
     author: "Joseph Mmwa",
     read_time_minutes: 3,
   });
+
+  // 🎯 PRESET CATEGORIES LIST
+  const categoriesList = [
+    "News",
+    "Outbreaks",
+    "Vaccines",
+    "Clinical Research",
+    "Public Health",
+    "Medical Breakthroughs"
+  ];
 
   useEffect(() => {
     if (articleId) {
@@ -48,6 +59,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
         excerpt: data.excerpt || "",
         body: data.body || "",
         featured_image: data.featured_image || "",
+        category: data.category || "News", // 🎯 FETCH CONFIGURATION: Sets category row entry cleanly
         is_published: data.is_published || false,
         author: data.author || "Joseph Mmwa",
         read_time_minutes: data.read_time_minutes || 3,
@@ -130,6 +142,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
       excerpt: formData.excerpt || null,
       body: formData.body || null,
       featured_image: formData.featured_image || null,
+      category: formData.category, // 🎯 PAYLOAD INJECTION: Syncs selected options directly into database row schema
       is_published: formData.is_published,
       published_at: formData.is_published ? new Date().toISOString() : null,
       author: formData.author,
@@ -163,6 +176,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
           excerpt: "",
           body: "",
           featured_image: "",
+          category: "News",
           is_published: false,
           author: "Joseph Mmwa",
           read_time_minutes: 3,
@@ -229,27 +243,43 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* 🎯 THE CATEGORY PICKER: Custom stylized dropdown select field hooked into your UI */}
         <div>
-          <label className="block text-sm font-medium mb-2 text-zinc-300">Featured Image Banner</label>
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <input type="text" value={formData.featured_image} onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })} className="flex-1 bg-zinc-950 border border-zinc-800 rounded-md p-2.5 text-xs font-mono outline-none text-white" placeholder="https://... or upload auto-link" />
-              <label className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white px-4 py-2 rounded-md text-xs font-semibold flex items-center gap-2 cursor-pointer transition-colors select-none">
-                {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                {uploadingImage ? "Uploading..." : "Upload Photo"}
-                <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, false)} disabled={uploadingImage} className="hidden" />
-              </label>
-            </div>
-            {formData.featured_image && (
-              <div className="relative aspect-[16/9] w-full rounded-md overflow-hidden border border-zinc-800 bg-zinc-950 mt-2">
-                <img src={formData.featured_image} alt="Preview" className="w-full h-full object-cover" />
-              </div>
-            )}
-          </div>
+          <label className="block text-sm font-medium mb-2 text-zinc-300">Reporting Category Desk</label>
+          <select 
+            value={formData.category} 
+            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-md p-2.5 text-sm outline-none text-white focus:ring-2 focus:ring-amber-500 cursor-pointer appearance-none"
+            style={{ backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 10px center", backgroundSize: "16px" }}
+          >
+            {categoriesList.map((cat) => (
+              <option key={cat} value={cat} className="bg-zinc-900 text-white">{cat}</option>
+            ))}
+          </select>
         </div>
+
         <div>
           <label className="block text-sm font-medium mb-2 text-zinc-300">Estimated Read Time (Minutes)</label>
           <input type="number" value={formData.read_time_minutes} onChange={(e) => setFormData({ ...formData, read_time_minutes: parseInt(e.target.value) || 3 })} className="w-full bg-zinc-950 border border-zinc-800 rounded-md p-2.5 text-sm outline-none text-white" />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-2 text-zinc-300">Featured Image Banner</label>
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <input type="text" value={formData.featured_image} onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })} className="flex-1 bg-zinc-950 border border-zinc-800 rounded-md p-2.5 text-xs font-mono outline-none text-white" placeholder="https://... or upload auto-link" />
+            <label className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white px-4 py-2 rounded-md text-xs font-semibold flex items-center gap-2 cursor-pointer transition-colors select-none">
+              {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+              {uploadingImage ? "Uploading..." : "Upload Photo"}
+              <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, false)} disabled={uploadingImage} className="hidden" />
+            </label>
+          </div>
+          {formData.featured_image && (
+            <div className="relative aspect-[16/9] w-full rounded-md overflow-hidden border border-zinc-800 bg-zinc-950 mt-2">
+              <img src={formData.featured_image} alt="Preview" className="w-full h-full object-cover" />
+            </div>
+          )}
         </div>
       </div>
 

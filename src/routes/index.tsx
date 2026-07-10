@@ -70,9 +70,10 @@ function Latest() {
       const { data: session } = await supabase.auth.getUser();
       const isAdmin = session?.user?.email === "mmwajoseph@gmail.com";
 
+      // 💥 BUG FIX: Explicitly fetching featured_image and author from the table array
       let query = supabase
         .from("articles")
-        .select("id,title,slug,excerpt,read_time_minutes,published_at,is_published")
+        .select("id,title,slug,excerpt,read_time_minutes,published_at,is_published,featured_image,author")
         .order("published_at", { ascending: false })
         .limit(6);
 
@@ -90,6 +91,8 @@ function Latest() {
     category: "News",
     title: a.title,
     excerpt: a.excerpt ?? "",
+    featured_image: a.featured_image,
+    author: a.author || "Joseph Mmwa",
     date: a.published_at
       ? new Date(a.published_at).toLocaleDateString(undefined, {
           month: "short",
@@ -128,6 +131,8 @@ function ArticleCard(props: {
   category: string;
   title: string;
   excerpt: string;
+  featured_image?: string | null;
+  author: string;
   date: string;
   read: string;
 }) {
@@ -137,9 +142,26 @@ function ArticleCard(props: {
       params={{ slug: props.slug }}
       className="group block bg-card border border-border rounded-lg overflow-hidden card-lift cursor-pointer"
     >
-      <div className="aspect-[16/10] bg-gradient-to-br from-surface-2 to-surface-1 relative" />
+      {/* 💥 BUG FIX: Replacing empty placeholder layout with clean, dynamic imagery */}
+      <div className="aspect-[16/10] bg-surface-1 relative overflow-hidden border-b border-border">
+        {props.featured_image ? (
+          <img 
+            src={props.featured_image} 
+            alt={props.title} 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-surface-2 to-surface-1 flex items-center justify-center text-text-mute font-mono text-xs">
+            Mmwa Health Digest
+          </div>
+        )}
+      </div>
       <div className="p-6">
-        <span className="label-eyebrow">{props.category}</span>
+        <div className="flex items-center justify-between text-xs text-text-mute">
+          <span className="label-eyebrow">{props.category}</span>
+          <span className="font-semibold text-gold">By {props.author}</span>
+        </div>
         <h3 className="mt-3 font-display font-bold text-xl leading-snug text-foreground group-hover:text-gold transition-colors">
           {props.title}
         </h3>

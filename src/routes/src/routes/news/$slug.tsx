@@ -15,7 +15,7 @@ function ArticlePage() {
   const { slug } = Route.useParams();
   const articleUrl = typeof window !== "undefined" ? window.location.href : "";
 
-  // Instantly reject automated scanner paths before hitting the database
+  // Guard block against automated bots scanning the framework pathing
   const isScannerPath = slug.includes("_profiler") || slug.includes("phpinfo") || slug.includes(".env") || slug.includes("wp-admin");
 
   const { data: article, isLoading, error } = useQuery({
@@ -24,7 +24,7 @@ function ArticlePage() {
       if (isScannerPath) return null;
 
       const targetSlug = String(slug).toLowerCase().trim();
-      console.log("👉 [DEBUG]: Browser is requesting this slug from Supabase:", targetSlug);
+      console.log("👉 [DEBUG]: Routing pipeline requesting slug:", targetSlug);
       
       const { data, error: fetchError } = await supabase
         .from("articles")
@@ -45,17 +45,17 @@ function ArticlePage() {
         .ilike("slug", targetSlug)
         .maybeSingle();
 
-      console.log("👉 [DEBUG]: Database response payload returned:", data);
+      console.log("👉 [DEBUG]: Payload matched in Supabase database:", data);
       
       if (fetchError) {
-        console.error("❌ [DEBUG]: Supabase connection error details:", fetchError);
+        console.error("❌ [DEBUG]: Query connection failure:", fetchError);
         throw fetchError;
       }
       
       return data;
     },
     enabled: !isScannerPath,
-    staleTime: 5000, // Keeps query response reactive during quick reloads
+    staleTime: 5000,
   });
 
   if (isLoading) {
@@ -138,7 +138,7 @@ function ArticlePage() {
           </figure>
         )}
 
-        {/* Safe Clean HTML/Text Render Engine */}
+        {/* Universal HTML & Text Content Rendering Layer */}
         <div className="mt-10 text-foreground font-serif text-base leading-relaxed space-y-6 whitespace-pre-wrap">
           {article.body ? (
             article.body.includes("<p>") || article.body.includes("</div>") ? (

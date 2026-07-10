@@ -14,7 +14,7 @@ function NewArticle() {
     async function verifySession() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (user && user.email === "mmwajoseph@gmail.com") {
+        if (user && (user.email === "mmwajoseph@gmail.com" || user.email === "mmwajoseph@outlook.com")) {
           setIsAuthenticated(true);
           return;
         }
@@ -26,8 +26,8 @@ function NewArticle() {
     verifySession();
   }, []);
 
-  if (isAuthenticated === null) return <div className="p-8 text-zinc-500">Loading workspace...</div>;
-  if (isAuthenticated === false) return <div className="p-8 text-red-400">Access Denied.</div>;
+  if (isAuthenticated === null) return <div className="p-8 text-zinc-500 font-mono animate-pulse">Loading workspace...</div>;
+  if (isAuthenticated === false) return <div className="p-8 text-red-400 font-semibold">Access Denied.</div>;
 
   return (
     <div className="p-6 max-w-7xl mx-auto font-sans">

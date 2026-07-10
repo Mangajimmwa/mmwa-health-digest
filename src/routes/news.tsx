@@ -18,47 +18,39 @@ export const Route = createFileRoute("/news")({
 });
 
 function NewsPage() {
-  const [activeSlug, setActiveSlug] = useState<string | null>(null);
   const [q, setQ] = useState("");
 
-  const { data: categories } = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("categories")
-        .select("id,name,slug")
-        .order("sort_order");
-      return data ?? [];
-    },
-  });
-
+  // Clean, fast query targeting strictly existing core table content columns
   const { data: articles } = useQuery({
-    queryKey: ["articles", "all", activeSlug],
+    queryKey: ["articles", "all"],
     queryFn: async () => {
-      // 1. Dynamic authentication check to allow admin previews of drafts on the feed
       const { data: session } = await supabase.auth.getUser();
       const isAdmin = session?.user?.email === "mmwajoseph@gmail.com";
 
-      // 2. Changed !inner to !left so articles without a category don't vanish
       let query = supabase
         .from("articles")
-        .select("id,title,slug,excerpt,read_time_minutes,published_at,categories!left(name,slug)")
+        .select(`
+          id,
+          title,
+          slug,
+          excerpt,
+          read_time_minutes,
+          published_at,
+          is_published
+        `)
         .order("published_at", { ascending: false });
 
-      // 3. Keep drafts safely hidden from standard readers
       if (!isAdmin) {
         query = query.eq("is_published", true);
       }
 
-      if (activeSlug) query = query.eq("categories.slug", activeSlug);
-      
       const { data } = await query;
       return data ?? [];
     },
   });
 
   const filtered = (articles ?? []).filter((a) =>
-    q ? a.title.toLowerCase().includes(q.toLowerCase()) : true,
+    q ? a.title.toLowerCase().includes(q.toLowerCase()) : true
   );
 
   return (
@@ -70,31 +62,6 @@ function NewsPage() {
         </h1>
 
         <div className="mt-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            <button
-              onClick={() => setActiveSlug(null)}
-              className={`shrink-0 px-4 py-2 text-xs uppercase tracking-wider font-semibold rounded-full border ${
-                !activeSlug
-                  ? "pill-active"
-                  : "border-border text-text-mute hover:text-foreground"
-              }`}
-            >
-              All
-            </button>
-            {(categories ?? []).map((c) => (
-              <button
-                key={c.id}
-                onClick={() => setActiveSlug(c.slug)}
-                className={`shrink-0 px-4 py-2 text-xs uppercase tracking-wider font-semibold rounded-full border ${
-                  activeSlug === c.slug
-                    ? "pill-active"
-                    : "border-border text-text-mute hover:text-foreground"
-                }`}
-              >
-                {c.name}
-              </button>
-            ))}
-          </div>
           <div className="relative w-full lg:w-72">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-mute" />
             <input
@@ -119,7 +86,7 @@ function NewsPage() {
               >
                 <div className="aspect-[16/10] bg-gradient-to-br from-surface-2 to-surface-1" />
                 <div className="p-6">
-                  <span className="label-eyebrow">{a.categories?.name || "Uncategorized"}</span>
+                  <span className="label-eyebrow">News</span>
                   <h3 className="mt-3 font-display font-bold text-xl leading-snug group-hover:text-gold transition-colors">
                     {a.title}
                   </h3>

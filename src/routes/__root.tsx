@@ -127,6 +127,16 @@ function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className="dark">
       <head>
+        {/* 🎯 GOOGLE ANALYTICS TARGET INJECTION: Embedded safely immediately after the opening head element */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-QEWD0P1QC1"></script>
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-QEWD0P1QC1');
+          `
+        }} />
         <HeadContent />
       </head>
       <body>

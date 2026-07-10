@@ -31,6 +31,11 @@ export const Route = createFileRoute("/news/$slug")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:image", content: image },
+        
+        /* 🎯 THE CARD FIX: Explicit dimensions forcing social media cards into a large, full-length landscape layout */
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
@@ -122,7 +127,6 @@ function ArticlePage() {
       })
     : "";
 
-  // 🛠️ FIXED: Smart layout parsing check. If it contains HTML elements, compile them smoothly.
   const hasHtmlTags = article.body && (
     article.body.includes("<p>") || 
     article.body.includes("</div>") || 
@@ -177,7 +181,7 @@ function ArticlePage() {
         <div className="mt-10 text-foreground font-serif text-base leading-relaxed space-y-6">
           {article.body ? (
             hasHtmlTags ? (
-              /* Added whitespace-pre-wrap down here to make sure manual formatting enters are fully preserved */
+              /* 🎯 THE SPACE FIX: Added whitespace-pre-wrap to guarantee custom spacing handles paragraph separation properly */
               <div dangerouslySetInnerHTML={{ __html: article.body }} className="space-y-6 prose prose-invert max-w-none whitespace-pre-wrap" />
             ) : (
               <div className="whitespace-pre-wrap">{article.body}</div>

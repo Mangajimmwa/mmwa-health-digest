@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { ArrowRight, Lock, Mail, Clock, ChevronRight } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -39,7 +39,7 @@ function Hero() {
   return (
     <section className="relative bg-background overflow-hidden min-h-[90vh] flex items-center">
       <div aria-hidden className="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <img src="/world-map.svg" alt="" className="w-[120%] max-w-none opacity-[0.10] md:opacity-[0.12] [filter:blur(3px)] max-md:opacity-[0.06]" />
+        <img src="/world-map.svg" alt="" className="w-[120%] max-w-none opacity-[0.10] [filter:blur(3px)]" />
       </div>
       <div className="relative z-10 mx-auto max-w-7xl w-full px-4 lg:px-6 pt-28 pb-32 lg:pt-40 lg:pb-44">
         <span className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-sans font-semibold uppercase tracking-[0.2em] text-gold" style={{ background: "rgba(245, 166, 35, 0.15)", border: "1px solid #F5A623" }}>

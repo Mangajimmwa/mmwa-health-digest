@@ -10,8 +10,6 @@ export const Route = createFileRoute("/news")({
     meta: [
       { title: "News — JOSEPH MMWA" },
       { name: "description", content: "All the latest medical and global health news, reported by Joseph Mmwa." },
-      { property: "og:title", content: "News — JOSEPH MMWA" },
-      { property: "og:description", content: "Latest medical and global health stories." },
     ],
   }),
   component: NewsPage,
@@ -20,24 +18,15 @@ export const Route = createFileRoute("/news")({
 function NewsPage() {
   const [q, setQ] = useState("");
 
-  // Clean, fast query targeting strictly existing core table content columns
   const { data: articles } = useQuery({
-    queryKey: ["articles", "all"],
+    queryKey: ["articles", "all-feed-clean"],
     queryFn: async () => {
       const { data: session } = await supabase.auth.getUser();
       const isAdmin = session?.user?.email === "mmwajoseph@gmail.com";
 
       let query = supabase
         .from("articles")
-        .select(`
-          id,
-          title,
-          slug,
-          excerpt,
-          read_time_minutes,
-          published_at,
-          is_published
-        `)
+        .select("id,title,slug,excerpt,read_time_minutes,published_at,is_published")
         .order("published_at", { ascending: false });
 
       if (!isAdmin) {
@@ -57,19 +46,12 @@ function NewsPage() {
     <SiteLayout>
       <section className="mx-auto max-w-7xl px-4 lg:px-6 py-14">
         <p className="label-eyebrow">Newsroom</p>
-        <h1 className="mt-2 font-display font-bold text-4xl sm:text-5xl">
-          Latest health & medical news
-        </h1>
+        <h1 className="mt-2 font-display font-bold text-4xl sm:text-5xl">Latest health & medical news</h1>
 
         <div className="mt-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative w-full lg:w-72">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-mute" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search stories"
-              className="w-full bg-surface-1 border border-border rounded-md pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold"
-            />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search stories" className="w-full bg-surface-1 border border-border rounded-md pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold" />
           </div>
         </div>
 
@@ -78,35 +60,15 @@ function NewsPage() {
             <EmptyState />
           ) : (
             filtered.map((a) => (
-              <Link
-                key={a.id}
-                to="/news/$slug"
-                params={{ slug: a.slug }}
-                className="group block bg-card border border-border rounded-lg overflow-hidden card-lift"
-              >
+              <Link key={a.id} to="/news/$slug" params={{ slug: a.slug }} className="group block bg-card border border-border rounded-lg overflow-hidden card-lift cursor-pointer">
                 <div className="aspect-[16/10] bg-gradient-to-br from-surface-2 to-surface-1" />
                 <div className="p-6">
                   <span className="label-eyebrow">News</span>
-                  <h3 className="mt-3 font-display font-bold text-xl leading-snug group-hover:text-gold transition-colors">
-                    {a.title}
-                  </h3>
-                  {a.excerpt && (
-                    <p className="mt-3 text-sm text-text-body font-serif line-clamp-3">
-                      {a.excerpt}
-                    </p>
-                  )}
+                  <h3 className="mt-3 font-display font-bold text-xl leading-snug group-hover:text-gold transition-colors">{a.title}</h3>
+                  {a.excerpt && <p className="mt-3 text-sm text-text-body font-serif line-clamp-3">{a.excerpt}</p>}
                   <div className="mt-5 flex items-center gap-4 text-xs text-text-mute">
-                    <span>
-                      {a.published_at &&
-                        new Date(a.published_at).toLocaleDateString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> {a.read_time_minutes} min read
-                    </span>
+                    <span>{a.published_at && new Date(a.published_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
+                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {a.read_time_minutes} min read</span>
                   </div>
                 </div>
               </Link>
@@ -121,21 +83,9 @@ function NewsPage() {
 function EmptyState() {
   return (
     <div className="col-span-full bg-card border border-border rounded-xl p-12 text-center">
-      <div className="mx-auto w-14 h-14 rounded-full bg-gold/15 text-gold flex items-center justify-center">
-        <Newspaper className="w-6 h-6" />
-      </div>
-      <h3 className="mt-5 font-display font-bold text-2xl text-foreground">
-        No stories published yet
-      </h3>
-      <p className="mt-3 text-text-body font-serif max-w-xl mx-auto">
-        The newsroom is preparing its first verified reports. Check back soon.
-      </p>
-      <Link
-        to="/"
-        className="mt-6 inline-flex items-center gap-2 border border-gold text-gold font-semibold px-5 py-2.5 rounded-full hover:bg-gold/10"
-      >
-        Back to home
-      </Link>
+      <div className="mx-auto w-14 h-14 rounded-full bg-gold/15 text-gold flex items-center justify-center"><Newspaper className="w-6 h-6" /></div>
+      <h3 className="mt-5 font-display font-bold text-2xl text-foreground">No stories published yet</h3>
+      <Link to="/" className="mt-6 inline-flex items-center gap-2 border border-gold text-gold font-semibold px-5 py-2.5 rounded-full hover:bg-gold/10">Back to home</Link>
     </div>
   );
 }

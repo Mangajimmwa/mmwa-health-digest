@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, ImageIcon, Loader2 } from "lucide-react";
+import { Upload, Loader2 } from "lucide-react";
 
 interface ArticleFormProps {
   articleId?: string;
@@ -53,27 +53,23 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
     }
   }
 
-  // 📤 Dynamic client-side media uploader linking directly to your live public bucket storage layout
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     const file = files[0];
     const fileExt = file.name.split(".").pop();
-    // Replaced unsafe whitespace filenames with a clean, formatted time block string layout
     const cleanFileName = `article-${Date.now()}.${fileExt}`;
     const filePath = `${cleanFileName}`;
 
     setUploadingImage(true);
     try {
-      // Stream file directly into your primary database asset repository structure
       const { error: uploadError } = await supabase.storage
-        .from("avatars") // Re-using your verified public bucket for static media assets
+        .from("avatars")
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
-      // Extract public layout path securely
       const { data: { publicUrl } } = supabase.storage
         .from("avatars")
         .getPublicUrl(filePath);
@@ -129,7 +125,6 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
 
       toast.success(formData.is_published ? "Article is now live worldwide!" : "Draft updated successfully.");
       
-      // Clear out the entry inputs if creating a brand new post successfully
       if (!articleId) {
         setFormData({
           title: "",
@@ -153,34 +148,33 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
   };
 
   return (
-    <form onSubmit={handlePublish} className="space-y-6 max-w-4xl bg-zinc-900 border border-zinc-800 p-6 rounded-xl">
+    <form onSubmit={handlePublish} className="space-y-6 max-w-4xl bg-card border border-border p-6 rounded-xl">
       <div>
-        <label className="block text-sm font-medium mb-2 text-zinc-300">Article Title</label>
-        <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full bg-zinc-950 border border-zinc-800 rounded-md p-2.5 text-white focus:ring-2 focus:ring-amber-500 outline-none" placeholder="e.g., Kenyan Man Becomes First to Survive..." required />
+        <label className="block text-sm font-medium mb-2">Article Title</label>
+        <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full bg-surface-1 border border-border rounded-md p-2.5 text-foreground focus:ring-2 focus:ring-gold outline-none" placeholder="e.g., Kenyan Man Becomes First to Survive..." required />
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-2 text-zinc-300">URL Slug (Dashes only)</label>
-        <input type="text" value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value.replace(/\s+/g, '-').toLowerCase() })} className="w-full bg-zinc-950 border border-zinc-800 rounded-md p-2.5 font-mono text-xs text-white focus:ring-2 focus:ring-amber-500 outline-none" placeholder="kenyan-man-becomes-first..." required />
+        <label className="block text-sm font-medium mb-2">URL Slug (Dashes only)</label>
+        <input type="text" value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value.replace(/\s+/g, '-').toLowerCase() })} className="w-full bg-surface-1 border border-border rounded-md p-2.5 font-mono text-xs focus:ring-2 focus:ring-gold outline-none" placeholder="kenyan-man-becomes-first..." required />
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-2 text-zinc-300">Short Excerpt Summary</label>
-        <textarea value={formData.excerpt} onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })} className="w-full bg-zinc-950 border border-zinc-800 rounded-md p-2.5 text-sm h-20 outline-none focus:ring-2 focus:ring-amber-500 text-white" placeholder="Brief opening description..." />
+        <label className="block text-sm font-medium mb-2">Short Excerpt Summary</label>
+        <textarea value={formData.excerpt} onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })} className="w-full bg-surface-1 border border-border rounded-md p-2.5 text-sm h-20 outline-none focus:ring-2 focus:ring-gold" placeholder="Brief opening description..." />
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-2 text-zinc-300">Main Report Body Content (HTML or Plain Text)</label>
-        <textarea value={formData.body} onChange={(e) => setFormData({ ...formData, body: e.target.value })} className="w-full bg-zinc-950 border border-zinc-800 rounded-md p-2.5 font-mono text-sm h-80 outline-none focus:ring-2 focus:ring-amber-500 text-white" placeholder="<p>Write your article body here...</p>" />
+        <label className="block text-sm font-medium mb-2">Main Report Body Content (HTML or Plain Text)</label>
+        <textarea value={formData.body} onChange={(e) => setFormData({ ...formData, body: e.target.value })} className="w-full bg-surface-1 border border-border rounded-md p-2.5 font-mono text-sm h-80 outline-none focus:ring-2 focus:ring-gold" placeholder="<p>Write your article body here...</p>" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* 🖼️ Re-designed completely for instant, smooth client-side file upload operations */}
         <div>
-          <label className="block text-sm font-medium mb-2 text-zinc-300">Featured Image Layout</label>
+          <label className="block text-sm font-medium mb-2">Featured Image</label>
           <div className="space-y-2">
             <div className="flex gap-2">
-              <input type="text" value={formData.featured_image} onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })} className="flex-1 bg-zinc-950 border border-zinc-800 rounded-md p-2.5 text-xs outline-none font-mono text-white" placeholder="https://... image address" />
+              <input type="text" value={formData.featured_image} onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })} className="flex-1 bg-surface-1 border border-border rounded-md p-2.5 text-xs font-mono outline-none focus:ring-2 focus:ring-gold" placeholder="https://... or upload local file" />
               <label className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white px-4 py-2 rounded-md text-xs font-semibold flex items-center gap-2 cursor-pointer transition-colors select-none">
                 {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
                 {uploadingImage ? "Uploading..." : "Upload Photo"}
@@ -188,26 +182,26 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
               </label>
             </div>
             {formData.featured_image && (
-              <div className="relative aspect-[16/9] w-full rounded-md overflow-hidden border border-zinc-800 bg-zinc-950 mt-2">
+              <div className="relative aspect-[16/9] w-full rounded-md overflow-hidden border border-border bg-surface-1 mt-2">
                 <img src={formData.featured_image} alt="Preview" className="w-full h-full object-cover" />
               </div>
             )}
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-2 text-zinc-300">Estimated Read Time (Minutes)</label>
-          <input type="number" value={formData.read_time_minutes} onChange={(e) => setFormData({ ...formData, read_time_minutes: parseInt(e.target.value) || 3 })} className="w-full bg-zinc-950 border border-zinc-800 rounded-md p-2.5 text-sm outline-none text-white" />
+          <label className="block text-sm font-medium mb-2">Estimated Read Time (Minutes)</label>
+          <input type="number" value={formData.read_time_minutes} onChange={(e) => setFormData({ ...formData, read_time_minutes: parseInt(e.target.value) || 3 })} className="w-full bg-surface-1 border border-border rounded-md p-2.5 text-sm outline-none focus:ring-2 focus:ring-gold" />
         </div>
       </div>
 
-      <div className="flex items-center gap-3 bg-zinc-950 p-4 rounded-lg border border-zinc-800">
-        <input type="checkbox" id="is_published" checked={formData.is_published} onChange={(e) => setFormData({ ...formData, is_published: e.target.checked })} className="w-4 h-4 accent-amber-500 cursor-pointer" />
-        <label htmlFor="is_published" className="text-sm font-medium cursor-pointer select-none text-zinc-300">
+      <div className="flex items-center gap-3 bg-surface-2 p-4 rounded-lg border border-border">
+        <input type="checkbox" id="is_published" checked={formData.is_published} onChange={(e) => setFormData({ ...formData, is_published: e.target.checked })} className="w-4 h-4 accent-gold cursor-pointer" />
+        <label htmlFor="is_published" className="text-sm font-medium cursor-pointer select-none">
           Ready to Go Live (Checking this applies the current timestamp)
         </label>
       </div>
 
-      <button type="submit" disabled={loading || uploadingImage} className="bg-amber-500 hover:bg-amber-600 text-black font-bold px-6 py-3 rounded-md transition-colors disabled:opacity-50 text-sm cursor-pointer">
+      <button type="submit" disabled={loading || uploadingImage} className="bg-gold hover:bg-gold-hover text-primary-foreground font-bold px-6 py-3 rounded-md transition-colors disabled:opacity-50 cursor-pointer">
         {loading ? "Saving Workspace Changes..." : "Save News Dispatch"}
       </button>
     </form>

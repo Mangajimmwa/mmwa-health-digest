@@ -15,7 +15,7 @@ function ArticlePage() {
   const { slug } = Route.useParams();
   const articleUrl = typeof window !== "undefined" ? window.location.href : "";
 
-  // Guard block against automated bots scanning the framework pathing
+  // Guard block against automated bots scanning framework endpoints
   const isScannerPath = slug.includes("_profiler") || slug.includes("phpinfo") || slug.includes(".env") || slug.includes("wp-admin");
 
   const { data: article, isLoading, error } = useQuery({

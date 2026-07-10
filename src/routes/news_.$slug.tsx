@@ -171,13 +171,9 @@ function ArticlePage() {
         <div className="mt-10 rounded-xl p-6 flex gap-5 items-start" style={{ background: "radial-gradient(ellipse at top left, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)", border: "1px solid rgba(245, 166, 35, 0.15)" }}>
           <div className="shrink-0 w-14 h-14 rounded-full overflow-hidden border border-gold/30 bg-surface-1 relative flex items-center justify-center">
             <img 
-              src="/joseph.webp" 
+              src="https://mjvpcfetbvvcnhdwwjrl.supabase.co/storage/v1/object/public/avatars/joseph.jpeg.jpeg" 
               alt="Joseph Mmwa" 
               className="w-full h-full object-cover relative z-10"
-              onError={(e) => {
-                // If the builder places it inside the common asset subfolder instead
-                e.currentTarget.src = "/assets/joseph.webp";
-              }}
             />
           </div>
           <div>

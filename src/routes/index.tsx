@@ -1,13 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import {
-  ArrowRight,
-  Lock,
-  Mail,
-  Clock,
-  ChevronRight,
-} from "lucide-react";
+import { ArrowRight, Lock, Mail, Clock, ChevronRight } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -19,13 +13,7 @@ export const Route = createFileRoute("/")({
       { title: "JOSEPH MMWA — Global Health News You Can Trust" },
       {
         name: "description",
-        content:
-          "Real-time medical news, outbreak updates, and global health reporting from Joseph Mmwa. If it's health, it's here.",
-      },
-      { property: "og:title", content: "JOSEPH MMWA — Global Health News" },
-      {
-        property: "og:description",
-        content: "Independent medical journalism — outbreaks, vaccines, research, policy.",
+        content: "Real-time medical news, outbreak updates, and global health reporting from Joseph Mmwa. If it's health, it's here.",
       },
     ],
   }),
@@ -43,8 +31,6 @@ function Home() {
       <Newsletter />
       <SectionDivider />
       <PremiumUpsell />
-      <SectionDivider />
-      <CategoriesStrip />
     </SiteLayout>
   );
 }
@@ -52,28 +38,11 @@ function Home() {
 function Hero() {
   return (
     <section className="relative bg-background overflow-hidden min-h-[90vh] flex items-center">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 flex items-center justify-center"
-      >
-        <img
-          src="/world-map.svg"
-          alt=""
-          className="w-[120%] max-w-none opacity-[0.10] md:opacity-[0.12] [filter:blur(3px)] max-md:opacity-[0.06]"
-        />
+      <div aria-hidden className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <img src="/world-map.svg" alt="" className="w-[120%] max-w-none opacity-[0.10] md:opacity-[0.12] [filter:blur(3px)] max-md:opacity-[0.06]" />
       </div>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(61,40,0,0.55)_0%,rgba(10,10,10,0)_65%)] max-md:bg-[linear-gradient(to_top,rgba(61,40,0,0.35)_0%,rgba(10,10,10,0)_65%)]"
-      />
       <div className="relative z-10 mx-auto max-w-7xl w-full px-4 lg:px-6 pt-28 pb-32 lg:pt-40 lg:pb-44">
-        <span
-          className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-sans font-semibold uppercase tracking-[0.2em] text-gold"
-          style={{
-            background: "rgba(245, 166, 35, 0.15)",
-            border: "1px solid #F5A623",
-          }}
-        >
+        <span className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-sans font-semibold uppercase tracking-[0.2em] text-gold" style={{ background: "rgba(245, 166, 35, 0.15)", border: "1px solid #F5A623" }}>
           Global Health Desk
         </span>
         <h1 className="mt-6 font-display font-black text-5xl sm:text-6xl lg:text-7xl leading-[1.02] tracking-tight max-w-4xl">
@@ -82,30 +51,11 @@ function Hero() {
           <span style={{ color: "#F5A623" }}>YOU CAN TRUST</span>
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-text-body font-serif">
-          Breaking medical news, verified health reporting, and evidence-based
-          journalism from Joseph Mmwa.
-        </p>
-        <p className="mt-4 max-w-2xl text-base text-text-body font-serif">
-          Joseph Mmwa is an independent medical and health journalist reporting
-          on disease outbreaks, vaccine developments, medical breakthroughs, and
-          global public health — with accuracy, clarity, and editorial
-          independence.
-        </p>
-        <p className="mt-3 font-display italic text-white text-lg tagline-glow">
-          If it's health, it's here.
+          Breaking medical news, verified health reporting, and evidence-based journalism from Joseph Mmwa.
         </p>
         <div className="mt-9 flex flex-wrap gap-3">
-          <Link
-            to="/news"
-            className="inline-flex items-center gap-2 bg-gold text-primary-foreground font-bold px-7 py-3.5 rounded-full hover:bg-gold-hover transition-colors"
-          >
+          <Link to="/news" className="inline-flex items-center gap-2 bg-gold text-primary-foreground font-bold px-7 py-3.5 rounded-full hover:bg-gold-hover transition-colors cursor-pointer">
             Read Latest News <ArrowRight className="w-4 h-4" />
-          </Link>
-          <Link
-            to="/premium"
-            className="inline-flex items-center gap-2 border border-gold text-gold font-semibold px-7 py-3.5 rounded-full hover:bg-gold/10 transition-colors"
-          >
-            <Lock className="w-4 h-4" /> Go Premium
           </Link>
         </div>
       </div>
@@ -115,15 +65,14 @@ function Hero() {
 
 function Latest() {
   const { data: articles } = useQuery({
-    queryKey: ["articles", "latest"],
-    staleTime: 5 * 60 * 1000,
+    queryKey: ["articles", "latest-home-feed"],
     queryFn: async () => {
       const { data: session } = await supabase.auth.getUser();
       const isAdmin = session?.user?.email === "mmwajoseph@gmail.com";
 
       let query = supabase
         .from("articles")
-        .select("id,title,slug,excerpt,featured_image,read_time_minutes,published_at")
+        .select("id,title,slug,excerpt,read_time_minutes,published_at,is_published")
         .order("published_at", { ascending: false })
         .limit(6);
 
@@ -156,43 +105,19 @@ function Latest() {
       <div className="flex items-end justify-between mb-10">
         <div>
           <p className="label-eyebrow">Latest Stories</p>
-          <h2 className="mt-2 font-display font-bold text-3xl sm:text-4xl">
-            From the newsroom
-          </h2>
+          <h2 className="mt-2 font-display font-bold text-3xl sm:text-4xl">From the newsroom</h2>
         </div>
-        <Link
-          to="/news"
-          className="hidden sm:inline-flex items-center gap-1 text-sm text-gold hover:text-gold-hover"
-        >
-          All stories <ChevronRight className="w-4 h-4" />
-        </Link>
       </div>
       {items.length === 0 ? (
         <div className="col-span-full bg-card border border-border rounded-xl p-12 text-center">
-          <p className="label-eyebrow">Coming soon</p>
-          <h3 className="mt-3 font-display font-bold text-2xl">
-            No stories published yet
-          </h3>
-          <p className="mt-3 text-text-body font-serif max-w-xl mx-auto">
-            The newsroom is preparing its first verified reports. Subscribe below to be first to know.
-          </p>
+          <h3 className="font-display font-bold text-2xl">Updating news feed...</h3>
         </div>
       ) : (
-        <>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {items.map((a) => (
-              <ArticleCard key={a.slug} {...a} />
-            ))}
-          </div>
-          <div className="mt-10 text-center">
-            <Link
-              to="/news"
-              className="inline-flex items-center gap-2 border border-gold text-gold font-semibold px-6 py-3 rounded-md hover:bg-gold/10"
-            >
-              Load More
-            </Link>
-          </div>
-        </>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {items.map((a) => (
+            <ArticleCard key={a.slug} {...a} />
+          ))}
+        </div>
       )}
     </section>
   );
@@ -210,11 +135,9 @@ function ArticleCard(props: {
     <Link
       to="/news/$slug"
       params={{ slug: props.slug }}
-      className="group block bg-card border border-border rounded-lg overflow-hidden card-lift"
+      className="group block bg-card border border-border rounded-lg overflow-hidden card-lift cursor-pointer"
     >
-      <div className="aspect-[16/10] bg-gradient-to-br from-surface-2 to-surface-1 relative">
-        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_30%_20%,rgba(245,166,35,0.15),transparent_60%)]" />
-      </div>
+      <div className="aspect-[16/10] bg-gradient-to-br from-surface-2 to-surface-1 relative" />
       <div className="p-6">
         <span className="label-eyebrow">{props.category}</span>
         <h3 className="mt-3 font-display font-bold text-xl leading-snug text-foreground group-hover:text-gold transition-colors">
@@ -249,55 +172,27 @@ function Newsletter() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.includes("@")) return toast.error("Enter a valid email");
-    setLoading(true); // ✅ FIXED: correctly calling state setter function
+    setLoading(true);
     const { error } = await supabase.from("subscribers").insert({ email });
-    setLoading(false); // ✅ FIXED: correctly calling state setter function
+    setLoading(false);
     if (error) {
-      if (error.code === "23505") toast.success("You're already subscribed.");
-      else toast.error("Could not subscribe. Try again.");
+      toast.error("Could not subscribe.");
       return;
     }
     setEmail("");
-    toast.success("Subscribed. Watch your inbox tomorrow morning.");
+    toast.success("Subscribed successfully.");
   }
 
   return (
     <section className="mx-auto max-w-7xl px-4 lg:px-6 py-20">
-      <div
-        className="rounded-xl p-8 lg:p-12 flex flex-col lg:flex-row gap-8 lg:items-center"
-        style={{
-          background:
-            "radial-gradient(ellipse at top right, #3D2800 0%, #251800 45%, #0A0A0A 100%)",
-          border: "1px solid rgba(245, 166, 35, 0.35)",
-          boxShadow: "inset 0 0 80px rgba(245, 166, 35, 0.08)",
-        }}
-      >
-        <div className="shrink-0 w-14 h-14 rounded-full bg-gold/15 text-gold flex items-center justify-center">
-          <Mail className="w-6 h-6" />
-        </div>
+      <div className="rounded-xl p-8 lg:p-12 flex flex-col lg:flex-row gap-8 lg:items-center" style={{ background: "radial-gradient(ellipse at top right, #3D2800 0%, #251800 45%, #0A0A0A 100%)", border: "1px solid rgba(245, 166, 35, 0.35)" }}>
         <div className="flex-1">
           <h2 className="font-display font-bold text-3xl">The Mmwa Briefing</h2>
-          <p className="mt-2 text-text-body font-serif">
-            One concise email each morning. Outbreaks, breakthroughs, and the global
-            health stories that matter — written by Joseph Mmwa.
-          </p>
-          <p className="mt-1 text-xs text-text-mute">Join 4,200+ readers. No spam. Unsubscribe anytime.</p>
+          <p className="mt-2 text-text-body font-serif">Concise morning updates on the global health stories that matter.</p>
         </div>
         <form onSubmit={submit} className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            className="bg-surface-2 border border-border rounded-md px-4 py-3 text-sm text-foreground placeholder:text-text-mute focus:outline-none focus:ring-2 focus:ring-gold w-full sm:w-72"
-          />
-          <button
-            disabled={loading}
-            className="bg-gold text-primary-foreground font-semibold px-5 py-3 rounded-md hover:bg-gold-hover disabled:opacity-60"
-          >
-            {loading ? "..." : "Subscribe Free"}
-          </button>
+          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="bg-surface-2 border border-border rounded-md px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-gold" />
+          <button disabled={loading} className="bg-gold text-primary-foreground font-semibold px-5 py-3 rounded-md hover:bg-gold-hover">Subscribe</button>
         </form>
       </div>
     </section>
@@ -307,77 +202,13 @@ function Newsletter() {
 function PremiumUpsell() {
   return (
     <section className="mx-auto max-w-7xl px-4 lg:px-6 py-20">
-      <div
-        className="relative overflow-hidden rounded-xl grid lg:grid-cols-2 gap-0"
-        style={{
-          background:
-            "radial-gradient(ellipse at top left, #3D2800 0%, #251800 45%, #0A0A0A 100%)",
-          border: "1px solid rgba(245, 166, 35, 0.35)",
-          boxShadow: "inset 0 0 80px rgba(245, 166, 35, 0.08)",
-        }}
-      >
-        <div className="order-1 lg:order-1 p-8 sm:p-10 lg:p-14">
-          <p className="label-eyebrow">Members Only</p>
-          <h2 className="mt-3 font-display font-bold text-4xl sm:text-5xl">
-            Unlock <span className="text-gold">Premium</span>
-          </h2>
-          <p className="mt-5 max-w-xl text-text-body font-serif text-lg">
-            Exclusive global health and medical reporting, in-depth outbreak
-            analysis, early access to major health stories, premium video updates,
-            and detailed coverage of the medical developments shaping the world.
-          </p>
-          <Link
-            to="/premium"
-            className="btn-glow mt-8 inline-flex items-center gap-2 bg-gold text-primary-foreground font-semibold px-6 py-3 rounded-md"
-          >
-            Go Premium <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-        <div className="order-0 lg:order-2 relative min-h-[240px] lg:min-h-[420px]">
-          <img
-            src="https://images.unsplash.com/photo-1609220136736-443140cffec6?auto=format&fit=crop&w=1200&q=80"
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            alt="Global health and wellbeing"
-            loading="lazy"
-            className="absolute inset-0 w-full h-full object-cover rounded-[12px] lg:rounded-l-none lg:rounded-r-[12px]"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 lg:bg-[linear-gradient(to_right,#0A0A0A_0%,rgba(10,10,10,0.5)_18%,transparent_45%)] bg-[linear-gradient(to_top,#0A0A0A_0%,rgba(10,10,10,0.4)_35%,transparent_70%)]"
-          />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function CategoriesStrip() {
-  const { data } = useQuery({
-    queryKey: ["categories"],
-    staleTime: 5 * 60 * 1000,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("categories")
-        .select("id,name,slug")
-        .order("sort_order");
-      return data ?? [];
-    },
-  });
-  return (
-    <section className="mx-auto max-w-7xl px-4 lg:px-6 py-20">
-      <p className="label-eyebrow">Explore</p>
-      <h2 className="mt-2 font-display font-bold text-3xl">Browse by topic</h2>
-      <div className="mt-6 flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
-        {(data ?? []).map((c) => (
-          <Link
-            key={c.id}
-            to="/category/$slug"
-            params={{ slug: c.slug }}
-            className="shrink-0 bg-card border border-border rounded-lg px-5 py-3 text-sm font-medium text-text-body hover:text-gold hover:border-gold/40 transition-colors whitespace-nowrap"
-          >
-            {c.name}
-          </Link>
-        ))}
+      <div className="relative overflow-hidden rounded-xl p-8 sm:p-10 lg:p-14" style={{ background: "radial-gradient(ellipse at top left, #3D2800 0%, #251800 45%, #0A0A0A 100%)", border: "1px solid rgba(245, 166, 35, 0.35)" }}>
+        <p className="label-eyebrow">Members Only</p>
+        <h2 className="mt-3 font-display font-bold text-4xl sm:text-5xl">Unlock <span className="text-gold">Premium</span></h2>
+        <p className="mt-5 max-w-xl text-text-body font-serif text-lg">Exclusive, in-depth outbreak analysis and global health reporting.</p>
+        <Link to="/premium" className="mt-8 inline-flex items-center gap-2 bg-gold text-primary-foreground font-semibold px-6 py-3 rounded-md cursor-pointer">
+          Go Premium <ArrowRight className="w-4 h-4" />
+        </Link>
       </div>
     </section>
   );

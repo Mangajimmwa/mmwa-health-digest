@@ -105,15 +105,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=Source+Serif+Pro:ital,wght@0,400;0,600;1,400&display=swap",
       },
-      /* 🎯 THE FAVICON FIX: Pointing Google strictly to your uploaded logo path */
+      /* 🎯 THE FAVICON FIX: Clean standardized asset URL pointing straight to your new storage file entry */
       { 
         rel: "icon", 
         type: "image/jpeg", 
-        href: "https://mjvpcfetbvvcnhdwwjrl.supabase.co/storage/v1/object/public/assets/WhatsApp%20Image%202026-07-11%20at%2000.53.14.jpeg" 
+        href: "https://mjvpcfetbvvcnhdwwjrl.supabase.co/storage/v1/object/public/assets/logo-icon.jpg" 
       },
       { 
         rel: "apple-touch-icon", 
-        href: "https://mjvpcfetbvvcnhdwwjrl.supabase.co/storage/v1/object/public/assets/WhatsApp%20Image%202026-07-11%20at%2000.53.14.jpeg" 
+        href: "https://mjvpcfetbvvcnhdwwjrl.supabase.co/storage/v1/object/public/assets/logo-icon.jpg" 
       },
     ],
   }),

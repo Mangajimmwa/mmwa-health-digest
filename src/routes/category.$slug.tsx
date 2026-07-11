@@ -24,12 +24,12 @@ export const Route = createFileRoute("/category/$slug")({
 
 const CATEGORY_META: Record<string, { name: string; description: string }> = {
   "disease-outbreaks": { name: "Disease Outbreaks", description: "Coverage of infectious diseases, epidemics, pandemics, disease surveillance, public health emergencies, outbreak response, emerging pathogens, and global disease alerts." },
-  "vaccines-immunization": { name: "Vaccines & Immunization", description: "Vaccine research, approvals, immunization programmes, vaccination campaigns, vaccine policy, vaccine safety, immunology, and global vaccination initiatives." },
+  "vaccines-immunization": { name: "Vaccines and Immunizations", description: "Vaccine research, approvals, immunization programmes, vaccination campaigns, vaccine policy, vaccine safety, immunology, and global vaccination initiatives." },
   "medical-research": { name: "Medical Research", description: "Peer-reviewed studies, clinical trials, scientific discoveries, laboratory research, academic publications, biomedical science, and evidence-based medical findings." },
-  "treatments-innovation": { name: "Treatments & Innovation", description: "New medicines, breakthrough therapies, biotechnology, gene therapy, precision medicine, medical devices, diagnostics, artificial intelligence in healthcare, and healthcare innovation." },
+  "treatments-innovation": { name: "Treatments and Innovations", description: "New medicines, breakthrough therapies, biotechnology, gene therapy, precision medicine, medical devices, diagnostics, artificial intelligence in healthcare, and healthcare innovation." },
   "public-health": { name: "Public Health", description: "Global health policy, healthcare systems, disease prevention, environmental health, One Health, mental health, health education, health campaigns, humanitarian health, and international public health initiatives." },
-  "healthcare": { name: "Healthcare", description: "Hospitals, healthcare delivery, pharmaceuticals, digital health, telemedicine, healthcare regulation, healthcare workforce, insurance, medical infrastructure, and health industry developments." },
-  "explainers": { name: "Explainers", description: "Clear, evidence-based articles that simplify complex medical topics, research findings, health myths, medical terminology, and important health issues for everyday readers." },
+  "healthcare": { name: "Healthcare and Explainers", description: "Hospitals, healthcare delivery, pharmaceuticals, digital health, telemedicine, healthcare regulation, healthcare workforce, insurance, medical infrastructure, and health industry developments." },
+  "explainers": { name: "Healthcare and Explainers", description: "Clear, evidence-based articles that simplify complex medical topics, research findings, health myths, medical terminology, and important health issues for everyday readers." },
 };
 
 function CategoryPage() {
@@ -41,11 +41,12 @@ function CategoryPage() {
     queryKey: ["category-articles", slug],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
+      /* 🎯 THE BUG FIX: Querying your actual text column on the articles table, ignoring the ghost table join */
       const { data } = await supabase
         .from("articles")
-        .select("id,title,slug,excerpt,read_time_minutes,published_at,categories!inner(name,slug)")
+        .select("id,title,slug,excerpt,read_time_minutes,published_at,category,featured_image")
         .eq("is_published", true)
-        .eq("categories.slug", slug)
+        .ilike("category", meta.name)
         .order("published_at", { ascending: false });
       return data ?? [];
     },
@@ -88,11 +89,30 @@ function CategoryPage() {
             </div>
           ) : (
             articles!.map((a) => (
-              <article key={a.id} className="bg-card border border-border rounded-lg overflow-hidden card-lift">
-                <div className="aspect-[16/10] bg-gradient-to-br from-surface-2 to-surface-1" />
+              <Link
+                key={a.id}
+                to="/news/$slug"
+                params={{ slug: a.slug }}
+                className="group block bg-card border border-border rounded-lg overflow-hidden card-lift cursor-pointer"
+              >
+                {/* 🎯 BONUS FIX: Rendering the actual article layout picture instead of a blank box */}
+                <div className="aspect-[16/10] bg-surface-1 relative overflow-hidden border-b border-border">
+                  {a.featured_image ? (
+                    <img 
+                      src={a.featured_image} 
+                      alt={a.title} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-surface-2 to-surface-1 flex items-center justify-center text-text-mute font-mono text-xs">
+                      Mmwa Health Digest
+                    </div>
+                  )}
+                </div>
                 <div className="p-6">
-                  <span className="label-eyebrow">{meta.name}</span>
-                  <h3 className="mt-3 font-display font-bold text-xl leading-snug">{a.title}</h3>
+                  <span className="label-eyebrow">{a.category || meta.name}</span>
+                  <h3 className="mt-3 font-display font-bold text-xl leading-snug group-hover:text-gold transition-colors">{a.title}</h3>
                   {a.excerpt && (
                     <p className="mt-3 text-sm text-text-body font-serif line-clamp-3">{a.excerpt}</p>
                   )}
@@ -105,7 +125,7 @@ function CategoryPage() {
                     </span>
                   </div>
                 </div>
-              </article>
+              </Link>
             ))
           )}
         </div>

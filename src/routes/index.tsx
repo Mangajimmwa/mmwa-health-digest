@@ -70,10 +70,10 @@ function Latest() {
       const { data: session } = await supabase.auth.getUser();
       const isAdmin = session?.user?.email === "mmwajoseph@gmail.com";
 
-      // 💥 BUG FIX: Explicitly fetching featured_image and author from the table array
+      // Explicitly fetching featured_image, category, and author from the table array
       let query = supabase
         .from("articles")
-        .select("id,title,slug,excerpt,read_time_minutes,published_at,is_published,featured_image,author")
+        .select("id,title,slug,excerpt,read_time_minutes,published_at,is_published,featured_image,author,category")
         .order("published_at", { ascending: false })
         .limit(6);
 
@@ -88,7 +88,7 @@ function Latest() {
 
   const items = (articles ?? []).map((a) => ({
     slug: a.slug,
-    category: "News",
+    category: a.category || "News", // 🎯 FIXED: Pulls dynamic reporting category directly from your database row column
     title: a.title,
     excerpt: a.excerpt ?? "",
     featured_image: a.featured_image,
@@ -142,7 +142,7 @@ function ArticleCard(props: {
       params={{ slug: props.slug }}
       className="group block bg-card border border-border rounded-lg overflow-hidden card-lift cursor-pointer"
     >
-      {/* 💥 BUG FIX: Replacing empty placeholder layout with clean, dynamic imagery */}
+      {/* Replacing empty placeholder layout with clean, dynamic imagery */}
       <div className="aspect-[16/10] bg-surface-1 relative overflow-hidden border-b border-border">
         {props.featured_image ? (
           <img 

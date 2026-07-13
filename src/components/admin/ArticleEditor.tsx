@@ -19,19 +19,21 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
     excerpt: "",
     body: "",
     featured_image: "",
-    category: "Disease outbreaks",
+    category: "Disease Outbreaks",
     is_published: false,
     author: "Joseph Mmwa",
     read_time_minutes: 3,
   });
 
-  // 🎯 SYNCHRONIZED FRONT-END NEWS PILLARS
+  // 🎯 FINAL CAPITIALIZED 7 CATEGORIES
   const categoriesList = [
-    "Disease outbreaks",
-    "Vaccines and immunizations",
-    "Medical Research, Treatments and Innovation",
+    "Disease Outbreaks",
+    "Vaccines and Immunization",
+    "Medical Research",
+    "Treatment and Innovations",
     "Public Health",
-    "Health Care and Explainers"
+    "Healthcare",
+    "Explainers"
   ];
 
   useEffect(() => {
@@ -58,7 +60,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
         excerpt: data.excerpt || "",
         body: data.body || "",
         featured_image: data.featured_image || "",
-        category: data.category || "Disease outbreaks",
+        category: data.category || "Disease Outbreaks",
         is_published: data.is_published || false,
         author: data.author || "Joseph Mmwa",
         read_time_minutes: data.read_time_minutes || 3,
@@ -66,7 +68,6 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
     }
   }
 
-  // 📤 Dynamic client-side media uploader pointed strictly to your "media" bucket
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>, isInline = false) {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -78,7 +79,6 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
 
     setUploadingImage(true);
     try {
-      // FIXED: Pointing directly to your "media" storage bucket
       const { error: uploadError } = await supabase.storage
         .from("media")
         .upload(filePath, file);
@@ -104,7 +104,6 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
     }
   }
 
-  // 📝 Helper function to insert styling tags exactly where your cursor is typing
   const insertFormatting = (before: string, after = "") => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -119,7 +118,6 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
     
     setFormData({ ...formData, body: newBody });
     
-    // Reset focus and cursor position smoothly
     setTimeout(() => {
       textarea.focus();
       textarea.setSelectionRange(start + before.length, start + before.length + selected.length);
@@ -175,7 +173,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
           excerpt: "",
           body: "",
           featured_image: "",
-          category: "Disease outbreaks",
+          category: "Disease Outbreaks",
           is_published: false,
           author: "Joseph Mmwa",
           read_time_minutes: 3,
@@ -208,7 +206,6 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
         <textarea value={formData.excerpt} onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })} className="w-full bg-zinc-950 border border-zinc-800 rounded-md p-2.5 text-sm h-20 outline-none focus:ring-2 focus:ring-amber-500 text-white" placeholder="Brief opening description..." />
       </div>
 
-      {/* 🛠️ RICH TEXT FORMATTING TOOLBAR PANEL */}
       <div>
         <label className="block text-sm font-medium mb-2 text-zinc-300">Main Report Body Content</label>
         <div className="border border-zinc-800 rounded-md overflow-hidden bg-zinc-950 focus-within:ring-2 focus-within:ring-amber-500">
@@ -223,7 +220,6 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
             <button type="button" onClick={() => insertFormatting("<a href='#' className='text-gold underline hover:text-gold-hover'>", "</a>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Insert Link"><Link2 className="w-4 h-4" /></button>
             <div className="w-[1px] h-4 bg-zinc-800 mx-1" />
             
-            {/* Inline story media injector button */}
             <label className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white cursor-pointer flex items-center" title="Embed body image asset">
               <ImageIcon className="w-4 h-4" />
               <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, true)} className="hidden" disabled={uploadingImage} />
@@ -242,7 +238,6 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* 🎯 THE CATEGORY PICKER */}
         <div>
           <label className="block text-sm font-medium mb-2 text-zinc-300">Reporting Category Desk</label>
           <select 

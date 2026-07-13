@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, ArrowLeft, Copy, Loader2, AlertTriangle } from "lucide-react";
+import { Clock, ArrowLeft, Copy, Loader2, AlertTriangle, Twitter, Linkedin, Facebook } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { ReadingProgress } from "@/components/site/ReadingProgress";
@@ -80,7 +80,8 @@ function ArticlePage() {
           published_at,
           read_time_minutes,
           is_premium,
-          is_published
+          is_published,
+          category
         `)
         .ilike("slug", targetSlug)
         .maybeSingle();
@@ -94,6 +95,28 @@ function ArticlePage() {
     },
     enabled: !isScannerPath,
     staleTime: 5000,
+  });
+
+  // Query related stories dynamically based on category/region context matches
+  const { data: relatedArticles } = useQuery({
+    queryKey: ["related-articles", article?.id, article?.category],
+    queryFn: async () => {
+      if (!article?.id) return [];
+
+      let query = supabase
+        .from("articles")
+        .select("id, title, slug, excerpt, published_at, featured_image")
+        .eq("is_published", true)
+        .neq("id", article.id);
+
+      if (article.category) {
+        query = query.eq("category", article.category);
+      }
+
+      const { data } = await query.limit(2);
+      return data || [];
+    },
+    enabled: !!article?.id,
   });
 
   if (isLoading) {
@@ -141,6 +164,14 @@ function ArticlePage() {
     article.body.includes("<strong>") ||
     article.body.includes("<h2")
   );
+
+  // Social Sharing Layout Schemes
+  const shareText = encodeURIComponent(`Read this vital health dispatch: ${article.title}`);
+  const encodedUrl = encodeURIComponent(articleUrl);
+  const whatsappUrl = `https://api.whatsapp.com/send?text=${shareText}%20${encodedUrl}`;
+  const twitterUrl = `https://twitter.com/intent/tweet?text=${shareText}&url=${encodedUrl}`;
+  const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
 
   return (
     <SiteLayout>
@@ -199,8 +230,10 @@ function ArticlePage() {
           )}
         </div>
 
+        {/* 🛠️ IMPROVEMENT: Share This Story Block */}
         <div className="mt-14 border-t border-border pt-8">
-          <div className="flex flex-wrap gap-3">
+          <p className="text-xs font-display font-bold uppercase tracking-wider text-text-mute mb-4">Share This Story</p>
+          <div className="flex flex-wrap gap-3 items-center">
             <button 
               onClick={() => { 
                 if (typeof window !== "undefined") { 
@@ -212,6 +245,18 @@ function ArticlePage() {
             >
               <Copy className="w-4 h-4" /> Copy link
             </button>
+            <a href={whatsappUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center bg-surface-2 border border-border w-10 h-10 rounded-full hover:text-green-500 transition-colors text-sm font-bold font-sans">
+              W
+            </a>
+            <a href={twitterUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center bg-surface-2 border border-border w-10 h-10 rounded-full hover:text-gold transition-colors">
+              <Twitter className="w-4 h-4" />
+            </a>
+            <a href={linkedinUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center bg-surface-2 border border-border w-10 h-10 rounded-full hover:text-blue-500 transition-colors">
+              <Linkedin className="w-4 h-4" />
+            </a>
+            <a href={facebookUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center bg-surface-2 border border-border w-10 h-10 rounded-full hover:text-blue-600 transition-colors">
+              <Facebook className="w-4 h-4" />
+            </a>
           </div>
         </div>
 
@@ -232,6 +277,26 @@ function ArticlePage() {
             </p>
           </div>
         </div>
+
+        {/* 🛠️ IMPROVEMENT: Related News Component Layer */}
+        {relatedArticles && relatedArticles.length > 0 && (
+          <div className="mt-16 border-t border-border pt-10">
+            <h3 className="font-display font-bold text-xl text-foreground mb-6">Related Dispatches</h3>
+            <div className="grid gap-6 sm:grid-cols-2">
+              {relatedArticles.map((ra) => (
+                <Link key={ra.id} to="/news/$slug" params={{ slug: ra.slug }} className="group block space-y-3 cursor-pointer">
+                  {ra.featured_image && (
+                    <div className="aspect-[16/9] w-full overflow-hidden rounded-lg bg-surface-1 border border-border">
+                      <img src={ra.featured_image} alt={ra.title} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
+                    </div>
+                  )}
+                  <h4 className="font-display font-bold text-base leading-snug group-hover:text-gold transition-colors line-clamp-2">{ra.title}</h4>
+                  {ra.excerpt && <p className="text-xs text-text-mute line-clamp-2 font-serif">{ra.excerpt}</p>}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </article>
     </SiteLayout>
   );

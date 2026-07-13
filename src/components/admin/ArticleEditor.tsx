@@ -19,7 +19,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
     excerpt: "",
     body: "",
     featured_image: "",
-    category: "Disease outbreaks", // Updated default category fallback matching your new pillars
+    category: "Disease outbreaks",
     is_published: false,
     author: "Joseph Mmwa",
     read_time_minutes: 3,
@@ -133,7 +133,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
       return;
     }
 
-    loading = true;
+    setLoading(true);
 
     const payload = {
       title: formData.title,
@@ -242,7 +242,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* 🎯 THE CATEGORY PICKER: Hooks into your new news pillars */}
+        {/* 🎯 THE CATEGORY PICKER */}
         <div>
           <label className="block text-sm font-medium mb-2 text-zinc-300">Reporting Category Desk</label>
           <select 

@@ -19,20 +19,19 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
     excerpt: "",
     body: "",
     featured_image: "",
-    category: "News", // 🎯 CATEGORY STATE: Tracks the selected option string
+    category: "Disease outbreaks", // Updated default category fallback matching your new pillars
     is_published: false,
     author: "Joseph Mmwa",
     read_time_minutes: 3,
   });
 
-  // 🎯 PRESET CATEGORIES LIST
+  // 🎯 SYNCHRONIZED FRONT-END NEWS PILLARS
   const categoriesList = [
-    "News",
-    "Outbreaks",
-    "Vaccines",
-    "Clinical Research",
+    "Disease outbreaks",
+    "Vaccines and immunizations",
+    "Medical Research, Treatments and Innovation",
     "Public Health",
-    "Medical Breakthroughs"
+    "Health Care and Explainers"
   ];
 
   useEffect(() => {
@@ -59,7 +58,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
         excerpt: data.excerpt || "",
         body: data.body || "",
         featured_image: data.featured_image || "",
-        category: data.category || "News", // 🎯 FETCH CONFIGURATION: Sets category row entry cleanly
+        category: data.category || "Disease outbreaks",
         is_published: data.is_published || false,
         author: data.author || "Joseph Mmwa",
         read_time_minutes: data.read_time_minutes || 3,
@@ -134,7 +133,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
       return;
     }
 
-    setLoading(true);
+    loading = true;
 
     const payload = {
       title: formData.title,
@@ -142,7 +141,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
       excerpt: formData.excerpt || null,
       body: formData.body || null,
       featured_image: formData.featured_image || null,
-      category: formData.category, // 🎯 PAYLOAD INJECTION: Syncs selected options directly into database row schema
+      category: formData.category,
       is_published: formData.is_published,
       published_at: formData.is_published ? new Date().toISOString() : null,
       author: formData.author,
@@ -176,7 +175,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
           excerpt: "",
           body: "",
           featured_image: "",
-          category: "News",
+          category: "Disease outbreaks",
           is_published: false,
           author: "Joseph Mmwa",
           read_time_minutes: 3,
@@ -243,7 +242,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* 🎯 THE CATEGORY PICKER: Custom stylized dropdown select field hooked into your UI */}
+        {/* 🎯 THE CATEGORY PICKER: Hooks into your new news pillars */}
         <div>
           <label className="block text-sm font-medium mb-2 text-zinc-300">Reporting Category Desk</label>
           <select 

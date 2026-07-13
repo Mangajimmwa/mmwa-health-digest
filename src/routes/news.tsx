@@ -17,6 +17,18 @@ export const Route = createFileRoute("/news")({
 
 function NewsPage() {
   const [q, setQ] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // Synchronized with your exact 7 newsroom categories
+  const categories = [
+    "Disease Outbreaks",
+    "Vaccines and Immunization",
+    "Medical Research",
+    "Treatment and Innovations",
+    "Public Health",
+    "Healthcare",
+    "Explainers"
+  ];
 
   const { data: articles } = useQuery({
     queryKey: ["articles", "all-feed-clean"],
@@ -26,8 +38,7 @@ function NewsPage() {
 
       let query = supabase
         .from("articles")
-        /* 🎯 THE SELECTION FIX: Added featured_image to the query list */
-        .select("id,title,slug,excerpt,read_time_minutes,published_at,is_published,featured_image")
+        .select("id,title,slug,excerpt,read_time_minutes,published_at,is_published,featured_image,category")
         .order("published_at", { ascending: false });
 
       if (!isAdmin) {
@@ -39,9 +50,11 @@ function NewsPage() {
     },
   });
 
-  const filtered = (articles ?? []).filter((a) =>
-    q ? a.title.toLowerCase().includes(q.toLowerCase()) : true
-  );
+  const filtered = (articles ?? []).filter((a) => {
+    const matchesSearch = q ? a.title.toLowerCase().includes(q.toLowerCase()) : true;
+    const matchesCategory = selectedCategory ? a.category === selectedCategory : true;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <SiteLayout>
@@ -49,7 +62,34 @@ function NewsPage() {
         <p className="label-eyebrow">Newsroom</p>
         <h1 className="mt-2 font-display font-bold text-4xl sm:text-5xl">Latest health & medical news</h1>
 
-        <div className="mt-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        {/* NAVIGATION PILLARS: Filters dynamically by the exact 7 items */}
+        <div className="mt-8 flex flex-wrap gap-2 border-b border-border pb-4">
+          <button
+            onClick={() => setSelectedCategory(null)}
+            className={`px-4 py-2 rounded-full text-xs font-semibold tracking-wide uppercase transition-colors ${
+              !selectedCategory 
+                ? "bg-gold text-primary-foreground" 
+                : "bg-surface-2 border border-border text-text-mute hover:text-foreground"
+            }`}
+          >
+            All Stories
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-4 py-2 rounded-full text-xs font-semibold tracking-wide uppercase transition-colors ${
+                selectedCategory === cat 
+                  ? "bg-gold text-primary-foreground" 
+                  : "bg-surface-2 border border-border text-text-mute hover:text-foreground"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative w-full lg:w-72">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-mute" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search stories" className="w-full bg-surface-1 border border-border rounded-md pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold" />
@@ -62,7 +102,6 @@ function NewsPage() {
           ) : (
             filtered.map((a) => (
               <Link key={a.id} to="/news/$slug" params={{ slug: a.slug }} className="group block bg-card border border-border rounded-lg overflow-hidden card-lift cursor-pointer">
-                {/* 🎯 THE RENDERING FIX: Displays the database featured image cleanly with a smooth hover zoom effect */}
                 <div className="aspect-[16/10] w-full bg-surface-1 relative overflow-hidden border-b border-border">
                   {a.featured_image ? (
                     <img 
@@ -79,7 +118,7 @@ function NewsPage() {
                 </div>
                 
                 <div className="p-6">
-                  <span className="label-eyebrow">News</span>
+                  <span className="label-eyebrow">{a.category || "News"}</span>
                   <h3 className="mt-3 font-display font-bold text-xl leading-snug group-hover:text-gold transition-colors">{a.title}</h3>
                   {a.excerpt && <p className="mt-3 text-sm text-text-body font-serif line-clamp-3">{a.excerpt}</p>}
                   <div className="mt-5 flex items-center gap-4 text-xs text-text-mute">

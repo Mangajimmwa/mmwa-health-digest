@@ -51,7 +51,7 @@ function Hero() {
           <span style={{ color: "#F5A623" }}>YOU CAN TRUST</span>
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-text-body font-serif">
-          The world's biggest health and medical stories, verified, fact-checked, and explained with clarity.
+          The world's biggest health and medical stories, verified, fact-checked, and explained with clarity
         </p>
         <div className="mt-9 flex flex-wrap gap-3">
           <Link to="/news" className="inline-flex items-center gap-2 bg-gold text-primary-foreground font-bold px-7 py-3.5 rounded-full hover:bg-gold-hover transition-colors cursor-pointer">

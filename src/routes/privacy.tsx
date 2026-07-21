@@ -215,7 +215,7 @@ function PrivacyPage() {
           <Section title="10. Contact Information">
             <div className="bg-surface-1 border border-border p-6 rounded-xl font-sans text-sm space-y-2">
               <p className="font-bold text-lg text-foreground mb-1">Joseph Mmwa Media Group</p>
-              <p className="text-text-mute text-xs uppercase tracking-wider font-semibold">Independent Health & Medical Journalism Organization</p>
+              <p className="text-text-mute text-xs italic font-serif">If it's health, it's here.</p>
               <div className="pt-2 space-y-1">
                 <p className="text-text-body">
                   Email:{" "}

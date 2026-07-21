@@ -91,7 +91,9 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
         .getPublicUrl(filePath);
 
       if (isInline) {
-        insertFormatting(`<img src="${publicUrl}" alt="${file.name}" className="w-full rounded-lg my-6" />`);
+        insertFormatting(
+          `<figure class="my-6">\n  <img src="${publicUrl}" alt="${file.name}" class="w-full h-auto rounded-lg shadow-md" />\n  <figcaption class="text-right text-xs text-zinc-400 italic mt-1.5 font-mono">photo credit: </figcaption>\n</figure>`
+        );
         toast.success("Image embedded into your story body!");
       } else {
         setFormData((prev) => ({ ...prev, featured_image: publicUrl }));
@@ -201,7 +203,20 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
 
       <div>
         <label className="block text-sm font-medium mb-2 text-zinc-300">URL Slug (Dashes only)</label>
-        <input type="text" value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value.replace(/\s+/g, '-').toLowerCase() })} className="w-full bg-zinc-950 border border-zinc-800 rounded-md p-2.5 font-mono text-xs text-white focus:ring-2 focus:ring-amber-500 outline-none" placeholder="kenyan-man-becomes-first..." required />
+        <input 
+          type="text" 
+          value={formData.slug} 
+          onChange={(e) => setFormData({ 
+            ...formData, 
+            slug: e.target.value
+              .toLowerCase()
+              .replace(/[^a-z0-9\s-]/g, '')
+              .replace(/\s+/g, '-') 
+          })} 
+          className="w-full bg-zinc-950 border border-zinc-800 rounded-md p-2.5 font-mono text-xs text-white focus:ring-2 focus:ring-amber-500 outline-none" 
+          placeholder="kenyan-man-becomes-first..." 
+          required 
+        />
       </div>
 
       <div>
@@ -217,11 +232,11 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
             <button type="button" onClick={() => insertFormatting("<em>", "</em>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Italic"><Italic className="w-4 h-4" /></button>
             <button type="button" onClick={() => insertFormatting("<u>", "</u>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Underline"><Underline className="w-4 h-4" /></button>
             <div className="w-[1px] h-4 bg-zinc-800 mx-1" />
-            <button type="button" onClick={() => insertFormatting("<h2 className='text-xl md:text-2xl font-bold font-display mt-8 mb-3 text-amber-400 border-l-4 border-amber-500 pl-3 leading-snug'>", "</h2>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Heading 2 (Styled Subheading)"><Heading2 className="w-4 h-4" /></button>
-            <button type="button" onClick={() => insertFormatting("<h3 className='text-lg font-bold font-display mt-4 mb-2 text-white'>", "</h3>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Heading 3"><Heading3 className="w-4 h-4" /></button>
+            <button type="button" onClick={() => insertFormatting("<h2 class='text-xl md:text-2xl font-bold font-display mt-8 mb-3 text-amber-400 border-l-4 border-amber-500 pl-3 leading-snug'>", "</h2>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Heading 2 (Styled Subheading)"><Heading2 className="w-4 h-4" /></button>
+            <button type="button" onClick={() => insertFormatting("<h3 class='text-lg font-bold font-display mt-4 mb-2 text-white'>", "</h3>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Heading 3"><Heading3 className="w-4 h-4" /></button>
             <div className="w-[1px] h-4 bg-zinc-800 mx-1" />
-            <button type="button" onClick={() => insertFormatting("<ul className='list-disc pl-5 space-y-1 my-4'>\n  <li>", "</li>\n</ul>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Bullet List"><List className="w-4 h-4" /></button>
-            <button type="button" onClick={() => insertFormatting("<a href='#' className='text-gold underline hover:text-gold-hover'>", "</a>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Insert Link"><Link2 className="w-4 h-4" /></button>
+            <button type="button" onClick={() => insertFormatting("<ul class='list-disc pl-5 space-y-1 my-4'>\n  <li>", "</li>\n</ul>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Bullet List"><List className="w-4 h-4" /></button>
+            <button type="button" onClick={() => insertFormatting("<a href='#' class='text-amber-400 underline hover:text-amber-300'>", "</a>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Insert Link"><Link2 className="w-4 h-4" /></button>
             <div className="w-[1px] h-4 bg-zinc-800 mx-1" />
             
             <label className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white cursor-pointer flex items-center" title="Embed body image asset">

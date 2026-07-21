@@ -1,11 +1,14 @@
-import { Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
-import { Footer } from "@/components/site/Footer";
+import { Footer } from "../components/site/Footer";
 
-export function ContactPage() {
+export const Route = createFileRoute("/contact")({
+  component: ContactPage,
+});
+
+function ContactPage() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Form submission logic
   };
 
   return (
@@ -146,7 +149,6 @@ export function ContactPage() {
         </div>
       </main>
 
-      {/* Shared Footer Component */}
       <Footer />
     </div>
   );

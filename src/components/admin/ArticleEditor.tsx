@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, Loader2, Bold, Italic, Heading2, Heading3, List, Link2, Image as ImageIcon } from "lucide-react";
+import { Upload, Loader2, Bold, Italic, Underline, Heading2, Heading3, List, Link2, Image as ImageIcon } from "lucide-react";
 
 interface ArticleFormProps {
   articleId?: string;
@@ -19,6 +19,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
     excerpt: "",
     body: "",
     featured_image: "",
+    image_caption: "",
     category: "Disease Outbreaks",
     is_published: false,
     author: "Joseph Mmwa",
@@ -60,6 +61,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
         excerpt: data.excerpt || "",
         body: data.body || "",
         featured_image: data.featured_image || "",
+        image_caption: data.image_caption || "",
         category: data.category || "Disease Outbreaks",
         is_published: data.is_published || false,
         author: data.author || "Joseph Mmwa",
@@ -139,6 +141,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
       excerpt: formData.excerpt || null,
       body: formData.body || null,
       featured_image: formData.featured_image || null,
+      image_caption: formData.image_caption || null,
       category: formData.category,
       is_published: formData.is_published,
       published_at: formData.is_published ? new Date().toISOString() : null,
@@ -173,6 +176,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
           excerpt: "",
           body: "",
           featured_image: "",
+          image_caption: "",
           category: "Disease Outbreaks",
           is_published: false,
           author: "Joseph Mmwa",
@@ -212,6 +216,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
           <div className="bg-zinc-900 border-b border-zinc-800 p-2 flex flex-wrap gap-1 items-center">
             <button type="button" onClick={() => insertFormatting("<strong>", "</strong>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Bold"><Bold className="w-4 h-4" /></button>
             <button type="button" onClick={() => insertFormatting("<em>", "</em>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Italic"><Italic className="w-4 h-4" /></button>
+            <button type="button" onClick={() => insertFormatting("<u>", "</u>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Underline"><Underline className="w-4 h-4" /></button>
             <div className="w-[1px] h-4 bg-zinc-800 mx-1" />
             <button type="button" onClick={() => insertFormatting("<h2 className='text-2xl font-bold font-display mt-6 mb-2 text-white'>", "</h2>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Heading 2"><Heading2 className="w-4 h-4" /></button>
             <button type="button" onClick={() => insertFormatting("<h3 className='text-xl font-bold font-display mt-4 mb-2 text-white'>", "</h3>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Heading 3"><Heading3 className="w-4 h-4" /></button>
@@ -260,7 +265,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
 
       <div>
         <label className="block text-sm font-medium mb-2 text-zinc-300">Featured Image Banner</label>
-        <div className="space-y-2">
+        <div className="space-y-3">
           <div className="flex gap-2">
             <input type="text" value={formData.featured_image} onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })} className="flex-1 bg-zinc-950 border border-zinc-800 rounded-md p-2.5 text-xs font-mono outline-none text-white" placeholder="https://... or upload auto-link" />
             <label className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white px-4 py-2 rounded-md text-xs font-semibold flex items-center gap-2 cursor-pointer transition-colors select-none">
@@ -270,10 +275,20 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
             </label>
           </div>
           {formData.featured_image && (
-            <div className="relative aspect-[16/9] w-full rounded-md overflow-hidden border border-zinc-800 bg-zinc-950 mt-2">
+            <div className="relative aspect-[16/9] w-full rounded-md overflow-hidden border border-zinc-800 bg-zinc-950">
               <img src={formData.featured_image} alt="Preview" className="w-full h-full object-cover" />
             </div>
           )}
+          <div className="pt-1">
+            <label className="block text-xs font-medium text-zinc-400 mb-1">Image Description / Photo Credit Attribution</label>
+            <input 
+              type="text" 
+              value={formData.image_caption} 
+              onChange={(e) => setFormData({ ...formData, image_caption: e.target.value })} 
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-md p-2 text-xs text-white outline-none focus:ring-1 focus:ring-amber-500" 
+              placeholder="e.g., Photo: WHO / Health workers conducting field surveillance." 
+            />
+          </div>
         </div>
       </div>
 

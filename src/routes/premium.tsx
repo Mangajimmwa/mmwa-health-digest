@@ -64,12 +64,12 @@ function PremiumPage() {
             Exclusive Membership
           </span>
 
-          <h1 className="font-display font-black text-4xl sm:text-6xl text-foreground tracking-tight leading-tight">
-            Unlock <span className="text-gold drop-shadow-sm">Premium</span>
+          <h1 className="font-display font-black text-4xl sm:text-6xl text-foreground tracking-tight leading-tight uppercase">
+            WELCOME BACK!
           </h1>
 
-          <p className="mt-6 text-lg sm:text-xl text-foreground/90 font-serif font-medium max-w-2xl mx-auto leading-relaxed">
-            Independent, world-class health journalism for readers who want to stay ahead of the stories shaping global health.
+          <p className="mt-4 text-xl sm:text-2xl font-display text-gold italic font-semibold">
+            Unlock World-Class Global Health &amp; Medical Reporting.
           </p>
 
           <p className="mt-4 text-base text-text-body font-serif max-w-3xl mx-auto leading-relaxed">

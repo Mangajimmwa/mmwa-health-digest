@@ -218,92 +218,115 @@ export function Navbar() {
           </button>
         </div>
 
-        <div className="px-6 pt-4">
-          <p className="font-display italic text-white text-sm tagline-glow">
-            If it's health, it's here.
-          </p>
-        </div>
+        <div className="flex-1 overflow-y-auto flex flex-col justify-between">
+          <div>
+            <nav className="flex flex-col px-6 py-4">
+              {NAV.map((n) => {
+                const active = pathname === n.to;
+                return (
+                  <Link
+                    key={n.to}
+                    to={n.to}
+                    onClick={() => setMenuOpen(false)}
+                    className={`py-3 text-[18px] font-medium border-b border-gold/10 min-h-[48px] flex items-center ${
+                      active ? "text-gold" : "text-white hover:text-gold"
+                    }`}
+                  >
+                    {n.label}
+                  </Link>
+                );
+              })}
 
-        <div className="flex-1 overflow-y-auto">
-          <nav className="flex flex-col px-6 py-4">
-            {NAV.map((n) => {
-              const active = pathname === n.to;
-              return (
-                <Link
-                  key={n.to}
-                  to={n.to}
-                  onClick={() => setMenuOpen(false)}
-                  className={`py-3 text-[18px] font-medium border-b border-gold/10 min-h-[48px] flex items-center ${
-                    active ? "text-gold" : "text-white hover:text-gold"
-                  }`}
+              {/* Dynamic Session Handling for Mobile */}
+              {session ? (
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    handleSignOut();
+                  }}
+                  className="py-3 text-[18px] font-medium border-b border-gold/10 min-h-[48px] flex items-center text-left text-red-400 bg-transparent border-0 cursor-pointer w-full"
                 >
-                  {n.label}
+                  Sign Out
+                </button>
+              ) : (
+                <Link
+                  to="/auth"
+                  onClick={() => setMenuOpen(false)}
+                  className="py-3 text-[18px] font-medium border-b border-gold/10 min-h-[48px] flex items-center text-white hover:text-gold"
+                >
+                  Sign In
                 </Link>
-              );
-            })}
+              )}
+            </nav>
 
-            {/* Dynamic Session Handling for Mobile */}
-            {session ? (
-              <button
-                onClick={() => {
-                  setMenuOpen(false);
-                  handleSignOut();
-                }}
-                className="py-3 text-[18px] font-medium border-b border-gold/10 min-h-[48px] flex items-center text-left text-red-400 bg-transparent border-0 cursor-pointer w-full"
-              >
-                Sign Out
-              </button>
-            ) : (
+            <div className="px-6 pt-2 pb-6">
               <Link
-                to="/auth"
+                to="/premium"
                 onClick={() => setMenuOpen(false)}
-                className="py-3 text-[18px] font-medium border-b border-gold/10 min-h-[48px] flex items-center text-white hover:text-gold"
+                className="btn-glow flex items-center justify-center w-full text-center bg-gold text-primary-foreground font-bold rounded-full text-base h-[52px]"
               >
-                Sign In
+                Subscribe
               </Link>
-            )}
-          </nav>
-
-          <div className="px-6 pt-2 pb-4">
-            <Link
-              to="/premium"
-              onClick={() => setMenuOpen(false)}
-              className="btn-glow flex items-center justify-center w-full text-center bg-gold text-primary-foreground font-bold rounded-full text-base h-[52px]"
-            >
-              Subscribe
-            </Link>
+            </div>
           </div>
 
-          <div className="border-t border-gold/20 mx-6" />
-
-          {/* Contact Section in Mobile Menu */}
-          <div className="px-6 py-6 space-y-4">
-            <p className="label-eyebrow">Contact</p>
-            <a
-              href="mailto:josephmmwamedia@outlook.com"
-              className="flex items-center gap-3 text-sm text-text-body hover:text-gold transition-colors"
+          {/* Premium Mobile Menu Footer Card */}
+          <div className="px-4 pb-8 pt-2">
+            <div 
+              className="relative overflow-hidden rounded-2xl p-6 border text-left shadow-2xl"
+              style={{ 
+                background: "radial-gradient(ellipse at top left, #3D2800 0%, #1A1100 50%, #080808 100%)", 
+                borderColor: "rgba(245, 166, 35, 0.35)" 
+              }}
             >
-              <Mail className="w-4 h-4 text-gold" />
-              josephmmwamedia@outlook.com
-            </a>
-            <a
-              href="tel:+254729147765"
-              className="flex items-center gap-3 text-sm text-text-body hover:text-gold transition-colors"
-            >
-              <Phone className="w-4 h-4 text-gold" />
-              +254 729 147 765
-            </a>
-          </div>
+              {/* Subtle Ambient Light Glow */}
+              <div className="absolute -top-10 -right-10 w-28 h-28 bg-gold/10 rounded-full blur-2xl pointer-events-none" />
 
-          <div className="border-t border-gold/20 mx-6" />
+              {/* Eyebrow Badge */}
+              <span 
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-gold mb-4" 
+                style={{ background: "rgba(245, 166, 35, 0.15)", border: "1px solid #F5A623" }}
+              >
+                Global Health Bureau
+              </span>
 
-          <div className="px-6 py-6 text-center">
-            <p className="font-display italic text-white text-sm tagline-glow">
-              If it's health, it's here.
-            </p>
-            <p className="mt-2 text-xs text-text-mute">
-              © 2026 Joseph Mmwa Media Group. All rights reserved.
-            </p>
+              {/* Brand Title */}
+              <h3 className="font-display font-black text-xl text-foreground tracking-tight">
+                Joseph Mmwa <span className="text-gold">Media Group</span>
+              </h3>
+
+              {/* Tagline */}
+              <p className="mt-1 text-xs font-serif italic tracking-wide">
+                <span className="text-white">If it's health, </span>
+                <span className="text-gold font-semibold">it's here.</span>
+              </p>
+
+              {/* Contact Information */}
+              <div className="mt-5 pt-4 border-t border-gold/20 space-y-3">
+                <p className="text-[10px] font-mono uppercase tracking-widest text-gold/80 font-semibold">
+                  Direct Desk
+                </p>
+                <a
+                  href="mailto:josephmmwamedia@outlook.com"
+                  className="flex items-center gap-2.5 text-xs font-mono text-text-body hover:text-gold transition-colors break-all"
+                >
+                  <Mail className="w-3.5 h-3.5 text-gold shrink-0" />
+                  <span>josephmmwamedia@outlook.com</span>
+                </a>
+                <a
+                  href="tel:+254729147765"
+                  className="flex items-center gap-2.5 text-xs font-mono text-text-body hover:text-gold transition-colors"
+                >
+                  <Phone className="w-3.5 h-3.5 text-gold shrink-0" />
+                  <span>+254 729 147 765</span>
+                </a>
+              </div>
+
+              {/* Copyright */}
+              <div className="mt-5 pt-3 border-t border-gold/20 text-[11px] font-mono text-text-mute flex items-center justify-between">
+                <span>© 2026 Joseph Mmwa Media Group</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -26,7 +26,6 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
     read_time_minutes: 3,
   });
 
-  // 🎯 FINAL CAPITIALIZED 7 CATEGORIES
   const categoriesList = [
     "Disease Outbreaks",
     "Vaccines and Immunization",
@@ -218,8 +217,8 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
             <button type="button" onClick={() => insertFormatting("<em>", "</em>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Italic"><Italic className="w-4 h-4" /></button>
             <button type="button" onClick={() => insertFormatting("<u>", "</u>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Underline"><Underline className="w-4 h-4" /></button>
             <div className="w-[1px] h-4 bg-zinc-800 mx-1" />
-            <button type="button" onClick={() => insertFormatting("<h2 className='text-2xl font-bold font-display mt-6 mb-2 text-white'>", "</h2>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Heading 2"><Heading2 className="w-4 h-4" /></button>
-            <button type="button" onClick={() => insertFormatting("<h3 className='text-xl font-bold font-display mt-4 mb-2 text-white'>", "</h3>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Heading 3"><Heading3 className="w-4 h-4" /></button>
+            <button type="button" onClick={() => insertFormatting("<h2 className='text-xl md:text-2xl font-bold font-display mt-8 mb-3 text-amber-400 border-l-4 border-amber-500 pl-3 leading-snug'>", "</h2>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Heading 2 (Styled Subheading)"><Heading2 className="w-4 h-4" /></button>
+            <button type="button" onClick={() => insertFormatting("<h3 className='text-lg font-bold font-display mt-4 mb-2 text-white'>", "</h3>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Heading 3"><Heading3 className="w-4 h-4" /></button>
             <div className="w-[1px] h-4 bg-zinc-800 mx-1" />
             <button type="button" onClick={() => insertFormatting("<ul className='list-disc pl-5 space-y-1 my-4'>\n  <li>", "</li>\n</ul>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Bullet List"><List className="w-4 h-4" /></button>
             <button type="button" onClick={() => insertFormatting("<a href='#' className='text-gold underline hover:text-gold-hover'>", "</a>")} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white" title="Insert Link"><Link2 className="w-4 h-4" /></button>
@@ -236,7 +235,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
             value={formData.body} 
             onChange={(e) => setFormData({ ...formData, body: e.target.value })} 
             className="w-full bg-transparent p-3 font-mono text-sm h-80 outline-none text-white resize-y" 
-            placeholder="Write your beautiful reporting narrative layout here..." 
+            placeholder="Write your narrative here..." 
           />
         </div>
         <p className="text-[11px] text-zinc-500 font-mono mt-1">💡 Pro Tip: Highlight any text and press a toolbar button to apply editorial styles instantly.</p>

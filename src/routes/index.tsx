@@ -51,7 +51,7 @@ function Hero() {
           <span style={{ color: "#F5A623" }}>YOU CAN TRUST</span>
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-text-body font-serif">
-          Breaking medical news, verified health reporting, and evidence-based journalism from Joseph Mmwa.
+          The world's biggest health and medical stories, verified, fact-checked, and explained with clarity.
         </p>
         <div className="mt-9 flex flex-wrap gap-3">
           <Link to="/news" className="inline-flex items-center gap-2 bg-gold text-primary-foreground font-bold px-7 py-3.5 rounded-full hover:bg-gold-hover transition-colors cursor-pointer">
@@ -70,7 +70,6 @@ function Latest() {
       const { data: session } = await supabase.auth.getUser();
       const isAdmin = session?.user?.email === "mmwajoseph@gmail.com";
 
-      // Explicitly fetching featured_image, category, and author from the table array
       let query = supabase
         .from("articles")
         .select("id,title,slug,excerpt,read_time_minutes,published_at,is_published,featured_image,author,category")
@@ -88,7 +87,7 @@ function Latest() {
 
   const items = (articles ?? []).map((a) => ({
     slug: a.slug,
-    category: a.category || "News", // 🎯 FIXED: Pulls dynamic reporting category directly from your database row column
+    category: a.category || "News",
     title: a.title,
     excerpt: a.excerpt ?? "",
     featured_image: a.featured_image,
@@ -142,7 +141,6 @@ function ArticleCard(props: {
       params={{ slug: props.slug }}
       className="group block bg-card border border-border rounded-lg overflow-hidden card-lift cursor-pointer"
     >
-      {/* Replacing empty placeholder layout with clean, dynamic imagery */}
       <div className="aspect-[16/10] bg-surface-1 relative overflow-hidden border-b border-border">
         {props.featured_image ? (
           <img 

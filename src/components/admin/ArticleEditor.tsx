@@ -91,10 +91,14 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
         .getPublicUrl(filePath);
 
       if (isInline) {
-        insertFormatting(
-          `<figure class="my-6">\n  <img src="${publicUrl}" alt="${file.name}" class="w-full h-auto rounded-lg shadow-md" />\n  <figcaption class="text-right text-xs text-zinc-400 italic mt-1.5 font-mono">photo credit: </figcaption>\n</figure>`
-        );
-        toast.success("Image embedded into your story body!");
+        // Prompt for the inline image credit/caption directly upon upload
+        const userCaption = window.prompt("Enter Photo Credit / Caption (e.g. photo credit: UNICEF):", "photo credit: ");
+        const captionText = userCaption ? userCaption.trim() : "";
+
+        const figureHtml = `\n<figure class="my-6">\n  <img src="${publicUrl}" alt="${file.name}" class="w-full h-auto rounded-lg shadow-md" />\n  ${captionText ? `<figcaption class="text-right text-xs text-zinc-400 italic mt-1.5 font-mono">${captionText}</figcaption>` : ''}\n</figure>\n`;
+
+        insertFormatting(figureHtml);
+        toast.success("Image and credit embedded into your story body!");
       } else {
         setFormData((prev) => ({ ...prev, featured_image: publicUrl }));
         toast.success("Featured photo uploaded and linked beautifully!");

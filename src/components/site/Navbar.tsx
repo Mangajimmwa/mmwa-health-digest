@@ -1,5 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Menu, X, Mail, Phone, Search, LogOut, User } from "lucide-react";
+import { Menu, X, Mail, Phone, Search, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,12 +25,10 @@ export function Navbar() {
 
   // Handle Dynamic Auth State Checks
   useEffect(() => {
-    // Check current active session on load
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
 
-    // Listen for auth adjustments globally
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
       setSession(currentSession);
     });
@@ -278,14 +276,15 @@ export function Navbar() {
 
           <div className="border-t border-gold/20 mx-6" />
 
+          {/* Contact Section in Mobile Menu */}
           <div className="px-6 py-6 space-y-4">
             <p className="label-eyebrow">Contact</p>
             <a
-              href="mailto:mmwajoseph@gmail.com"
+              href="mailto:josephmmwamedia@outlook.com"
               className="flex items-center gap-3 text-sm text-text-body hover:text-gold transition-colors"
             >
               <Mail className="w-4 h-4 text-gold" />
-              mmwajoseph@gmail.com
+              josephmmwamedia@outlook.com
             </a>
             <a
               href="tel:+254729147765"
@@ -303,7 +302,7 @@ export function Navbar() {
               If it's health, it's here.
             </p>
             <p className="mt-2 text-xs text-text-mute">
-              © 2026 Joseph Mmwa. All rights reserved.
+              © 2026 Joseph Mmwa Media Group. All rights reserved.
             </p>
           </div>
         </div>

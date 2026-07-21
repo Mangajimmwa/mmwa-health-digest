@@ -7,10 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/categories")({
   head: () => ({
     meta: [
-      { title: "Categories — JOSEPH MMWA" },
-      { name: "description", content: "Browse health and medical reporting by topic." },
-      { property: "og:title", content: "Categories — JOSEPH MMWA" },
-      { property: "og:description", content: "All topics covered by the global health desk." },
+      { title: "Categories — JOSEPH MMWA MEDIA GROUP" },
+      { name: "description", content: "Browse verified health and medical reporting by topic from Joseph Mmwa Media Group." },
+      { property: "og:title", content: "Categories — JOSEPH MMWA MEDIA GROUP" },
+      { property: "og:description", content: "All global health topics covered by Joseph Mmwa Media Group." },
     ],
   }),
   component: CategoriesPage,
@@ -77,7 +77,7 @@ function CategoriesPage() {
             Explore By <span className="text-gold">Category</span>
           </h1>
           <p className="mt-4 text-lg text-text-body font-serif max-w-2xl leading-relaxed">
-            Every story published by the global health desk, organized by topic.
+            Every story published by the Joseph Mmwa Media Group global health desk, organized by topic.
           </p>
         </div>
       </section>

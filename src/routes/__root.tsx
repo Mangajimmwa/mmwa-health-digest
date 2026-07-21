@@ -76,28 +76,39 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "theme-color", content: "#0A0A0A" },
-      { title: "JOSEPH MMWA — Global Health News You Can Trust" },
+      { title: "JOSEPH MMWA MEDIA GROUP — Global Health Journalism" },
       {
         name: "description",
         content:
-          "Independent global medical and health news by Joseph Mmwa. Outbreaks, vaccines, clinical research, and the public health stories that matter.",
+          "Independent, verified global medical news and public health reporting by Joseph Mmwa Media Group. Disease outbreaks, vaccines, clinical research, and breakthrough science.",
       },
-      { name: "author", content: "Joseph Mmwa" },
-      { property: "og:title", content: "JOSEPH MMWA — Global Health News You Can Trust" },
+      { name: "keywords", content: "Joseph Mmwa, Joseph Mmwa Media Group, global health news, medical journalism, disease outbreaks, vaccines, healthcare reporting" },
+      { name: "author", content: "Joseph Mmwa Media Group" },
+
+      // 🚀 Essential Google Search Engine Indexing Directives
+      { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" },
+      { name: "googlebot", content: "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" },
+
+      // Open Graph / Social Sharing
+      { property: "og:site_name", content: "Joseph Mmwa Media Group" },
+      { property: "og:title", content: "JOSEPH MMWA MEDIA GROUP — Global Health Journalism" },
       {
         property: "og:description",
-        content: "If it's health, it's here. Real-time medical news and global health reporting.",
+        content: "If it's health, it's here. Real-time medical news and verified global health reporting.",
       },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "JOSEPH MMWA — Global Health News You Can Trust" },
-      { name: "description", content: "JOSEPH MMWA is a premium medical and health news publication website." },
-      { property: "og:description", content: "JOSEPH MMWA is a premium medical and health news publication website." },
-      { name: "twitter:description", content: "JOSEPH MMWA is a premium medical and health news publication website." },
+      { property: "og:url", content: "https://josephmmwa.com" },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8e7cc408-23a3-4c05-80b1-1ad0be336fab/id-preview-bc413d71--9c4e72c8-f1b3-41a1-84ce-80c306ea08b0.lovable.app-1782725526265.png" },
+
+      // Twitter / X Meta Tags
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "JOSEPH MMWA MEDIA GROUP — Global Health Journalism" },
+      { name: "twitter:description", content: "If it's health, it's here. Real-time medical news and verified global health reporting." },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8e7cc408-23a3-4c05-80b1-1ad0be336fab/id-preview-bc413d71--9c4e72c8-f1b3-41a1-84ce-80c306ea08b0.lovable.app-1782725526265.png" },
     ],
     links: [
+      { rel: "canonical", href: "https://josephmmwa.com" },
+      { rel: "sitemap", type: "application/xml", href: "https://josephmmwa.com/sitemap.xml" },
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
@@ -105,7 +116,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=Source+Serif+Pro:ital,wght@0,400;0,600;1,400&display=swap",
       },
-      /* 🎯 THE FAVICON FIX: Clean standardized asset URL pointing straight to your new storage file entry */
       { 
         rel: "icon", 
         type: "image/jpeg", 
@@ -127,7 +137,7 @@ function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className="dark">
       <head>
-        {/* 🎯 GOOGLE ANALYTICS TARGET INJECTION: Embedded safely immediately after the opening head element */}
+        {/* Google Analytics Injection */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-QEWD0P1QC1"></script>
         <script dangerouslySetInnerHTML={{
           __html: `
@@ -137,12 +147,27 @@ function RootShell({ children }: { children: ReactNode }) {
             gtag('config', 'G-QEWD0P1QC1');
           `
         }} />
+        {/* Google Search Organization Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "NewsMediaOrganization",
+              "name": "Joseph Mmwa Media Group",
+              "url": "https://josephmmwa.com",
+              "logo": "https://mjvpcfetbvvcnhdwwjrl.supabase.co/storage/v1/object/public/assets/logo-icon.jpg",
+              "slogan": "If it's health, it's here.",
+              "description": "Independent, reader-funded global health newsroom and journalism network.",
+            }),
+          }}
+        />
         <HeadContent />
       </head>
       <body>
         {children}
         <Scripts />
-      </body> {/* 🎯 FIXED: Changed from </head> to </body> to solve the compilation crash */}
+      </body>
     </html>
   );
 }

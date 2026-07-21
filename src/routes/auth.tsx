@@ -358,8 +358,22 @@ function AuthPage() {
                   </div>
                 </div>
 
-                <p className="mt-6 text-[11px] text-text-mute text-center font-serif">
-                  By continuing, you agree to our Terms of Service and Privacy Policy.
+                {/* Golden Yellow Links */}
+                <p className="mt-6 text-[11px] text-text-mute text-center font-serif leading-relaxed">
+                  By continuing, you agree to our{" "}
+                  <Link 
+                    to="/terms" 
+                    className="text-gold font-semibold hover:underline transition-colors"
+                  >
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link 
+                    to="/privacy" 
+                    className="text-gold font-semibold hover:underline transition-colors"
+                  >
+                    Privacy Policy
+                  </Link>.
                 </p>
               </div>
             </div>

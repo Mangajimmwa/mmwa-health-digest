@@ -13,7 +13,7 @@ export const Route = createFileRoute("/")({
       { title: "JOSEPH MMWA — Global Health News You Can Trust" },
       {
         name: "description",
-        content: "Real-time medical news, outbreak updates, and global health reporting from Joseph Mmwa. If it's health, it's here.",
+        content: "The official health and medical journalism platform of Joseph Mmwa Media Group. Real-time medical news, outbreak updates, and evidence-based reporting.",
       },
     ],
   }),
@@ -43,7 +43,7 @@ function Hero() {
       </div>
       <div className="relative z-10 mx-auto max-w-7xl w-full px-4 lg:px-6 pt-28 pb-32 lg:pt-40 lg:pb-44">
         <span className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-sans font-semibold uppercase tracking-[0.2em] text-gold" style={{ background: "rgba(245, 166, 35, 0.15)", border: "1px solid #F5A623" }}>
-          Global Health Desk
+          Joseph Mmwa Media Group • Global Desk
         </span>
         <h1 className="mt-6 font-display font-black text-5xl sm:text-6xl lg:text-7xl leading-[1.02] tracking-tight max-w-4xl">
           <span style={{ color: "#FFFFFF" }}>GLOBAL HEALTH NEWS</span>
@@ -151,7 +151,7 @@ function ArticleCard(props: {
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-surface-2 to-surface-1 flex items-center justify-center text-text-mute font-mono text-xs">
-            Mmwa Health Digest
+            Joseph Mmwa Media Group
           </div>
         )}
       </div>
@@ -208,7 +208,7 @@ function Newsletter() {
       <div className="rounded-xl p-8 lg:p-12 flex flex-col lg:flex-row gap-8 lg:items-center" style={{ background: "radial-gradient(ellipse at top right, #3D2800 0%, #251800 45%, #0A0A0A 100%)", border: "1px solid rgba(245, 166, 35, 0.35)" }}>
         <div className="flex-1">
           <h2 className="font-display font-bold text-3xl">The Mmwa Briefing</h2>
-          <p className="mt-2 text-text-body font-serif">Concise morning updates on the global health stories that matter.</p>
+          <p className="mt-2 text-text-body font-serif">The day's most important global health and medical news, verified and delivered directly to your inbox</p>
         </div>
         <form onSubmit={submit} className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
           <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="bg-surface-2 border border-border rounded-md px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-gold" />
@@ -225,7 +225,9 @@ function PremiumUpsell() {
       <div className="relative overflow-hidden rounded-xl p-8 sm:p-10 lg:p-14" style={{ background: "radial-gradient(ellipse at top left, #3D2800 0%, #251800 45%, #0A0A0A 100%)", border: "1px solid rgba(245, 166, 35, 0.35)" }}>
         <p className="label-eyebrow">Members Only</p>
         <h2 className="mt-3 font-display font-bold text-4xl sm:text-5xl">Unlock <span className="text-gold">Premium</span></h2>
-        <p className="mt-5 max-w-xl text-text-body font-serif text-lg">Exclusive, in-depth outbreak analysis and global health reporting.</p>
+        <p className="mt-5 max-w-xl text-text-body font-serif text-lg">
+          Unlock exclusive journalism, in-depth investigations, and expert analysis that explains what the headlines really mean
+        </p>
         <Link to="/premium" className="mt-8 inline-flex items-center gap-2 bg-gold text-primary-foreground font-semibold px-6 py-3 rounded-md cursor-pointer">
           Go Premium <ArrowRight className="w-4 h-4" />
         </Link>

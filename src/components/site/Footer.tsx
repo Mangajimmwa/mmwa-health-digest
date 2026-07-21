@@ -23,28 +23,29 @@ export function Footer() {
             Joseph Mmwa <span className="text-gold">Media Group</span>
           </h3>
 
-          <p className="mt-2 text-sm font-serif italic text-gold/90 font-medium tracking-wide">
-            If it's health, it's here.
+          {/* Tagline in White + Yellow/Gold */}
+          <p className="mt-2 text-sm font-serif italic font-medium tracking-wide">
+            <span className="text-white">If it's health, </span>
+            <span className="text-gold font-semibold">it's here.</span>
           </p>
 
+          {/* Updated Description */}
           <p className="mt-4 text-sm text-text-body font-serif max-w-3xl leading-relaxed">
-            Committed to delivering verified, evidence-based journalism, outbreak analysis, and authoritative reporting across global medicine, public health, and healthcare policy.
+            Advancing Public Health Through Trusted Journalism
           </p>
 
-          {/* Links Row */}
+          {/* Links Row with Terms of Service */}
           <div className="mt-8 pt-6 border-t border-gold/20 flex flex-wrap gap-6 text-sm text-text-body">
             <Link to="/" className="hover:text-gold transition-colors">Home</Link>
             <Link to="/about" className="hover:text-gold transition-colors">About</Link>
             <Link to="/contact" className="hover:text-gold transition-colors font-semibold text-gold">Contact</Link>
             <Link to="/privacy" className="hover:text-gold transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-gold transition-colors">Terms of Service</Link>
           </div>
 
-          {/* Copyright & Meta */}
+          {/* Copyright Row (Removed Truth • Rigor • Public Interest) */}
           <div className="mt-6 pt-4 border-t border-gold/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono text-text-mute">
             <span>© 2026 Joseph Mmwa Media Group. All rights reserved.</span>
-            <span className="text-gold/80 font-sans font-semibold uppercase tracking-wider text-[10px]">
-              Truth • Rigor • Public Interest
-            </span>
           </div>
         </div>
       </div>

@@ -43,7 +43,7 @@ export function Footer() {
             <Link to="/terms" className="hover:text-gold transition-colors">Terms of Service</Link>
           </div>
 
-          {/* Copyright Row (Removed Truth • Rigor • Public Interest) */}
+          {/* Copyright Row */}
           <div className="mt-6 pt-4 border-t border-gold/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono text-text-mute">
             <span>© 2026 Joseph Mmwa Media Group. All rights reserved.</span>
           </div>

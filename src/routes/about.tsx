@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+ import { createFileRoute } from "@tanstack/react-router";
 import { Check, ShieldCheck, Target, Eye, Award } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 
@@ -76,12 +76,6 @@ function AboutPage() {
             />
           </div>
           <div>
-            <span 
-              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-[11px] font-sans font-bold uppercase tracking-[0.2em] text-gold mb-3" 
-              style={{ background: "rgba(245, 166, 35, 0.15)", border: "1px solid #F5A623" }}
-            >
-              Global Health Bureau
-            </span>
             <h1 className="font-display font-extrabold text-4xl sm:text-5xl text-foreground tracking-tight">
               Joseph Mmwa
             </h1>
@@ -102,7 +96,7 @@ function AboutPage() {
         </h2>
         <div className="mt-6 space-y-4 text-text-body text-lg font-serif leading-relaxed">
           <p>
-            I am Joseph Mmwa, a health and medical journalist reporting on health and medical news, scientific research, healthcare, medicine, public health, and the health stories shaping lives around the world.
+            I am a health and medical journalist reporting on health and medical news, scientific research, healthcare, medicine, public health, and the health stories shaping lives around the world.
           </p>
           <p>
             My work focuses on delivering accurate, evidence-based journalism that helps readers understand the latest developments in medicine, healthcare, and science. From breaking medical news and disease outbreaks to vaccine research, healthcare policy, biotechnology, and scientific breakthroughs, I strive to present complex health topics with clarity, context, and accuracy.

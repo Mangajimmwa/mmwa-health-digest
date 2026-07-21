@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { Phone, Mail } from "lucide-react";
 
 export function Footer() {
   return (
@@ -29,12 +30,30 @@ export function Footer() {
             <span className="text-gold font-semibold">it's here.</span>
           </p>
 
-          {/* Updated Description */}
+          {/* Description */}
           <p className="mt-4 text-sm text-text-body font-serif max-w-3xl leading-relaxed">
             Advancing Public Health Through Trusted Journalism
           </p>
 
-          {/* Links Row with Terms of Service */}
+          {/* Direct Contact Details */}
+          <div className="mt-6 flex flex-wrap items-center gap-6 text-sm text-text-body font-mono">
+            <a 
+              href="tel:+254729147765" 
+              className="inline-flex items-center gap-2 text-gold hover:text-gold-hover transition-colors"
+            >
+              <Phone className="w-4 h-4 text-gold shrink-0" aria-hidden="true" />
+              +254 7 291 477 65
+            </a>
+            <a 
+              href="mailto:josephmmwamedia@outlook.com" 
+              className="inline-flex items-center gap-2 hover:text-gold transition-colors"
+            >
+              <Mail className="w-4 h-4 text-gold shrink-0" aria-hidden="true" />
+              josephmmwamedia@outlook.com
+            </a>
+          </div>
+
+          {/* Links Row */}
           <div className="mt-8 pt-6 border-t border-gold/20 flex flex-wrap gap-6 text-sm text-text-body">
             <Link to="/" className="hover:text-gold transition-colors">Home</Link>
             <Link to="/about" className="hover:text-gold transition-colors">About</Link>

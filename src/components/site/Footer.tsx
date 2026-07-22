@@ -7,42 +7,39 @@ export function Footer() {
 
   return (
     <footer className="mt-20 border-t border-border bg-background">
-      <div className="mx-auto max-w-7xl px-4 lg:px-6 py-12 space-y-8">
+      <div className="mx-auto max-w-7xl px-4 lg:px-6 py-10">
         
-        {/* Main Bureau Card */}
+        {/* Main Footer Card */}
         <div 
-          className="relative overflow-hidden rounded-xl p-8 sm:p-10 border"
+          className="relative overflow-hidden rounded-2xl p-8 sm:p-10 border shadow-2xl"
           style={{ 
             background: "radial-gradient(ellipse at top left, #3D2800 0%, #251800 45%, #0A0A0A 100%)", 
             borderColor: "rgba(245, 166, 35, 0.35)" 
           }}
         >
-          {/* Accent Eyebrow Badge */}
+          {/* Eyebrow Badge */}
           <span 
             className="inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-[11px] font-sans font-bold uppercase tracking-[0.2em] text-gold mb-4" 
             style={{ background: "rgba(245, 166, 35, 0.15)", border: "1px solid #F5A623" }}
           >
-            Global Health Bureau
+            GLOBAL HEALTH BUREAU
           </span>
 
-          <h3 className="font-display font-black text-2xl sm:text-3xl text-foreground tracking-tight">
+          <h3 className="font-display font-black text-3xl sm:text-4xl text-foreground tracking-tight">
             Joseph Mmwa <span className="text-gold">Media Group</span>
           </h3>
 
-          <p className="mt-2 text-sm font-serif italic font-medium tracking-wide">
+          {/* Clean Main Tagline */}
+          <p className="mt-2 text-base sm:text-lg font-serif italic font-medium tracking-wide">
             <span className="text-white">If it's health, </span>
-            <span className="text-gold font-semibold">it's here.</span>
+            <span className="text-gold font-bold">it's here.</span>
           </p>
 
-          <p className="mt-4 text-sm text-text-body font-serif max-w-3xl leading-relaxed">
-            Advancing Public Health Through Trusted Journalism
-          </p>
-
-          {/* Contact Details */}
+          {/* Direct Contact Details */}
           <div className="mt-6 flex flex-wrap items-center gap-6 text-sm text-text-body font-mono">
             <a 
               href="tel:+254729147765" 
-              className="inline-flex items-center gap-2 text-gold hover:text-gold-hover transition-colors"
+              className="inline-flex items-center gap-2 text-gold hover:text-gold-hover transition-colors font-bold"
             >
               <Phone className="w-4 h-4 text-gold shrink-0" aria-hidden="true" />
               +254 729 147 765
@@ -56,8 +53,8 @@ export function Footer() {
             </a>
           </div>
 
-          {/* Socials & Nav */}
-          <div className="mt-8 pt-6 border-t border-gold/20 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          {/* Socials & Primary Navigation */}
+          <div className="mt-8 pt-6 border-t border-gold/20 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <span className="text-xs font-mono uppercase tracking-widest text-gold font-bold">
                 Follow Us:
@@ -88,26 +85,40 @@ export function Footer() {
               </div>
             </div>
 
-            {/* Nav Links */}
-            <div className="flex flex-wrap gap-6 text-sm text-text-body">
+            {/* Clean Section Navigation */}
+            <div className="flex flex-wrap gap-6 text-sm font-sans font-medium text-text-body">
               <Link to="/" className="hover:text-gold transition-colors">Home</Link>
               <Link to="/about" className="hover:text-gold transition-colors">About</Link>
-              <Link to="/contact" className="hover:text-gold transition-colors font-semibold text-gold">Contact</Link>
-              <Link to="/privacy" className="hover:text-gold transition-colors">Privacy Policy</Link>
-              <Link to="/terms" className="hover:text-gold transition-colors">Terms of Service</Link>
+              <Link to="/contact" className="text-gold font-bold hover:underline transition-colors">Contact</Link>
             </div>
           </div>
 
-          {/* Bottom Bar: Copyright & Disclaimer Modal Trigger Button */}
-          <div className="mt-6 pt-4 border-t border-gold/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs font-mono text-text-mute">
-            <span>© {new Date().getFullYear()} Joseph Mmwa Media Group. All rights reserved.</span>
+          {/* Bottom Legal & Copyright Bar */}
+          <div className="mt-8 pt-6 border-t border-gold/20 flex flex-col lg:flex-row lg:items-center justify-between gap-4 text-xs font-mono text-text-mute">
             
-            <button
-              onClick={() => setShowDisclaimer(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gold/10 hover:bg-gold/20 text-gold border border-gold/30 transition-all text-[11px] font-sans font-bold cursor-pointer"
-            >
-              <AlertCircle className="w-3.5 h-3.5" /> Medical Disclaimer
-            </button>
+            {/* Copyright Statement */}
+            <span>© {new Date().getFullYear()} Joseph Mmwa Media Group. All rights reserved.</span>
+
+            {/* Legal Links & Modal Trigger */}
+            <div className="flex flex-wrap items-center gap-5 font-sans">
+              <Link to="/terms" className="hover:text-gold transition-colors">
+                Terms of Service
+              </Link>
+              <Link to="/privacy" className="hover:text-gold transition-colors">
+                Privacy Policy
+              </Link>
+              <Link to="/terms" className="hover:text-gold transition-colors">
+                Editorial Standards
+              </Link>
+              
+              <button
+                onClick={() => setShowDisclaimer(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gold/10 hover:bg-gold/20 text-gold border border-gold/30 transition-all font-sans font-bold cursor-pointer"
+              >
+                <AlertCircle className="w-3.5 h-3.5" /> Medical Disclaimer
+              </button>
+            </div>
+
           </div>
         </div>
 

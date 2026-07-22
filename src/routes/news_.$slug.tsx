@@ -76,7 +76,6 @@ function ArticleBodyWithMidBanner({ body }: { body: string }) {
             <UserPlus className="w-5 h-5" />
           </div>
           <div>
-            {/* Clean White Heading for better contrast and balance */}
             <h3 className="text-base sm:text-lg font-display font-bold text-foreground tracking-tight leading-snug">
               Stay ahead on all health and medical news!
             </h3>
@@ -516,7 +515,7 @@ function ArticlePage() {
           </div>
         )}
 
-        {/* CONTACT FORM */}
+        {/* ✉️ NEWSROOM EDITORIAL CONTACT FORM */}
         <div 
           className="mt-14 rounded-2xl p-6 sm:p-8 border relative overflow-hidden"
           style={{ 
@@ -527,13 +526,13 @@ function ArticlePage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
               <span className="text-[10px] font-mono uppercase tracking-widest text-gold font-bold px-2.5 py-1 rounded bg-gold/10 border border-gold/20">
-                Media Desk
+                NEWSROOM
               </span>
               <h3 className="font-display font-bold text-xl sm:text-2xl text-foreground mt-2">
-                Joseph Mmwa Media Group Inquiry
+                Connect With Our Editorial Team
               </h3>
-              <p className="text-xs text-text-mute font-serif mt-1">
-                Direct editorial contact for press, surgical dispatches, and journalism inquiries.
+              <p className="text-xs text-text-mute font-serif mt-1 leading-relaxed">
+                Be part of trusted health journalism. Share verified news tips, research updates, expert commentary, press inquiries, or editorial feedback with the Joseph Mmwa newsroom. Every submission is reviewed with accuracy, independence, and journalistic integrity.
               </p>
             </div>
             
@@ -548,7 +547,7 @@ function ArticlePage() {
           <form 
             onSubmit={(e) => {
               e.preventDefault();
-              toast.success("Message dispatched to Joseph Mmwa Media Group!");
+              toast.success("Message dispatched to the newsroom!");
               (e.target as HTMLFormElement).reset();
             }}
             className="space-y-4"
@@ -557,31 +556,31 @@ function ArticlePage() {
               <input 
                 type="text" 
                 required 
-                placeholder="Full Name" 
+                placeholder="Your Name" 
                 className="w-full bg-surface-2/80 border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-gold transition-all"
               />
               <input 
                 type="email" 
                 required 
-                placeholder="Email Address" 
+                placeholder="Professional Email" 
                 className="w-full bg-surface-2/80 border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-gold transition-all"
               />
             </div>
             <textarea 
               rows={3} 
               required 
-              placeholder="State your story tip, editorial feedback, or press inquiry..." 
+              placeholder="Share your news tip, press inquiry, or editorial message..." 
               className="w-full bg-surface-2/80 border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-gold transition-all resize-none"
             />
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-              <p className="text-[11px] text-text-mute">
-                For major press credentials or extended partnerships, visit our <Link to="/contact" className="text-gold underline">main contact desk</Link>.
+              <p className="text-[11px] text-text-mute leading-normal">
+                For interviews, partnerships, sponsorships, press credentials, or corporate media collaborations, please visit our <Link to="/contact" className="text-gold underline">Corporate Contact Desk</Link>.
               </p>
               <button 
                 type="submit" 
-                className="w-full sm:w-auto bg-gold hover:bg-gold-hover text-primary-foreground font-bold px-8 py-3 rounded-xl text-sm transition-all duration-200 transform hover:scale-[1.01] cursor-pointer shadow-md"
+                className="w-full sm:w-auto bg-gold hover:bg-gold-hover text-primary-foreground font-bold px-8 py-3 rounded-xl text-sm transition-all duration-200 transform hover:scale-[1.01] cursor-pointer shadow-md shrink-0"
               >
-                Dispatch Message
+                Contact Newsroom
               </button>
             </div>
           </form>

@@ -28,7 +28,7 @@ export const Route = createFileRoute("/terms")({
 });
 
 function TermsPage() {
-  const updated = "July 21, 2026";
+  const updated = "July 22, 2026";
   return (
     <SiteLayout>
       <article className="mx-auto max-w-3xl px-4 lg:px-6 py-14">
@@ -237,8 +237,14 @@ function TermsPage() {
               <p className="font-bold text-lg text-foreground mb-1">Joseph Mmwa Media Group</p>
               <p className="text-text-body">
                 Email:{" "}
-                <a href="mailto:josephmmwamedia@outlook.com" className="text-gold hover:text-gold-hover font-mono underline transition-colors">
-                  josephmmwamedia@outlook.com
+                <a href="mailto:contact@josephmmwa.com" className="text-gold hover:text-gold-hover font-mono underline transition-colors">
+                  contact@josephmmwa.com
+                </a>
+              </p>
+              <p className="text-text-body">
+                Phone / WhatsApp:{" "}
+                <a href="tel:+254729147765" className="text-gold hover:text-gold-hover font-mono underline transition-colors">
+                  +254 729 147 765
                 </a>
               </p>
               <p className="text-text-body">

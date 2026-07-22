@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Phone, Mail, Youtube, Linkedin, Twitter, Facebook } from "lucide-react";
+import { Phone, Mail, Youtube, Linkedin, Facebook, Instagram } from "lucide-react";
 
 export function Footer() {
   return (
@@ -54,47 +54,80 @@ export function Footer() {
           </div>
 
           {/* Follow Us / Social Links */}
-          <div className="mt-8 pt-6 border-t border-gold/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
+          <div className="mt-8 pt-6 border-t border-gold/20 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <span className="text-xs font-mono uppercase tracking-widest text-gold font-bold">
                 Follow Us:
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2.5">
+                {/* YouTube */}
                 <a
-                  href="https://youtube.com"
+                  href="https://youtube.com/@josephmmwa?si=tBbHCSLP-zTMbZ-J"
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="YouTube Channel"
-                  className="p-2 rounded-lg bg-gold/10 text-gold border border-gold/20 hover:bg-gold hover:text-black transition-all"
+                  aria-label="YouTube"
+                  className="p-2.5 rounded-xl bg-card border border-border text-[#FF0000] hover:bg-[#FF0000] hover:text-white transition-all shadow-sm"
                 >
                   <Youtube className="w-4 h-4" />
                 </a>
+
+                {/* LinkedIn */}
                 <a
-                  href="https://linkedin.com"
+                  href="https://www.linkedin.com/in/joseph-mmwa-08177a2a0?utm_source=share_via&utm_content=profile&utm_medium=member_android"
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="LinkedIn Profile"
-                  className="p-2 rounded-lg bg-gold/10 text-gold border border-gold/20 hover:bg-gold hover:text-black transition-all"
+                  aria-label="LinkedIn"
+                  className="p-2.5 rounded-xl bg-card border border-border text-[#0A66C2] hover:bg-[#0A66C2] hover:text-white transition-all shadow-sm"
                 >
                   <Linkedin className="w-4 h-4" />
                 </a>
+
+                {/* X Logo */}
                 <a
                   href="https://x.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="X (Twitter) Profile"
-                  className="p-2 rounded-lg bg-gold/10 text-gold border border-gold/20 hover:bg-gold hover:text-black transition-all"
+                  aria-label="X"
+                  className="p-2.5 rounded-xl bg-card border border-border text-white hover:bg-white hover:text-black transition-all shadow-sm"
                 >
-                  <Twitter className="w-4 h-4" />
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
                 </a>
+
+                {/* Facebook */}
                 <a
-                  href="https://facebook.com"
+                  href="https://www.facebook.com/share/1EoghPzjKD/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="Facebook Page"
-                  className="p-2 rounded-lg bg-gold/10 text-gold border border-gold/20 hover:bg-gold hover:text-black transition-all"
+                  aria-label="Facebook"
+                  className="p-2.5 rounded-xl bg-card border border-border text-[#1877F2] hover:bg-[#1877F2] hover:text-white transition-all shadow-sm"
                 >
                   <Facebook className="w-4 h-4" />
+                </a>
+
+                {/* Instagram */}
+                <a
+                  href="https://www.instagram.com/josephmmwa_mediagroup?igsh=ZmVqdHl4d2ZrcTlv"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                  className="p-2.5 rounded-xl bg-card border border-border text-[#E4405F] hover:bg-[#E4405F] hover:text-white transition-all shadow-sm"
+                >
+                  <Instagram className="w-4 h-4" />
+                </a>
+
+                {/* TikTok */}
+                <a
+                  href="https://www.tiktok.com/@mmwajoseph?_r=1&_t=ZS-98BfsKjMwVA"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="TikTok"
+                  className="p-2.5 rounded-xl bg-card border border-border text-[#25F4EE] hover:bg-white hover:text-black transition-all shadow-sm"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 003 15.65a6.34 6.34 0 0010.86 4.5 6.26 6.26 0 001.8-4.5V9.11a8.28 8.28 0 004.93 1.59V7.26a4.83 4.83 0 01-1-.57z" />
+                  </svg>
                 </a>
               </div>
             </div>

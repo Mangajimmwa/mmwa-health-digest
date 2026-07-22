@@ -1,0 +1,61 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { SiteLayout } from "@/components/site/SiteLayout";
+import { ShieldAlert, ArrowLeft } from "lucide-react";
+
+export const Route = createFileRoute("/disclaimer")({
+  head: () => ({
+    meta: [
+      { title: "DISCLAIMER — Joseph Mmwa" },
+      { name: "description", content: "Official medical disclaimer for Joseph Mmwa Media Group dispatches and health news." },
+    ],
+  }),
+  component: DisclaimerPage,
+});
+
+function DisclaimerPage() {
+  return (
+    <SiteLayout>
+      <main className="mx-auto max-w-3xl px-4 lg:px-6 py-14 text-foreground">
+        <Link to="/news" className="inline-flex items-center gap-1.5 text-sm text-text-mute hover:text-gold transition-colors mb-8 cursor-pointer">
+          <ArrowLeft className="w-4 h-4" /> Back to Newsroom
+        </Link>
+
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-full bg-gold/10 text-gold flex items-center justify-center border border-gold/20">
+            <ShieldAlert className="w-5 h-5" />
+          </div>
+          <span className="text-xs font-mono uppercase tracking-widest text-gold font-bold">
+            Legal &amp; Safety Notice
+          </span>
+        </div>
+
+        {/* 🚨 ALL-CAPS DISCLAIMER HEADING */}
+        <h1 className="font-display font-black text-3xl sm:text-4xl text-foreground mb-6 uppercase tracking-wider">
+          DISCLAIMER
+        </h1>
+
+        <div className="space-y-5 font-sans text-sm sm:text-base leading-relaxed text-text-body border-t border-border pt-6">
+          <p>
+            The information published by <strong className="text-foreground">Joseph Mmwa Media Group</strong> is provided for news, educational, and informational purposes only. We are committed to delivering accurate, evidence-based health journalism by relying on reputable scientific research, recognized health organizations, peer-reviewed journals, and qualified expert sources. However, medical knowledge is constantly evolving, and information may change over time.
+          </p>
+
+          <p>
+            The content on this website is not intended to replace professional medical advice, diagnosis, or treatment. Always seek the guidance of a qualified healthcare professional regarding any medical concerns, symptoms, or treatment decisions. Never disregard professional medical advice or delay seeking care because of information you have read on this website.
+          </p>
+
+          <p>
+            Joseph Mmwa Media Group does not endorse or promote any specific medication, treatment, healthcare provider, or commercial product unless explicitly stated. References to medical research, clinical studies, medicines, or emerging treatments are provided solely for journalistic, educational, and informational purposes.
+          </p>
+
+          <p>
+            While every reasonable effort is made to ensure the accuracy and reliability of our content, Joseph Mmwa Media Group makes no representations or warranties regarding the completeness, accuracy, timeliness, or suitability of the information published. Any reliance you place on the information provided on this website is strictly at your own risk.
+          </p>
+
+          <p className="p-4 bg-surface-2 rounded-xl border border-border italic text-xs text-text-mute mt-6">
+            By accessing and using this website, you acknowledge that you have read, understood, and agreed to this disclaimer.
+          </p>
+        </div>
+      </main>
+    </SiteLayout>
+  );
+}

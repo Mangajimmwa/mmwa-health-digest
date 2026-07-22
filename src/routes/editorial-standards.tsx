@@ -83,23 +83,16 @@ function EditorialStandardsPage() {
           Editorial Standards &amp; Guidelines
         </h1>
 
-        {/* Lead Quote Banner */}
+        {/* Featured Box with full lengthy text */}
         <div 
-          className="rounded-2xl p-6 sm:p-8 border relative overflow-hidden mb-8 shadow-xl"
+          className="rounded-2xl p-6 sm:p-8 border relative overflow-hidden mb-10 shadow-xl"
           style={{
             background: "radial-gradient(ellipse at top left, #281C02 0%, #120D02 55%, #080808 100%)",
-            borderColor: "rgba(245, 166, 35, 0.3)"
+            borderColor: "rgba(245, 166, 35, 0.35)"
           }}
         >
           <div className="absolute top-0 left-0 w-1.5 h-full bg-gold" />
-          <p className="text-base sm:text-lg font-serif italic text-foreground leading-relaxed pl-2">
-            Joseph Mmwa Media Group is committed to upholding the highest standards of health journalism. Our editorial principles ensure every report is produced with accuracy, fairness, scientific integrity, and respect for our readers.
-          </p>
-        </div>
-
-        {/* Intro Body */}
-        <div className="p-6 rounded-2xl bg-surface-2/60 border border-border/80 mb-10 backdrop-blur-sm shadow-sm">
-          <p className="text-sm sm:text-base text-text-body font-sans leading-relaxed">
+          <p className="text-sm sm:text-base text-text-body font-sans leading-relaxed pl-2">
             Joseph Mmwa Media Group is committed to delivering trusted, evidence-based health journalism that informs, empowers, and serves the public interest. These Editorial Standards outline the principles that guide every stage of our reporting—from story selection and fact verification to publication, corrections, and accountability. Our mission is to ensure readers can rely on every report for accuracy, fairness, and scientific integrity.
           </p>
         </div>

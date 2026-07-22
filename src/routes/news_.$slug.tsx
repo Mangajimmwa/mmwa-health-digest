@@ -19,32 +19,43 @@ export const Route = createFileRoute("/news/$slug")({
   },
   head: ({ loaderData }) => {
     const meta = loaderData?.articleMeta;
-    const title = meta?.title ? `${meta.title} — Joseph Mmwa` : "Global Health News — Joseph Mmwa";
-    const description = meta?.excerpt || "Breaking medical news, verified health reporting, and evidence-based journalism from Joseph Mmwa.";
-    const image = meta?.featured_image || "https://mjvpcfetbvvcnhdwwjrl.supabase.co/storage/v1/object/public/avatars/joseph.jpeg.jpeg";
+    
+    // 1. CLEAN HEADLINE ONLY for social media previews (No "— Joseph Mmwa")
+    const cleanHeadline = meta?.title || "Global Health News";
 
-    // 🎯 THE CANONICAL FIX: Dynamically maps the clean non-www link path for Google
+    // 2. Browser tab title (with site name)
+    const browserTitle = meta?.title ? `${meta.title} — Joseph Mmwa` : "Global Health News — Joseph Mmwa";
+
+    const description = meta?.excerpt || "Breaking medical news, verified health reporting, and evidence-based journalism from Joseph Mmwa.";
+    
+    // 3. ABSOLUTE IMAGE URL FIX: Guarantees social crawlers always find the featured image
+    const rawImage = meta?.featured_image || "https://mjvpcfetbvvcnhdwwjrl.supabase.co/storage/v1/object/public/avatars/joseph.jpeg.jpeg";
+    const image = rawImage.startsWith("http") ? rawImage : `https://josephmmwa.com${rawImage}`;
+
+    // Canonical link
     const canonicalUrl = `https://josephmmwa.com/news/${meta?.slug || ""}`;
 
     return {
       meta: [
-        { title },
+        { title: browserTitle },
         { name: "description", content: description },
         { property: "og:type", content: "article" },
-        { property: "og:title", content: title },
+
+        /* 🎯 CLEAN SOCIAL HEADLINE (Without name appended) */
+        { property: "og:title", content: cleanHeadline },
+        { name: "twitter:title", content: cleanHeadline },
+
         { property: "og:description", content: description },
+        { name: "twitter:description", content: description },
+
+        /* 🎯 FEATURED IMAGE PREVIEW FIX */
         { property: "og:image", content: image },
-        
-        /* 🎯 THE CARD FIX: Explicit dimensions forcing social media cards into a large, full-length landscape layout */
+        { name: "twitter:image", content: image },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
-        
+
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: title },
-        { name: "twitter:description", content: description },
-        { name: "twitter:image", content: image },
       ],
-      // 🎯 INJECT THE LINK LAYOUT ELEMENT GOOGLE SEARCH CONSOLE IS LOOKING FOR:
       links: [
         { rel: "canonical", href: canonicalUrl }
       ]
@@ -97,7 +108,6 @@ function ArticlePage() {
     staleTime: 5000,
   });
 
-  // Query related stories dynamically based on category/region context matches
   const { data: relatedArticles } = useQuery({
     queryKey: ["related-articles", article?.id, article?.category],
     queryFn: async () => {
@@ -165,7 +175,6 @@ function ArticlePage() {
     article.body.includes("<h2")
   );
 
-  // Social Sharing Layout Schemes
   const shareText = encodeURIComponent(`Read this vital health dispatch: ${article.title}`);
   const encodedUrl = encodeURIComponent(articleUrl);
   const whatsappUrl = `https://api.whatsapp.com/send?text=${shareText}%20${encodedUrl}`;
@@ -215,12 +224,9 @@ function ArticlePage() {
           </figure>
         )}
 
-        {/* Universal HTML & Text Content Rendering Layer */}
-        {/* 🎯 THE TYPOGRAPHY FIX: Changed font-serif to font-sans to make article content clean and highly legible */}
         <div className="mt-10 text-foreground font-sans text-base leading-relaxed space-y-6">
           {article.body ? (
             hasHtmlTags ? (
-              /* 🎯 THE SPACE FIX: Added whitespace-pre-wrap to guarantee custom spacing handles paragraph separation properly */
               <div dangerouslySetInnerHTML={{ __html: article.body }} className="space-y-6 prose prose-invert max-w-none whitespace-pre-wrap" />
             ) : (
               <div className="whitespace-pre-wrap">{article.body}</div>
@@ -230,7 +236,6 @@ function ArticlePage() {
           )}
         </div>
 
-        {/* 🛠️ IMPROVEMENT: Share This Story Block */}
         <div className="mt-14 border-t border-border pt-8">
           <p className="text-xs font-display font-bold uppercase tracking-wider text-text-mute mb-4">Share This Story</p>
           <div className="flex flex-wrap gap-3 items-center">
@@ -260,7 +265,6 @@ function ArticlePage() {
           </div>
         </div>
 
-        {/* Author Biography Section */}
         <div className="mt-10 rounded-xl p-6 flex gap-5 items-start" style={{ background: "radial-gradient(ellipse at top left, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)", border: "1px solid rgba(245, 166, 35, 0.15)" }}>
           <div className="shrink-0 w-14 h-14 rounded-full overflow-hidden border border-gold/30 bg-surface-1 relative flex items-center justify-center">
             <img 
@@ -278,7 +282,6 @@ function ArticlePage() {
           </div>
         </div>
 
-        {/* 🛠️ IMPROVEMENT: Related News Component Layer */}
         {relatedArticles && relatedArticles.length > 0 && (
           <div className="mt-16 border-t border-border pt-10">
             <h3 className="font-display font-bold text-xl text-foreground mb-6">Related Dispatches</h3>

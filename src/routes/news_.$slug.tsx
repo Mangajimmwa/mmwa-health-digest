@@ -591,7 +591,7 @@ function ArticlePage() {
           <div className="flex flex-wrap justify-center gap-6 font-medium">
             <Link to="/terms" className="hover:text-gold transition-colors">Terms of Service</Link>
             <Link to="/privacy" className="hover:text-gold transition-colors">Privacy Policy</Link>
-            <Link to="/editorial-policy" className="hover:text-gold transition-colors">Editorial Standards</Link>
+            <Link to="/terms" className="hover:text-gold transition-colors">Editorial Standards</Link>
             <Link to="/contact" className="hover:text-gold transition-colors">Contact</Link>
           </div>
           <p>© {new Date().getFullYear()} Joseph Mmwa Media Group. All rights reserved.</p>

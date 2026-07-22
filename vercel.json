@@ -4,6 +4,17 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/news/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|LinkedInBot|Twitterbot|WhatsApp|TelegramBot|Slackbot|Discordbot).*"
+        }
+      ],
+      "destination": "/api/og-meta?slug=:slug"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

@@ -79,8 +79,15 @@ function ArticleBodyWithMidBanner({ body }: { body: string }) {
             <p className="text-sm font-display font-bold text-foreground leading-tight">
               Stay ahead on all health and medical news
             </p>
-            <p className="text-xs text-text-mute font-sans mt-0.5">
-              Join Joseph Mmwa media group and be the first to receive the latest health and medical news as they happen
+            <p className="text-xs text-text-mute font-sans mt-0.5 leading-relaxed">
+              Join{" "}
+              <Link 
+                to="/about" 
+                className="text-gold font-semibold hover:underline transition-colors"
+              >
+                Joseph Mmwa Media Group
+              </Link>{" "}
+              and be the first to know the world’s biggest health and medical news as they happen!
             </p>
           </div>
         </div>

@@ -1,6 +1,7 @@
+import { useState, useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, ArrowLeft, Copy, Loader2, AlertTriangle, Linkedin, Facebook, ExternalLink } from "lucide-react";
+import { Clock, ArrowLeft, Copy, Loader2, AlertTriangle, Linkedin, Facebook, ExternalLink, LogIn } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { ReadingProgress } from "@/components/site/ReadingProgress";
@@ -54,6 +55,21 @@ export const Route = createFileRoute("/news/$slug")({
 function ArticlePage() {
   const { slug } = Route.useParams();
   const articleUrl = typeof window !== "undefined" ? window.location.href : "";
+
+  // User Auth State for Comment Gate
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const isScannerPath = slug.includes("_profiler") || slug.includes("phpinfo") || slug.includes(".env") || slug.includes("wp-admin");
 
@@ -213,7 +229,7 @@ function ArticlePage() {
           </figure>
         )}
 
-        {/* Content Body */}
+        {/* Article Content */}
         <div className="mt-10 text-foreground font-sans text-base leading-relaxed space-y-6">
           {article.body ? (
             hasHtmlTags ? (
@@ -226,13 +242,13 @@ function ArticlePage() {
           )}
         </div>
 
-        {/* 1. SHARE THIS STORY (GOLDEN TITLE + BRAND COLOR ICONS) */}
+        {/* 1. SHARE THIS STORY (GOLD ACCENT TITLE & BRAND COLORS) */}
         <div className="mt-14 border-t border-border pt-8">
           <p className="text-xs font-display font-bold uppercase tracking-wider text-gold mb-4">
             SHARE THIS STORY
           </p>
           <div className="flex flex-wrap gap-3 items-center">
-            {/* Copy Link Button */}
+            {/* Copy Link */}
             <button 
               onClick={() => { 
                 if (typeof window !== "undefined") { 
@@ -245,7 +261,7 @@ function ArticlePage() {
               <Copy className="w-4 h-4" /> Copy link
             </button>
 
-            {/* Glowing Green WhatsApp */}
+            {/* Glowing WhatsApp */}
             <a 
               href={whatsappUrl} 
               target="_blank" 
@@ -260,7 +276,7 @@ function ArticlePage() {
               <span className="font-bold text-base font-sans">W</span>
             </a>
 
-            {/* X / Twitter */}
+            {/* X */}
             <a 
               href={twitterUrl} 
               target="_blank" 
@@ -309,34 +325,61 @@ function ArticlePage() {
           </div>
         </div>
 
-        {/* 2. COMMENTS SECTION (APPEARS IMMEDIATELY AFTER SHARE) */}
+        {/* 2. COMMENTS SECTION (CLICK TO REDIRECT TO SIGN IN IF GUEST) */}
         <div className="mt-12 border-t border-border pt-10">
-          <h3 className="font-display font-bold text-xl text-foreground mb-6">
-            Reader Discussion
-          </h3>
-          <form 
-            onSubmit={(e) => {
-              e.preventDefault();
-              toast.success("Comment submitted for moderation.");
-              (e.target as HTMLFormElement).reset();
-            }}
-            className="space-y-3 mb-8"
-          >
-            <textarea 
-              rows={3} 
-              required 
-              placeholder="Join the discussion... Share your perspective." 
-              className="w-full bg-surface-2 border border-border rounded-lg p-3 text-sm font-sans text-foreground focus:outline-none focus:border-gold transition-colors resize-none"
-            />
-            <div className="flex justify-end">
-              <button 
-                type="submit" 
-                className="bg-surface-2 border border-border hover:border-gold text-foreground font-sans font-semibold px-5 py-2 rounded-full text-xs transition-colors cursor-pointer"
-              >
-                Post Comment
-              </button>
-            </div>
-          </form>
+          <div className="mb-6">
+            <h3 className="font-display font-bold text-xl text-foreground">
+              Comments
+            </h3>
+            <p className="text-xs text-text-mute font-serif mt-1">
+              Share your thoughts
+            </p>
+          </div>
+
+          {session ? (
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault();
+                toast.success("Comment submitted for moderation.");
+                (e.target as HTMLFormElement).reset();
+              }}
+              className="space-y-3 mb-8"
+            >
+              <textarea 
+                rows={3} 
+                required 
+                placeholder="Share your thoughts on this story..." 
+                className="w-full bg-surface-2 border border-border rounded-lg p-3 text-sm font-sans text-foreground focus:outline-none focus:border-gold transition-colors resize-none"
+              />
+              <div className="flex justify-end">
+                <button 
+                  type="submit" 
+                  className="bg-gold hover:bg-gold-hover text-primary-foreground font-sans font-bold px-6 py-2.5 rounded-full text-xs transition-colors cursor-pointer"
+                >
+                  Post Comment
+                </button>
+              </div>
+            </form>
+          ) : (
+            <Link 
+              to="/auth" 
+              className="block group bg-surface-1 hover:bg-surface-2 border border-border hover:border-gold/50 rounded-xl p-6 transition-all duration-200 cursor-pointer mb-8"
+            >
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-sans font-semibold text-foreground group-hover:text-gold transition-colors">
+                    Sign in to leave a comment
+                  </p>
+                  <p className="text-xs text-text-mute font-sans">
+                    You need a registered account with Joseph Mmwa Media Group to participate in reader discussions.
+                  </p>
+                </div>
+                <div className="shrink-0 bg-gold/10 text-gold p-2.5 rounded-full group-hover:bg-gold group-hover:text-primary-foreground transition-all">
+                  <LogIn className="w-4 h-4" />
+                </div>
+              </div>
+            </Link>
+          )}
         </div>
 
         {/* PREMIUM SUBSCRIPTION BANNER */}
@@ -412,7 +455,7 @@ function ArticlePage() {
           </div>
         )}
 
-        {/* 3. PREMIUM CONTACT MMWA MEDIA GROUP FORM (LAST COMPONENT) */}
+        {/* 3. PREMIUM CONTACT MMWA MEDIA GROUP FORM (LAST) */}
         <div 
           className="mt-14 rounded-2xl p-6 sm:p-8 border relative overflow-hidden"
           style={{ 
@@ -433,7 +476,6 @@ function ArticlePage() {
               </p>
             </div>
             
-            {/* Redirect link to main contact page */}
             <Link 
               to="/contact" 
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-gold hover:underline shrink-0"
@@ -484,7 +526,7 @@ function ArticlePage() {
           </form>
         </div>
 
-        {/* 4. FOOTER SECTION */}
+        {/* 4. FOOTER */}
         <footer className="mt-16 border-t border-border pt-8 pb-4 text-center text-xs text-text-mute font-sans space-y-3">
           <div className="flex flex-wrap justify-center gap-6 font-medium">
             <Link to="/terms" className="hover:text-gold transition-colors">Terms of Service</Link>

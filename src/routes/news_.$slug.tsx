@@ -368,7 +368,7 @@ function ArticlePage() {
           </form>
         </div>
 
-        {/* AUTH MODAL INTERCEPT (RENDERS WHEN UNAUTHENTICATED USER CLICKS POST) */}
+        {/* AUTH MODAL INTERCEPT */}
         {showAuthModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
             <div className="bg-surface-1 border border-border rounded-2xl p-6 sm:p-8 max-w-md w-full relative shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200">
@@ -412,26 +412,35 @@ function ArticlePage() {
 
         {/* PREMIUM SUBSCRIPTION BANNER */}
         <div 
-          className="mt-12 rounded-xl p-6 sm:p-8 text-center relative overflow-hidden"
+          className="mt-12 rounded-2xl p-8 sm:p-10 text-center relative overflow-hidden border transition-all duration-300"
           style={{ 
-            background: "linear-gradient(180deg, rgba(245, 166, 35, 0.08) 0%, rgba(10, 10, 10, 0.95) 100%)", 
-            border: "1px solid rgba(245, 166, 35, 0.25)" 
+            background: "radial-gradient(ellipse at top, #241A02 0%, #120D02 50%, #0A0A0A 100%)", 
+            borderColor: "rgba(245, 166, 35, 0.35)",
+            boxShadow: "0 10px 30px -10px rgba(245, 166, 35, 0.15)"
           }}
         >
-          <div className="max-w-xl mx-auto space-y-3">
-            <span className="inline-block text-[11px] font-sans font-bold uppercase tracking-widest text-gold bg-gold/10 px-3 py-1 rounded-full border border-gold/20">
+          {/* Subtle Gold Accent Top Line */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-[2px] bg-gradient-to-r from-transparent via-gold to-transparent" />
+
+          <div className="max-w-xl mx-auto space-y-4">
+            <span className="inline-block text-[11px] font-sans font-bold uppercase tracking-widest text-gold bg-gold/10 px-3.5 py-1.5 rounded-full border border-gold/30 shadow-inner">
               Exclusive Insights
             </span>
-            <h3 className="font-sans font-bold text-xl sm:text-2xl text-foreground tracking-tight">
-              Join Premium for Full Access
-            </h3>
-            <p className="font-sans text-sm text-text-mute leading-relaxed font-normal">
-              Subscribe to unlock in-depth medical analysis, surgical dispatches, and priority reporting directly from Joseph Mmwa Media Group.
+            
+            {/* Standout Headline */}
+            <h2 className="font-display font-black text-3xl sm:text-4xl text-foreground tracking-tight leading-tight">
+              Join Premium
+            </h2>
+
+            {/* Updated Custom Tagline (No 'and') */}
+            <p className="font-sans text-sm sm:text-base text-text-mute leading-relaxed font-normal max-w-lg mx-auto">
+              The world’s biggest health and medical stories, <span className="text-foreground font-semibold">ad-free, uncompromised</span> — because they deserve world-class journalism.
             </p>
-            <div className="pt-2">
+
+            <div className="pt-3">
               <Link 
                 to="/premium" 
-                className="inline-flex items-center justify-center bg-gold hover:bg-gold-hover text-primary-foreground font-sans font-bold px-7 py-3 rounded-full text-sm transition-all duration-200 transform hover:scale-[1.02] shadow-lg cursor-pointer"
+                className="inline-flex items-center justify-center bg-gold hover:bg-gold-hover text-primary-foreground font-sans font-black px-8 py-3.5 rounded-full text-sm sm:text-base transition-all duration-200 transform hover:scale-[1.03] shadow-lg cursor-pointer tracking-wide"
               >
                 Subscribe to Premium
               </Link>

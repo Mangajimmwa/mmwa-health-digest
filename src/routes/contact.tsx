@@ -1,11 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Mail, Phone, MapPin, Send, Clock, ShieldCheck, Sparkles, MessageSquare } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
-import { useState, useRef } from "react";
-import emailjs from "@emailjs/browser";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 
-// 🔑 EmailJS Credentials
+// Declare emailjs on global window
+declare global {
+  interface Window {
+    emailjs?: any;
+  }
+}
+
 const SERVICE_ID = "service_ps4chm6";
 const TEMPLATE_ID = "template_szgm35p";
 const PUBLIC_KEY = "ok_WzsMOvdNEZIMDM";
@@ -28,13 +33,31 @@ function ContactPage() {
   const [loading, setLoading] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
+  // Dynamically load EmailJS script
+  useEffect(() => {
+    if (!document.getElementById("emailjs-sdk")) {
+      const script = document.createElement("script");
+      script.id = "emailjs-sdk";
+      script.src = "https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js";
+      script.async = true;
+      script.onload = () => {
+        if (window.emailjs) window.emailjs.init(PUBLIC_KEY);
+      };
+      document.body.appendChild(script);
+    }
+  }, []);
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
 
-    if (!formRef.current) return;
+    if (!formRef.current || !window.emailjs) {
+      toast.error("Email service loading. Please try again in a moment.");
+      setLoading(false);
+      return;
+    }
 
-    emailjs
+    window.emailjs
       .sendForm(SERVICE_ID, TEMPLATE_ID, formRef.current, PUBLIC_KEY)
       .then(
         () => {
@@ -42,7 +65,7 @@ function ContactPage() {
           setLoading(false);
           setSubmitted(true);
         },
-        (error) => {
+        (error: any) => {
           console.error("Transmission error:", error);
           toast.error("Failed to transmit message. Please try again.");
           setLoading(false);

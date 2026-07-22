@@ -307,11 +307,11 @@ export function Navbar() {
                   Direct Desk
                 </p>
                 <a
-                  href="mailto:josephmmwamedia@outlook.com"
+                  href="mailto:contact@josephmmwa.com"
                   className="flex items-center gap-2.5 text-xs font-mono text-text-body hover:text-gold transition-colors break-all"
                 >
                   <Mail className="w-3.5 h-3.5 text-gold shrink-0" />
-                  <span>josephmmwamedia@outlook.com</span>
+                  <span>contact@josephmmwa.com</span>
                 </a>
                 <a
                   href="tel:+254729147765"

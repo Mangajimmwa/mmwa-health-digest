@@ -128,7 +128,7 @@ function AuthPage() {
       }
     } catch (err) {
       setFormError(describeError(err));
-    } font-serif finally {
+    } finally {
       setLoading(false);
     }
   }
@@ -168,7 +168,6 @@ function AuthPage() {
                   Subscriber Portal
                 </span>
 
-                {/* WELCOME BACK HEADLINE */}
                 <h1 className="font-display font-black text-3xl sm:text-5xl text-foreground tracking-tight uppercase">
                   {mode === "signin" ? "WELCOME BACK!" : "CREATE YOUR ACCOUNT"}
                 </h1>
@@ -309,14 +308,12 @@ function AuthPage() {
                     </div>
                   )}
 
-                  {/* Trust Callout Above Button */}
                   <div className="pt-2 text-center">
                     <p className="text-[11px] font-serif italic text-text-mute">
                       Trusted by readers following the world's most important health stories.
                     </p>
                   </div>
 
-                  {/* Main Action Button */}
                   <button
                     disabled={loading}
                     type="submit"
@@ -327,7 +324,6 @@ function AuthPage() {
                   </button>
                 </form>
 
-                {/* OAuth Provider Section */}
                 <div className="mt-6 pt-6 border-t border-border">
                   <p className="text-center text-xs font-mono uppercase tracking-wider text-text-mute mb-4">
                     Or continue with
@@ -360,7 +356,6 @@ function AuthPage() {
                   </div>
                 </div>
 
-                {/* Golden Yellow Links */}
                 <p className="mt-6 text-[11px] text-text-mute text-center font-serif leading-relaxed">
                   By continuing, you agree to our{" "}
                   <Link 
@@ -381,7 +376,7 @@ function AuthPage() {
             </div>
           </div>
 
-          {/* Right Column: Dedicated "Unlock Premium" Card (Desktop) */}
+          {/* Right Column: Premium Promo */}
           <div className="lg:col-span-5 flex flex-col justify-center">
             <div 
               className="rounded-2xl border p-8 sm:p-10 shadow-2xl relative overflow-hidden flex flex-col justify-between h-full"
@@ -390,7 +385,6 @@ function AuthPage() {
                 borderColor: "rgba(245, 166, 35, 0.4)"
               }}
             >
-              {/* Subtle Light Glow */}
               <div className="absolute -top-10 -right-10 w-36 h-36 bg-gold/10 rounded-full blur-3xl pointer-events-none" />
 
               <div>

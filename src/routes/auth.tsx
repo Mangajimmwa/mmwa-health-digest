@@ -128,7 +128,7 @@ function AuthPage() {
       }
     } catch (err) {
       setFormError(describeError(err));
-    } finally {
+    } font-serif finally {
       setLoading(false);
     }
   }
@@ -161,14 +161,16 @@ function AuthPage() {
               {/* Header Titles */}
               <div className="mb-8">
                 <span 
-                  className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-[11px] font-sans font-bold uppercase tracking-[0.2em] text-gold mb-4"
+                  className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-[11px] font-sans font-bold uppercase tracking-[0.2em] text-gold mb-4 shadow-sm"
                   style={{ background: "rgba(245, 166, 35, 0.15)", border: "1px solid #F5A623" }}
                 >
+                  <Sparkles className="w-3.5 h-3.5 text-gold" />
                   Subscriber Portal
                 </span>
 
-                <h1 className="font-display font-black text-3xl sm:text-4xl text-foreground tracking-tight">
-                  {mode === "signin" ? "Welcome back." : "Create Your Account"}
+                {/* WELCOME BACK HEADLINE */}
+                <h1 className="font-display font-black text-3xl sm:text-5xl text-foreground tracking-tight uppercase">
+                  {mode === "signin" ? "WELCOME BACK!" : "CREATE YOUR ACCOUNT"}
                 </h1>
 
                 <p className="mt-3 text-base font-serif text-text-body leading-relaxed">
@@ -200,7 +202,7 @@ function AuthPage() {
                   <button
                     type="button"
                     onClick={() => { setMode("signin"); clearMessages(); }}
-                    className={`py-3 rounded-lg font-bold transition-all ${
+                    className={`py-3 rounded-lg font-bold transition-all cursor-pointer ${
                       mode === "signin" ? "bg-gold text-black shadow-md" : "text-text-mute hover:text-foreground"
                     }`}
                   >
@@ -209,7 +211,7 @@ function AuthPage() {
                   <button
                     type="button"
                     onClick={() => { setMode("signup"); clearMessages(); }}
-                    className={`py-3 rounded-lg font-bold transition-all ${
+                    className={`py-3 rounded-lg font-bold transition-all cursor-pointer ${
                       mode === "signup" ? "bg-gold text-black shadow-md" : "text-text-mute hover:text-foreground"
                     }`}
                   >

@@ -1,7 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Mail, Phone, MapPin, Send, Clock, ShieldCheck, Sparkles, MessageSquare } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import emailjs from "@emailjs/browser";
+import { toast } from "sonner";
+
+// 🔑 EmailJS Credentials
+const SERVICE_ID = "service_ps4chm6";
+const TEMPLATE_ID = "template_szgm35p";
+const PUBLIC_KEY = "ok_WzsMOvdNEZIMDM";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -18,10 +25,29 @@ export const Route = createFileRoute("/contact")({
 
 function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitted(true);
+    setLoading(true);
+
+    if (!formRef.current) return;
+
+    emailjs
+      .sendForm(SERVICE_ID, TEMPLATE_ID, formRef.current, PUBLIC_KEY)
+      .then(
+        () => {
+          toast.success("Message transmitted successfully!");
+          setLoading(false);
+          setSubmitted(true);
+        },
+        (error) => {
+          console.error("Transmission error:", error);
+          toast.error("Failed to transmit message. Please try again.");
+          setLoading(false);
+        }
+      );
   };
 
   return (
@@ -165,13 +191,13 @@ function ContactPage() {
                   </p>
                   <button
                     onClick={() => setSubmitted(false)}
-                    className="mt-4 px-6 py-2.5 rounded-xl border border-gold/40 text-xs font-mono text-gold uppercase tracking-wider hover:bg-gold/10 transition-colors"
+                    className="mt-4 px-6 py-2.5 rounded-xl border border-gold/40 text-xs font-mono text-gold uppercase tracking-wider hover:bg-gold/10 transition-colors cursor-pointer"
                   >
                     Send Another Message
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="name" className="block text-xs font-mono uppercase tracking-wider text-gold font-bold mb-2">
@@ -180,6 +206,7 @@ function ContactPage() {
                       <input
                         type="text"
                         id="name"
+                        name="user_name"
                         required
                         placeholder="Your Name"
                         className="w-full rounded-xl border border-border bg-background px-4 py-3.5 text-sm text-foreground placeholder:text-text-mute/40 focus:border-gold focus:outline-none transition-colors font-serif"
@@ -193,6 +220,7 @@ function ContactPage() {
                       <input
                         type="email"
                         id="email"
+                        name="user_email"
                         required
                         placeholder="you@example.com"
                         className="w-full rounded-xl border border-border bg-background px-4 py-3.5 text-sm text-foreground placeholder:text-text-mute/40 focus:border-gold focus:outline-none transition-colors font-serif"
@@ -207,6 +235,7 @@ function ContactPage() {
                     <input
                       type="text"
                       id="subject"
+                      name="subject"
                       required
                       placeholder="News Tip / Media Inquiry / Partnership"
                       className="w-full rounded-xl border border-border bg-background px-4 py-3.5 text-sm text-foreground placeholder:text-text-mute/40 focus:border-gold focus:outline-none transition-colors font-serif"
@@ -219,6 +248,7 @@ function ContactPage() {
                     </label>
                     <textarea
                       id="message"
+                      name="message"
                       required
                       rows={5}
                       placeholder="Provide details about your inquiry or news tip..."
@@ -232,10 +262,11 @@ function ContactPage() {
                     </p>
                     <button
                       type="submit"
-                      className="btn-glow w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gold px-8 py-4 text-xs font-black uppercase tracking-wider text-black hover:bg-gold-hover transition-colors shadow-lg cursor-pointer"
+                      disabled={loading}
+                      className="btn-glow w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gold px-8 py-4 text-xs font-black uppercase tracking-wider text-black hover:bg-gold-hover transition-colors shadow-lg cursor-pointer disabled:opacity-50"
                     >
                       <Send className="w-4 h-4" />
-                      Transmit Message
+                      {loading ? "Transmitting..." : "Transmit Message"}
                     </button>
                   </div>
                 </form>

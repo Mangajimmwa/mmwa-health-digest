@@ -69,18 +69,18 @@ function ArticleBodyWithMidBanner({ body }: { body: string }) {
     <>
       <div dangerouslySetInnerHTML={{ __html: firstHalf }} className="space-y-6 prose prose-invert max-w-none whitespace-pre-wrap" />
 
-      {/* 🎯 SUBTLE INLINE MID-ARTICLE CALLOUT */}
-      <div className="my-8 my-10 p-4 sm:p-5 rounded-xl border border-gold/20 bg-surface-1/90 backdrop-blur-sm flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md transition-all hover:border-gold/40">
+      {/* 🎯 INLINE MID-ARTICLE CALLOUT */}
+      <div className="my-8 sm:my-10 p-4 sm:p-5 rounded-xl border border-gold/20 bg-surface-1/90 backdrop-blur-sm flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md transition-all hover:border-gold/40">
         <div className="flex items-center gap-3.5 text-left">
           <div className="shrink-0 w-10 h-10 rounded-full bg-gold/10 text-gold flex items-center justify-center border border-gold/30">
             <UserPlus className="w-5 h-5" />
           </div>
           <div>
             <p className="text-sm font-display font-bold text-foreground leading-tight">
-              Join thousands of readers of Joseph Mmwa
+              Stay ahead on all health and medical news
             </p>
             <p className="text-xs text-text-mute font-sans mt-0.5">
-              Get verified health updates & editorial reporting directly in your feed.
+              Join Joseph Mmwa media group and be the first to receive the latest health and medical news as they happen
             </p>
           </div>
         </div>
@@ -89,7 +89,7 @@ function ArticleBodyWithMidBanner({ body }: { body: string }) {
           onClick={() => navigate({ to: "/auth" })}
           className="w-full sm:w-auto shrink-0 bg-gold hover:bg-gold-hover text-primary-foreground font-sans font-bold px-5 py-2.5 rounded-full text-xs transition-transform transform hover:scale-[1.02] cursor-pointer shadow-sm text-center"
         >
-          Create Account
+          Create free account
         </button>
       </div>
 

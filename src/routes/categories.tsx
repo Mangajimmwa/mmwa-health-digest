@@ -26,6 +26,13 @@ const CATEGORIES_LIST = [
     image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=800",
   },
   {
+    id: "cat-general-news",
+    slug: "general-news",
+    name: "General News",
+    description: "Timely, comprehensive coverage of major global developments, healthcare headlines, policy updates, and pressing news stories shaping public health worldwide.",
+    image: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&q=80&w=800",
+  },
+  {
     id: "cat-1",
     slug: "disease-outbreaks",
     name: "Disease Outbreaks",

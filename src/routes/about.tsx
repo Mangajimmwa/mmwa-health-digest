@@ -1,5 +1,5 @@
- import { createFileRoute } from "@tanstack/react-router";
-import { Check, ShieldCheck, Target, Eye, Award } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Check, ShieldCheck, Target, Eye, Award, Phone, Mail, MapPin } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 
 export const Route = createFileRoute("/about")({
@@ -193,6 +193,60 @@ function AboutPage() {
               <p className="text-text-body font-serif text-sm leading-relaxed">{v.desc}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Contact & Media Desk Section */}
+      <section className="mx-auto max-w-5xl px-4 lg:px-6 py-12 border-b border-border">
+        <div className="rounded-2xl border border-gold/30 p-8 sm:p-10 bg-card relative overflow-hidden"
+          style={{
+            background: "radial-gradient(ellipse at top left, #261A00 0%, #0A0A0A 100%)",
+          }}
+        >
+          <h2 className="font-display font-bold text-2xl sm:text-3xl text-foreground">
+            Media Desk &amp; Direct Inquiries
+          </h2>
+          <p className="mt-2 text-sm font-serif text-text-body">
+            For news tips, press requests, syndication, or media inquiries, contact our newsroom desk directly:
+          </p>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-3 font-mono text-xs sm:text-sm">
+            <a
+              href="tel:+254729147765"
+              className="flex items-center gap-3 p-3.5 rounded-xl border border-border bg-background/80 hover:border-gold/40 transition-colors"
+            >
+              <div className="p-2.5 rounded-lg bg-gold/10 text-gold">
+                <Phone className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="block text-[10px] text-text-mute font-sans uppercase">Phone / WhatsApp</span>
+                <span className="text-foreground font-bold">+254 729 147 765</span>
+              </div>
+            </a>
+
+            <a
+              href="mailto:contact@josephmmwa.com"
+              className="flex items-center gap-3 p-3.5 rounded-xl border border-border bg-background/80 hover:border-gold/40 transition-colors"
+            >
+              <div className="p-2.5 rounded-lg bg-gold/10 text-gold">
+                <Mail className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="block text-[10px] text-text-mute font-sans uppercase">Email Inquiries</span>
+                <span className="text-foreground font-bold">contact@josephmmwa.com</span>
+              </div>
+            </a>
+
+            <div className="flex items-center gap-3 p-3.5 rounded-xl border border-border bg-background/80">
+              <div className="p-2.5 rounded-lg bg-gold/10 text-gold">
+                <MapPin className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="block text-[10px] text-text-mute font-sans uppercase">Bureau Location</span>
+                <span className="text-foreground font-bold">Nairobi, Kenya</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

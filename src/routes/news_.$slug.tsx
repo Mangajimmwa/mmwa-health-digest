@@ -69,18 +69,18 @@ function ArticleBodyWithMidBanner({ body }: { body: string }) {
     <>
       <div dangerouslySetInnerHTML={{ __html: firstHalf }} className="space-y-6 prose prose-invert max-w-none whitespace-pre-wrap" />
 
-      {/* 🎯 INLINE MID-ARTICLE CALLOUT */}
-      <div className="my-8 sm:my-10 p-4 sm:p-5 rounded-xl border border-gold/30 bg-surface-1/95 backdrop-blur-sm flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg transition-all hover:border-gold/50">
+      {/* 🎯 BALANCED INLINE MID-ARTICLE CALLOUT */}
+      <div className="my-8 sm:my-10 p-5 sm:p-6 rounded-xl border border-border bg-surface-1/90 backdrop-blur-sm flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md transition-all hover:border-gold/30">
         <div className="flex items-center gap-3.5 text-left">
-          <div className="shrink-0 w-10 h-10 rounded-full bg-gold/15 text-gold flex items-center justify-center border border-gold/40 shadow-inner">
+          <div className="shrink-0 w-10 h-10 rounded-full bg-surface-2 text-gold flex items-center justify-center border border-border">
             <UserPlus className="w-5 h-5" />
           </div>
           <div>
-            {/* Bold, Standout Golden Heading */}
-            <h3 className="text-base sm:text-lg font-display font-black text-gold tracking-tight leading-snug">
+            {/* Clean White Heading for better contrast and balance */}
+            <h3 className="text-base sm:text-lg font-display font-bold text-foreground tracking-tight leading-snug">
               Stay ahead on all health and medical news!
             </h3>
-            <p className="text-xs text-text-mute font-sans mt-0.5 leading-relaxed">
+            <p className="text-xs text-text-mute font-sans mt-1 leading-relaxed">
               Join{" "}
               <Link 
                 to="/about" 
@@ -95,7 +95,7 @@ function ArticleBodyWithMidBanner({ body }: { body: string }) {
 
         <button
           onClick={() => navigate({ to: "/auth" })}
-          className="w-full sm:w-auto shrink-0 bg-gold hover:bg-gold-hover text-primary-foreground font-sans font-black px-6 py-2.5 rounded-full text-xs transition-transform transform hover:scale-[1.03] cursor-pointer shadow-md text-center tracking-wide"
+          className="w-full sm:w-auto shrink-0 bg-gold hover:bg-gold-hover text-primary-foreground font-sans font-bold px-6 py-2.5 rounded-full text-xs transition-transform transform hover:scale-[1.02] cursor-pointer shadow-sm text-center tracking-wide"
         >
           Create free account
         </button>

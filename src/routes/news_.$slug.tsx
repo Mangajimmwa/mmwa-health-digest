@@ -1,6 +1,6 @@
-import { createFileRoute, Link, useLoaderData } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, ArrowLeft, Copy, AlertTriangle, Twitter, Linkedin, Facebook } from "lucide-react";
+import { Clock, ArrowLeft, Copy, Loader2, AlertTriangle, Twitter, Linkedin, Facebook } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { ReadingProgress } from "@/components/site/ReadingProgress";
@@ -8,44 +8,31 @@ import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createFileRoute("/news/$slug")({
-  // 🎯 Pre-fetches the COMPLETE article BEFORE page render
   loader: async ({ params }) => {
     const targetSlug = String(params.slug).toLowerCase().trim();
-    const isScanner = targetSlug.includes("_profiler") || targetSlug.includes("phpinfo") || targetSlug.includes(".env") || targetSlug.includes("wp-admin");
-
-    if (isScanner) return { article: null, isScanner: true };
-
     const { data } = await supabase
       .from("articles")
-      .select(`
-        id,
-        title,
-        slug,
-        excerpt,
-        body,
-        featured_image,
-        image_caption,
-        author,
-        published_at,
-        read_time_minutes,
-        is_premium,
-        is_published,
-        category
-      `)
+      .select("title, excerpt, featured_image, slug")
       .ilike("slug", targetSlug)
       .maybeSingle();
-
-    return { article: data, isScanner: false };
+    return { articleMeta: data };
   },
   head: ({ loaderData }) => {
-    const meta = loaderData?.article;
+    const meta = loaderData?.articleMeta;
     
+    // 1. CLEAN HEADLINE ONLY for social media previews (No "— Joseph Mmwa")
     const cleanHeadline = meta?.title || "Global Health News";
+
+    // 2. Browser tab title (with site name)
     const browserTitle = meta?.title ? `${meta.title} — Joseph Mmwa` : "Global Health News — Joseph Mmwa";
+
     const description = meta?.excerpt || "Breaking medical news, verified health reporting, and evidence-based journalism from Joseph Mmwa.";
     
+    // 3. ABSOLUTE IMAGE URL FIX: Guarantees social crawlers always find the featured image
     const rawImage = meta?.featured_image || "https://mjvpcfetbvvcnhdwwjrl.supabase.co/storage/v1/object/public/avatars/joseph.jpeg.jpeg";
     const image = rawImage.startsWith("http") ? rawImage : `https://josephmmwa.com${rawImage}`;
+
+    // Canonical link
     const canonicalUrl = `https://josephmmwa.com/news/${meta?.slug || ""}`;
 
     return {
@@ -54,12 +41,14 @@ export const Route = createFileRoute("/news/$slug")({
         { name: "description", content: description },
         { property: "og:type", content: "article" },
 
+        /* 🎯 CLEAN SOCIAL HEADLINE (Without name appended) */
         { property: "og:title", content: cleanHeadline },
         { name: "twitter:title", content: cleanHeadline },
 
         { property: "og:description", content: description },
         { name: "twitter:description", content: description },
 
+        /* 🎯 FEATURED IMAGE PREVIEW FIX */
         { property: "og:image", content: image },
         { name: "twitter:image", content: image },
         { property: "og:image:width", content: "1200" },
@@ -76,11 +65,49 @@ export const Route = createFileRoute("/news/$slug")({
 });
 
 function ArticlePage() {
-  // Access data pre-loaded by TanStack Router
-  const { article, isScanner } = useLoaderData({ from: "/news/$slug" });
+  const { slug } = Route.useParams();
   const articleUrl = typeof window !== "undefined" ? window.location.href : "";
 
-  // Secondary query to fetch related articles asynchronously without blocking main render
+  const isScannerPath = slug.includes("_profiler") || slug.includes("phpinfo") || slug.includes(".env") || slug.includes("wp-admin");
+
+  const { data: article, isLoading, error } = useQuery({
+    queryKey: ["article", slug],
+    queryFn: async () => {
+      if (isScannerPath) return null;
+
+      const targetSlug = String(slug).toLowerCase().trim();
+      
+      const { data, error: fetchError } = await supabase
+        .from("articles")
+        .select(`
+          id,
+          title,
+          slug,
+          excerpt,
+          body,
+          featured_image,
+          image_caption,
+          author,
+          published_at,
+          read_time_minutes,
+          is_premium,
+          is_published,
+          category
+        `)
+        .ilike("slug", targetSlug)
+        .maybeSingle();
+
+      if (fetchError) {
+        console.error("❌ Database query failure:", fetchError);
+        throw fetchError;
+      }
+      
+      return data;
+    },
+    enabled: !isScannerPath,
+    staleTime: 5000,
+  });
+
   const { data: relatedArticles } = useQuery({
     queryKey: ["related-articles", article?.id, article?.category],
     queryFn: async () => {
@@ -102,7 +129,18 @@ function ArticlePage() {
     enabled: !!article?.id,
   });
 
-  if (!article || isScanner) {
+  if (isLoading) {
+    return (
+      <SiteLayout>
+        <div className="flex flex-col items-center justify-center min-h-[50vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-gold" />
+          <p className="text-text-mute text-sm mt-4 font-mono">Loading report...</p>
+        </div>
+      </SiteLayout>
+    );
+  }
+
+  if (error || !article || isScannerPath) {
     return (
       <SiteLayout>
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 max-w-md mx-auto">

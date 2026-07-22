@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, ArrowLeft, Copy, Loader2, AlertTriangle, Linkedin, Facebook, ExternalLink, LogIn } from "lucide-react";
+import { Clock, ArrowLeft, Copy, Loader2, AlertTriangle, Linkedin, Facebook, ExternalLink, LogIn, X } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { ReadingProgress } from "@/components/site/ReadingProgress";
@@ -54,10 +54,13 @@ export const Route = createFileRoute("/news/$slug")({
 
 function ArticlePage() {
   const { slug } = Route.useParams();
+  const navigate = useNavigate();
   const articleUrl = typeof window !== "undefined" ? window.location.href : "";
 
-  // User Auth State for Comment Gate
+  // User Auth State & Comment Modal Trigger
   const [session, setSession] = useState<any>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [commentText, setCommentText] = useState("");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -70,6 +73,16 @@ function ArticlePage() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const handleCommentSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session) {
+      setShowAuthModal(true);
+      return;
+    }
+    toast.success("Comment submitted for moderation.");
+    setCommentText("");
+  };
 
   const isScannerPath = slug.includes("_profiler") || slug.includes("phpinfo") || slug.includes(".env") || slug.includes("wp-admin");
 
@@ -229,7 +242,7 @@ function ArticlePage() {
           </figure>
         )}
 
-        {/* Article Content */}
+        {/* Article Body */}
         <div className="mt-10 text-foreground font-sans text-base leading-relaxed space-y-6">
           {article.body ? (
             hasHtmlTags ? (
@@ -242,13 +255,12 @@ function ArticlePage() {
           )}
         </div>
 
-        {/* 1. SHARE THIS STORY (GOLD ACCENT TITLE & BRAND COLORS) */}
+        {/* 1. SHARE THIS STORY */}
         <div className="mt-14 border-t border-border pt-8">
           <p className="text-xs font-display font-bold uppercase tracking-wider text-gold mb-4">
             SHARE THIS STORY
           </p>
           <div className="flex flex-wrap gap-3 items-center">
-            {/* Copy Link */}
             <button 
               onClick={() => { 
                 if (typeof window !== "undefined") { 
@@ -261,7 +273,7 @@ function ArticlePage() {
               <Copy className="w-4 h-4" /> Copy link
             </button>
 
-            {/* Glowing WhatsApp */}
+            {/* WhatsApp */}
             <a 
               href={whatsappUrl} 
               target="_blank" 
@@ -325,7 +337,7 @@ function ArticlePage() {
           </div>
         </div>
 
-        {/* 2. COMMENTS SECTION (CLICK TO REDIRECT TO SIGN IN IF GUEST) */}
+        {/* 2. COMMENTS SECTION */}
         <div className="mt-12 border-t border-border pt-10">
           <div className="mb-6">
             <h3 className="font-display font-bold text-xl text-foreground">
@@ -336,51 +348,67 @@ function ArticlePage() {
             </p>
           </div>
 
-          {session ? (
-            <form 
-              onSubmit={(e) => {
-                e.preventDefault();
-                toast.success("Comment submitted for moderation.");
-                (e.target as HTMLFormElement).reset();
-              }}
-              className="space-y-3 mb-8"
-            >
-              <textarea 
-                rows={3} 
-                required 
-                placeholder="Share your thoughts on this story..." 
-                className="w-full bg-surface-2 border border-border rounded-lg p-3 text-sm font-sans text-foreground focus:outline-none focus:border-gold transition-colors resize-none"
-              />
-              <div className="flex justify-end">
+          <form onSubmit={handleCommentSubmit} className="space-y-3 mb-8">
+            <textarea 
+              rows={3} 
+              required 
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Share your thoughts on this story..." 
+              className="w-full bg-surface-2 border border-border rounded-lg p-3 text-sm font-sans text-foreground focus:outline-none focus:border-gold transition-colors resize-none"
+            />
+            <div className="flex justify-end">
+              <button 
+                type="submit" 
+                className="bg-gold hover:bg-gold-hover text-primary-foreground font-sans font-bold px-6 py-2.5 rounded-full text-xs transition-colors cursor-pointer"
+              >
+                Post Comment
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* AUTH MODAL INTERCEPT (RENDERS WHEN UNAUTHENTICATED USER CLICKS POST) */}
+        {showAuthModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div className="bg-surface-1 border border-border rounded-2xl p-6 sm:p-8 max-w-md w-full relative shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200">
+              <button 
+                onClick={() => setShowAuthModal(false)}
+                className="absolute top-4 right-4 text-text-mute hover:text-foreground transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="w-12 h-12 bg-gold/10 text-gold rounded-full flex items-center justify-center">
+                <LogIn className="w-6 h-6" />
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-display font-bold text-xl text-foreground">
+                  Sign in / Create Account to Comment
+                </h3>
+                <p className="text-xs text-text-mute font-sans leading-relaxed">
+                  Join the conversation! A registered account with Joseph Mmwa Media Group is required to publish comments on health dispatches.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
                 <button 
-                  type="submit" 
-                  className="bg-gold hover:bg-gold-hover text-primary-foreground font-sans font-bold px-6 py-2.5 rounded-full text-xs transition-colors cursor-pointer"
+                  onClick={() => setShowAuthModal(false)}
+                  className="flex-1 bg-surface-2 border border-border hover:border-text-mute text-foreground font-sans font-semibold py-2.5 rounded-xl text-xs transition-colors cursor-pointer"
                 >
-                  Post Comment
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => navigate({ to: "/auth" })}
+                  className="flex-1 bg-gold hover:bg-gold-hover text-primary-foreground font-sans font-bold py-2.5 rounded-xl text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  Continue <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
                 </button>
               </div>
-            </form>
-          ) : (
-            <Link 
-              to="/auth" 
-              className="block group bg-surface-1 hover:bg-surface-2 border border-border hover:border-gold/50 rounded-xl p-6 transition-all duration-200 cursor-pointer mb-8"
-            >
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm font-sans font-semibold text-foreground group-hover:text-gold transition-colors">
-                    Sign in to leave a comment
-                  </p>
-                  <p className="text-xs text-text-mute font-sans">
-                    You need a registered account with Joseph Mmwa Media Group to participate in reader discussions.
-                  </p>
-                </div>
-                <div className="shrink-0 bg-gold/10 text-gold p-2.5 rounded-full group-hover:bg-gold group-hover:text-primary-foreground transition-all">
-                  <LogIn className="w-4 h-4" />
-                </div>
-              </div>
-            </Link>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
 
         {/* PREMIUM SUBSCRIPTION BANNER */}
         <div 
@@ -455,7 +483,7 @@ function ArticlePage() {
           </div>
         )}
 
-        {/* 3. PREMIUM CONTACT MMWA MEDIA GROUP FORM (LAST) */}
+        {/* 3. PREMIUM CONTACT MMWA MEDIA GROUP FORM */}
         <div 
           className="mt-14 rounded-2xl p-6 sm:p-8 border relative overflow-hidden"
           style={{ 

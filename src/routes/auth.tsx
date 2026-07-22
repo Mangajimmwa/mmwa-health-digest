@@ -45,14 +45,26 @@ function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  
+  // 🔑 PASSWORD RECOVERY STATE
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+
   const navigate = useNavigate();
   const search = Route.useSearch();
 
   useEffect(() => {
+    // 1. Check if the URL hash contains recovery tokens
+    if (typeof window !== "undefined" && window.location.hash.includes("type=recovery")) {
+      setIsResettingPassword(true);
+    }
+
     async function checkActiveSession() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user?.email === "mmwajoseph@gmail.com") {
+        // Do not redirect away if user is in password recovery mode
+        if (!window.location.hash.includes("type=recovery") && session?.user?.email === "mmwajoseph@gmail.com") {
           navigate({ to: "/admin" });
         }
       } catch (e) {
@@ -61,14 +73,21 @@ function AuthPage() {
     }
     checkActiveSession();
 
+    // 2. Listen for Supabase password recovery events
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user?.email === "mmwajoseph@gmail.com" && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
+      if (event === "PASSWORD_RECOVERY") {
+        setIsResettingPassword(true);
+        return;
+      }
+
+      // Ignore normal sign-in navigation if we are recovering password
+      if (!isResettingPassword && session?.user?.email === "mmwajoseph@gmail.com" && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
         navigate({ to: "/admin" });
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [search.error, navigate]);
+  }, [search.error, navigate, isResettingPassword]);
 
   function clearMessages() {
     setFormError(null);
@@ -89,6 +108,31 @@ function AuthPage() {
       if (error) throw error;
     } catch (err) {
       toast.error(describeError(err));
+    }
+  }
+
+  // 🔑 PASSWORD RESET SUBMISSION
+  async function handleUpdatePassword(e: React.FormEvent) {
+    e.preventDefault();
+    clearMessages();
+
+    if (newPassword !== confirmNewPassword) {
+      setFormError("Passwords do not match. Please try again.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+
+      toast.success("Password updated successfully! You can now sign in.");
+      setIsResettingPassword(false);
+      window.history.replaceState(null, "", window.location.pathname); // clear URL hash
+    } catch (err) {
+      setFormError(describeError(err));
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -154,7 +198,7 @@ function AuthPage() {
       <main className="flex-1 mx-auto max-w-7xl w-full px-4 lg:px-6 py-12 flex items-center">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch w-full">
           
-          {/* Left Column: Sign In / Sign Up Form */}
+          {/* Left Column: Sign In / Sign Up Form / Password Recovery Form */}
           <div className="lg:col-span-7 flex flex-col justify-center">
             <div className="max-w-xl mx-auto lg:mx-0 w-full">
               
@@ -165,213 +209,264 @@ function AuthPage() {
                   style={{ background: "rgba(245, 166, 35, 0.15)", border: "1px solid #F5A623" }}
                 >
                   <Sparkles className="w-3.5 h-3.5 text-gold" />
-                  Subscriber Portal
+                  {isResettingPassword ? "Security Portal" : "Subscriber Portal"}
                 </span>
 
                 <h1 className="font-display font-black text-3xl sm:text-5xl text-foreground tracking-tight uppercase">
-                  {mode === "signin" ? "WELCOME BACK!" : "CREATE YOUR ACCOUNT"}
+                  {isResettingPassword ? "RESET YOUR PASSWORD" : mode === "signin" ? "WELCOME BACK!" : "CREATE YOUR ACCOUNT"}
                 </h1>
 
                 <p className="mt-3 text-base font-serif text-text-body leading-relaxed">
-                  Trusted global health journalism starts here. Access independent reporting on medicine, healthcare, science, and the global health stories shaping lives around the world.
+                  {isResettingPassword
+                    ? "Enter your new password below to secure your account and regain access to the newsroom."
+                    : "Trusted global health journalism starts here. Access independent reporting on medicine, healthcare, science, and the global health stories shaping lives around the world."}
                 </p>
-
-                {/* Micro Statistics */}
-                <div className="mt-6 pt-4 border-t border-border grid grid-cols-3 gap-2 text-center text-xs font-mono">
-                  <div className="border-r border-border pr-2">
-                    <span className="block text-gold font-bold text-sm">100+</span>
-                    <span className="text-text-mute text-[10px]">Countries Covered</span>
-                  </div>
-                  <div className="border-r border-border px-2">
-                    <span className="block text-gold font-bold text-sm">Daily</span>
-                    <span className="text-text-mute text-[10px]">Global Coverage</span>
-                  </div>
-                  <div>
-                    <span className="block text-gold font-bold text-sm">100%</span>
-                    <span className="text-text-mute text-[10px]">Reader-Funded</span>
-                  </div>
-                </div>
               </div>
 
               {/* Form Card */}
               <div className="rounded-2xl border border-border bg-card p-8 shadow-2xl">
                 
-                {/* Mode Switcher */}
-                <div className="grid grid-cols-2 rounded-xl bg-background p-1 text-xs font-mono uppercase tracking-wider border border-border mb-6">
-                  <button
-                    type="button"
-                    onClick={() => { setMode("signin"); clearMessages(); }}
-                    className={`py-3 rounded-lg font-bold transition-all cursor-pointer ${
-                      mode === "signin" ? "bg-gold text-black shadow-md" : "text-text-mute hover:text-foreground"
-                    }`}
-                  >
-                    Sign In
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setMode("signup"); clearMessages(); }}
-                    className={`py-3 rounded-lg font-bold transition-all cursor-pointer ${
-                      mode === "signup" ? "bg-gold text-black shadow-md" : "text-text-mute hover:text-foreground"
-                    }`}
-                  >
-                    Create Account
-                  </button>
-                </div>
-
-                <form onSubmit={submit} className="space-y-4">
-                  {mode === "signup" && (
+                {/* 🛑 CONDITIONAL: Password Reset View */}
+                {isResettingPassword ? (
+                  <form onSubmit={handleUpdatePassword} className="space-y-4">
                     <div>
                       <label className="block text-xs font-mono uppercase tracking-wider text-text-mute mb-2">
-                        Full Name
+                        New Password
                       </label>
-                      <input
-                        type="text"
-                        required
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        placeholder="Joseph Mmwa"
-                        className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground focus:border-gold focus:outline-none transition-colors"
-                      />
+                      <div className="relative">
+                        <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gold pointer-events-none" />
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          required
+                          minLength={6}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full rounded-xl border border-border bg-background pl-10 pr-10 py-3 text-sm text-foreground focus:border-gold focus:outline-none transition-colors"
+                        />
+                        <button
+                          type="button"
+                          aria-label="Toggle password visibility"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-mute hover:text-gold"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
                     </div>
-                  )}
 
-                  <div>
-                    <label className="block text-xs font-mono uppercase tracking-wider text-text-mute mb-2">
-                      Email Address
-                    </label>
-                    <div className="relative">
-                      <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gold pointer-events-none" />
-                      <input
-                        type="email"
-                        required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="you@example.com"
-                        className="w-full rounded-xl border border-border bg-background pl-10 pr-4 py-3 text-sm text-foreground focus:border-gold focus:outline-none transition-colors"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <label className="text-xs font-mono uppercase tracking-wider text-text-mute">
-                        Password
-                      </label>
-                      {mode === "signin" && (
-                        <Link to="/forgot-password" className="text-xs text-gold hover:underline font-mono">
-                          Forgot password?
-                        </Link>
-                      )}
-                    </div>
-                    <div className="relative">
-                      <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gold pointer-events-none" />
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        required
-                        minLength={6}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="w-full rounded-xl border border-border bg-background pl-10 pr-10 py-3 text-sm text-foreground focus:border-gold focus:outline-none transition-colors"
-                      />
-                      <button
-                        type="button"
-                        aria-label="Toggle password visibility"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-mute hover:text-gold"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {mode === "signup" && (
                     <div>
                       <label className="block text-xs font-mono uppercase tracking-wider text-text-mute mb-2">
-                        Confirm Password
+                        Confirm New Password
                       </label>
                       <input
                         type="password"
                         required
                         minLength={6}
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        value={confirmNewPassword}
+                        onChange={(e) => setConfirmNewPassword(e.target.value)}
                         placeholder="••••••••"
                         className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground focus:border-gold focus:outline-none transition-colors"
                       />
                     </div>
-                  )}
 
-                  {formError && (
-                    <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 shrink-0" /> {formError}
+                    {formError && (
+                      <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0" /> {formError}
+                      </div>
+                    )}
+
+                    <button
+                      disabled={loading}
+                      type="submit"
+                      className="btn-glow w-full bg-gold hover:bg-gold-hover text-black font-bold py-3.5 rounded-xl transition-colors text-sm flex items-center justify-center gap-2 cursor-pointer shadow-lg"
+                    >
+                      {loading ? "Updating..." : "Update Password"}
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </form>
+                ) : (
+                  /* Standard Sign In / Sign Up View */
+                  <>
+                    {/* Mode Switcher */}
+                    <div className="grid grid-cols-2 rounded-xl bg-background p-1 text-xs font-mono uppercase tracking-wider border border-border mb-6">
+                      <button
+                        type="button"
+                        onClick={() => { setMode("signin"); clearMessages(); }}
+                        className={`py-3 rounded-lg font-bold transition-all cursor-pointer ${
+                          mode === "signin" ? "bg-gold text-black shadow-md" : "text-text-mute hover:text-foreground"
+                        }`}
+                      >
+                        Sign In
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setMode("signup"); clearMessages(); }}
+                        className={`py-3 rounded-lg font-bold transition-all cursor-pointer ${
+                          mode === "signup" ? "bg-gold text-black shadow-md" : "text-text-mute hover:text-foreground"
+                        }`}
+                      >
+                        Create Account
+                      </button>
                     </div>
-                  )}
 
-                  <div className="pt-2 text-center">
-                    <p className="text-[11px] font-serif italic text-text-mute">
-                      Trusted by readers following the world's most important health stories.
+                    <form onSubmit={submit} className="space-y-4">
+                      {mode === "signup" && (
+                        <div>
+                          <label className="block text-xs font-mono uppercase tracking-wider text-text-mute mb-2">
+                            Full Name
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            placeholder="Joseph Mmwa"
+                            className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground focus:border-gold focus:outline-none transition-colors"
+                          />
+                        </div>
+                      )}
+
+                      <div>
+                        <label className="block text-xs font-mono uppercase tracking-wider text-text-mute mb-2">
+                          Email Address
+                        </label>
+                        <div className="relative">
+                          <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gold pointer-events-none" />
+                          <input
+                            type="email"
+                            required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="you@example.com"
+                            className="w-full rounded-xl border border-border bg-background pl-10 pr-4 py-3 text-sm text-foreground focus:border-gold focus:outline-none transition-colors"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <label className="text-xs font-mono uppercase tracking-wider text-text-mute">
+                            Password
+                          </label>
+                          {mode === "signin" && (
+                            <Link to="/forgot-password" className="text-xs text-gold hover:underline font-mono">
+                              Forgot password?
+                            </Link>
+                          )}
+                        </div>
+                        <div className="relative">
+                          <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gold pointer-events-none" />
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            required
+                            minLength={6}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="••••••••"
+                            className="w-full rounded-xl border border-border bg-background pl-10 pr-10 py-3 text-sm text-foreground focus:border-gold focus:outline-none transition-colors"
+                          />
+                          <button
+                            type="button"
+                            aria-label="Toggle password visibility"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-mute hover:text-gold"
+                          >
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {mode === "signup" && (
+                        <div>
+                          <label className="block text-xs font-mono uppercase tracking-wider text-text-mute mb-2">
+                            Confirm Password
+                          </label>
+                          <input
+                            type="password"
+                            required
+                            minLength={6}
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="••••••••"
+                            className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground focus:border-gold focus:outline-none transition-colors"
+                          />
+                        </div>
+                      )}
+
+                      {formError && (
+                        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4 shrink-0" /> {formError}
+                        </div>
+                      )}
+
+                      <div className="pt-2 text-center">
+                        <p className="text-[11px] font-serif italic text-text-mute">
+                          Trusted by readers following the world's most important health stories.
+                        </p>
+                      </div>
+
+                      <button
+                        disabled={loading}
+                        type="submit"
+                        className="btn-glow w-full bg-gold hover:bg-gold-hover text-black font-bold py-3.5 rounded-xl transition-colors text-sm flex items-center justify-center gap-2 cursor-pointer shadow-lg"
+                      >
+                        {loading ? "Accessing..." : mode === "signin" ? "Access Newsroom" : "Continue to Newsroom"}
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </form>
+
+                    <div className="mt-6 pt-6 border-t border-border">
+                      <p className="text-center text-xs font-mono uppercase tracking-wider text-text-mute mb-4">
+                        Or continue with
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => handleOAuth("google")}
+                          className="flex items-center justify-center gap-2 rounded-xl border border-border bg-background py-2.5 px-4 text-xs font-semibold text-foreground hover:border-gold/50 transition-colors cursor-pointer"
+                        >
+                          <svg className="w-4 h-4" viewBox="0 0 24 24">
+                            <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.1 9 5 12 5z" />
+                            <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z" />
+                            <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 10.8 0 12s.7 2.3 1.9 4.7l3.7-2.9z" />
+                            <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.1-6.4-5.2L1.9 16C3.7 19.7 7.5 23 12 23z" />
+                          </svg>
+                          Google
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleOAuth("apple")}
+                          className="flex items-center justify-center gap-2 rounded-xl border border-border bg-background py-2.5 px-4 text-xs font-semibold text-foreground hover:border-gold/50 transition-colors cursor-pointer"
+                        >
+                          <svg className="w-4 h-4 fill-current text-foreground" viewBox="0 0 170 170">
+                            <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.34.13-9.13-1.9-14.36-6.08-3.32-2.73-7.23-7.44-11.73-14.13-6.66-9.88-12.01-21.2-16.05-33.95-4.04-12.75-6.06-24.62-6.06-35.62 0-14.75 3.73-26.88 11.19-36.38 7.46-9.5 16.89-14.35 28.3-14.56 4.34 0 9.27 1.13 14.78 3.39 5.51 2.26 9.4 3.4 11.67 3.4 2.11 0 6.07-1.18 11.87-3.53 5.8-2.35 10.82-3.44 15.06-3.26 12.08.68 21.6 5.43 28.56 14.25-10.74 6.5-16.02 15.54-15.83 27.13.19 9.07 3.58 16.65 10.18 22.75 6.6 6.1 14.5 9.68 23.68 10.74-2.35 7.14-5.32 14.34-8.91 21.6zM119.22 31.81c0-7.22 2.62-14.07 7.86-20.55 5.24-6.48 11.73-10.3 19.47-11.46.22 1.3.33 2.39.33 3.26 0 7.12-2.65 14.12-7.95 21-5.3 6.88-11.81 10.7-19.53 11.46-.06-.88-.18-2.12-.18-3.71z" />
+                          </svg>
+                          Apple
+                        </button>
+                      </div>
+                    </div>
+
+                    <p className="mt-6 text-[11px] text-text-mute text-center font-serif leading-relaxed">
+                      By continuing, you agree to our{" "}
+                      <Link 
+                        to="/terms" 
+                        className="text-gold font-semibold hover:underline transition-colors"
+                      >
+                        Terms of Service
+                      </Link>{" "}
+                      and{" "}
+                      <Link 
+                        to="/privacy" 
+                        className="text-gold font-semibold hover:underline transition-colors"
+                      >
+                        Privacy Policy
+                      </Link>.
                     </p>
-                  </div>
+                  </>
+                )}
 
-                  <button
-                    disabled={loading}
-                    type="submit"
-                    className="btn-glow w-full bg-gold hover:bg-gold-hover text-black font-bold py-3.5 rounded-xl transition-colors text-sm flex items-center justify-center gap-2 cursor-pointer shadow-lg"
-                  >
-                    {loading ? "Accessing..." : mode === "signin" ? "Access Newsroom" : "Continue to Newsroom"}
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </form>
-
-                <div className="mt-6 pt-6 border-t border-border">
-                  <p className="text-center text-xs font-mono uppercase tracking-wider text-text-mute mb-4">
-                    Or continue with
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => handleOAuth("google")}
-                      className="flex items-center justify-center gap-2 rounded-xl border border-border bg-background py-2.5 px-4 text-xs font-semibold text-foreground hover:border-gold/50 transition-colors cursor-pointer"
-                    >
-                      <svg className="w-4 h-4" viewBox="0 0 24 24">
-                        <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.1 9 5 12 5z" />
-                        <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z" />
-                        <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 10.8 0 12s.7 2.3 1.9 4.7l3.7-2.9z" />
-                        <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.1-6.4-5.2L1.9 16C3.7 19.7 7.5 23 12 23z" />
-                      </svg>
-                      Google
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleOAuth("apple")}
-                      className="flex items-center justify-center gap-2 rounded-xl border border-border bg-background py-2.5 px-4 text-xs font-semibold text-foreground hover:border-gold/50 transition-colors cursor-pointer"
-                    >
-                      <svg className="w-4 h-4 fill-current text-foreground" viewBox="0 0 170 170">
-                        <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.34.13-9.13-1.9-14.36-6.08-3.32-2.73-7.23-7.44-11.73-14.13-6.66-9.88-12.01-21.2-16.05-33.95-4.04-12.75-6.06-24.62-6.06-35.62 0-14.75 3.73-26.88 11.19-36.38 7.46-9.5 16.89-14.35 28.3-14.56 4.34 0 9.27 1.13 14.78 3.39 5.51 2.26 9.4 3.4 11.67 3.4 2.11 0 6.07-1.18 11.87-3.53 5.8-2.35 10.82-3.44 15.06-3.26 12.08.68 21.6 5.43 28.56 14.25-10.74 6.5-16.02 15.54-15.83 27.13.19 9.07 3.58 16.65 10.18 22.75 6.6 6.1 14.5 9.68 23.68 10.74-2.35 7.14-5.32 14.34-8.91 21.6zM119.22 31.81c0-7.22 2.62-14.07 7.86-20.55 5.24-6.48 11.73-10.3 19.47-11.46.22 1.3.33 2.39.33 3.26 0 7.12-2.65 14.12-7.95 21-5.3 6.88-11.81 10.7-19.53 11.46-.06-.88-.18-2.12-.18-3.71z" />
-                      </svg>
-                      Apple
-                    </button>
-                  </div>
-                </div>
-
-                <p className="mt-6 text-[11px] text-text-mute text-center font-serif leading-relaxed">
-                  By continuing, you agree to our{" "}
-                  <Link 
-                    to="/terms" 
-                    className="text-gold font-semibold hover:underline transition-colors"
-                  >
-                    Terms of Service
-                  </Link>{" "}
-                  and{" "}
-                  <Link 
-                    to="/privacy" 
-                    className="text-gold font-semibold hover:underline transition-colors"
-                  >
-                    Privacy Policy
-                  </Link>.
-                </p>
               </div>
             </div>
           </div>

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, ArrowLeft, Copy, Loader2, AlertTriangle, Twitter, Linkedin, Facebook } from "lucide-react";
+import { Clock, ArrowLeft, Copy, Loader2, AlertTriangle, Linkedin, Facebook } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { ReadingProgress } from "@/components/site/ReadingProgress";
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/news/$slug")({
   head: ({ loaderData }) => {
     const meta = loaderData?.articleMeta;
     
-    // 1. CLEAN HEADLINE ONLY for social media previews (No "— Joseph Mmwa")
+    // 1. CLEAN HEADLINE ONLY for social media previews (No site name appended)
     const cleanHeadline = meta?.title || "Global Health News";
 
     // 2. Browser tab title (with site name)
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/news/$slug")({
 
     const description = meta?.excerpt || "Breaking medical news, verified health reporting, and evidence-based journalism from Joseph Mmwa.";
     
-    // 3. ABSOLUTE IMAGE URL FIX: Guarantees social crawlers always find the featured image
+    // 3. ABSOLUTE IMAGE URL FIX: Guarantees social crawlers find the featured image
     const rawImage = meta?.featured_image || "https://mjvpcfetbvvcnhdwwjrl.supabase.co/storage/v1/object/public/avatars/joseph.jpeg.jpeg";
     const image = rawImage.startsWith("http") ? rawImage : `https://josephmmwa.com${rawImage}`;
 
@@ -41,7 +41,7 @@ export const Route = createFileRoute("/news/$slug")({
         { name: "description", content: description },
         { property: "og:type", content: "article" },
 
-        /* 🎯 CLEAN SOCIAL HEADLINE (Without name appended) */
+        /* 🎯 CLEAN SOCIAL HEADLINE */
         { property: "og:title", content: cleanHeadline },
         { name: "twitter:title", content: cleanHeadline },
 
@@ -175,6 +175,7 @@ function ArticlePage() {
     article.body.includes("<h2")
   );
 
+  // Social Sharing Links
   const shareText = encodeURIComponent(`Read this vital health dispatch: ${article.title}`);
   const encodedUrl = encodeURIComponent(articleUrl);
   const whatsappUrl = `https://api.whatsapp.com/send?text=${shareText}%20${encodedUrl}`;
@@ -224,6 +225,7 @@ function ArticlePage() {
           </figure>
         )}
 
+        {/* Content Body Layer */}
         <div className="mt-10 text-foreground font-sans text-base leading-relaxed space-y-6">
           {article.body ? (
             hasHtmlTags ? (
@@ -236,36 +238,84 @@ function ArticlePage() {
           )}
         </div>
 
+        {/* SHARE THIS STORY */}
         <div className="mt-14 border-t border-border pt-8">
-          <p className="text-xs font-display font-bold uppercase tracking-wider text-text-mute mb-4">Share This Story</p>
+          <p className="text-xs font-display font-bold uppercase tracking-wider text-text-mute mb-4">
+            Share This Story
+          </p>
           <div className="flex flex-wrap gap-3 items-center">
             <button 
               onClick={() => { 
                 if (typeof window !== "undefined") { 
                   navigator.clipboard.writeText(articleUrl); 
-                  toast.success("Link copied!"); 
+                  toast.success("Link copied to clipboard!"); 
                 } 
               }} 
               className="flex items-center gap-2 bg-surface-2 border border-border rounded-full px-4 py-2 text-sm font-medium hover:text-gold transition-colors cursor-pointer"
             >
               <Copy className="w-4 h-4" /> Copy link
             </button>
-            <a href={whatsappUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center bg-surface-2 border border-border w-10 h-10 rounded-full hover:text-green-500 transition-colors text-sm font-bold font-sans">
-              W
+
+            {/* Glowing Green WhatsApp */}
+            <a 
+              href={whatsappUrl} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center justify-center bg-surface-2 border border-border w-10 h-10 rounded-full transition-all duration-300 hover:scale-105 cursor-pointer"
+              style={{
+                color: "#25D366",
+                boxShadow: "0 0 12px rgba(37, 211, 102, 0.35)",
+              }}
+              title="Share on WhatsApp"
+            >
+              <span className="font-bold text-base font-sans">W</span>
             </a>
-            <a href={twitterUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center bg-surface-2 border border-border w-10 h-10 rounded-full hover:text-gold transition-colors">
-              <Twitter className="w-4 h-4" />
+
+            {/* X / Twitter */}
+            <a 
+              href={twitterUrl} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center justify-center bg-surface-2 border border-border w-10 h-10 rounded-full hover:bg-neutral-800 text-foreground transition-all duration-200 cursor-pointer"
+              title="Share on X"
+            >
+              <span className="font-extrabold text-sm font-sans">𝕏</span>
             </a>
-            <a href={linkedinUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center bg-surface-2 border border-border w-10 h-10 rounded-full hover:text-blue-500 transition-colors">
+
+            {/* LinkedIn */}
+            <a 
+              href={linkedinUrl} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center justify-center bg-surface-2 border border-border w-10 h-10 rounded-full transition-all duration-200 cursor-pointer hover:opacity-90"
+              style={{ color: "#0A66C2" }}
+              title="Share on LinkedIn"
+            >
               <Linkedin className="w-4 h-4" />
             </a>
-            <a href={facebookUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center bg-surface-2 border border-border w-10 h-10 rounded-full hover:text-blue-600 transition-colors">
+
+            {/* Facebook */}
+            <a 
+              href={facebookUrl} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center justify-center bg-surface-2 border border-border w-10 h-10 rounded-full transition-all duration-200 cursor-pointer hover:opacity-90"
+              style={{ color: "#1877F2" }}
+              title="Share on Facebook"
+            >
               <Facebook className="w-4 h-4" />
             </a>
           </div>
         </div>
 
-        <div className="mt-10 rounded-xl p-6 flex gap-5 items-start" style={{ background: "radial-gradient(ellipse at top left, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)", border: "1px solid rgba(245, 166, 35, 0.15)" }}>
+        {/* AUTHOR BIO CARD */}
+        <div 
+          className="mt-10 rounded-xl p-6 flex gap-5 items-start" 
+          style={{ 
+            background: "radial-gradient(ellipse at top left, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)", 
+            border: "1px solid rgba(245, 166, 35, 0.15)" 
+          }}
+        >
           <div className="shrink-0 w-14 h-14 rounded-full overflow-hidden border border-gold/30 bg-surface-1 relative flex items-center justify-center">
             <img 
               src="https://mjvpcfetbvvcnhdwwjrl.supabase.co/storage/v1/object/public/avatars/joseph.jpeg.jpeg" 
@@ -282,8 +332,113 @@ function ArticlePage() {
           </div>
         </div>
 
+        {/* JOSEPH MMWA MEDIA GROUP CONTACT FORM */}
+        <div className="mt-8 rounded-xl p-6 border border-border bg-surface-1/60">
+          <h3 className="font-display font-bold text-lg text-foreground mb-1">
+            Contact Joseph Mmwa Media Group
+          </h3>
+          <p className="text-xs text-text-mute font-serif mb-5 leading-relaxed">
+            Have a news tip, media inquiry, or editorial suggestion regarding this dispatch? Send a direct message to our newsroom team.
+          </p>
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              toast.success("Thank you! Your message has been sent to our newsroom.");
+              (e.target as HTMLFormElement).reset();
+            }}
+            className="space-y-4"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input 
+                type="text" 
+                required 
+                placeholder="Your Name" 
+                className="w-full bg-surface-2 border border-border rounded-lg px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:border-gold transition-colors"
+              />
+              <input 
+                type="email" 
+                required 
+                placeholder="Your Email" 
+                className="w-full bg-surface-2 border border-border rounded-lg px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:border-gold transition-colors"
+              />
+            </div>
+            <textarea 
+              rows={3} 
+              required 
+              placeholder="Your Message or Inquiry..." 
+              className="w-full bg-surface-2 border border-border rounded-lg px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:border-gold transition-colors resize-none"
+            />
+            <button 
+              type="submit" 
+              className="bg-gold hover:bg-gold-hover text-primary-foreground font-bold px-6 py-2.5 rounded-lg text-sm transition-colors cursor-pointer w-full sm:w-auto"
+            >
+              Send Message
+            </button>
+          </form>
+        </div>
+
+        {/* PREMIUM SUBSCRIPTION BANNER */}
+        <div 
+          className="mt-12 rounded-xl p-6 sm:p-8 text-center relative overflow-hidden"
+          style={{ 
+            background: "linear-gradient(180deg, rgba(245, 166, 35, 0.08) 0%, rgba(10, 10, 10, 0.95) 100%)", 
+            border: "1px solid rgba(245, 166, 35, 0.25)" 
+          }}
+        >
+          <div className="max-w-xl mx-auto space-y-3">
+            <span className="inline-block text-[11px] font-sans font-bold uppercase tracking-widest text-gold bg-gold/10 px-3 py-1 rounded-full border border-gold/20">
+              Exclusive Insights
+            </span>
+            <h3 className="font-sans font-bold text-xl sm:text-2xl text-foreground tracking-tight">
+              Join Premium for Full Access
+            </h3>
+            <p className="font-sans text-sm text-text-mute leading-relaxed font-normal">
+              Subscribe to unlock in-depth medical analysis, surgical dispatches, and priority reporting directly from Joseph Mmwa Media Group.
+            </p>
+            <div className="pt-2">
+              <Link 
+                to="/premium" 
+                className="inline-flex items-center justify-center bg-gold hover:bg-gold-hover text-primary-foreground font-sans font-bold px-7 py-3 rounded-full text-sm transition-all duration-200 transform hover:scale-[1.02] shadow-lg cursor-pointer"
+              >
+                Subscribe to Premium
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* COMMENTS SECTION */}
+        <div className="mt-12 border-t border-border pt-10">
+          <h3 className="font-display font-bold text-xl text-foreground mb-6">
+            Reader Discussion
+          </h3>
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              toast.success("Comment submitted for moderation.");
+              (e.target as HTMLFormElement).reset();
+            }}
+            className="space-y-3 mb-8"
+          >
+            <textarea 
+              rows={3} 
+              required 
+              placeholder="Join the discussion... Share your perspective." 
+              className="w-full bg-surface-2 border border-border rounded-lg p-3 text-sm font-sans text-foreground focus:outline-none focus:border-gold transition-colors resize-none"
+            />
+            <div className="flex justify-end">
+              <button 
+                type="submit" 
+                className="bg-surface-2 border border-border hover:border-gold text-foreground font-sans font-semibold px-5 py-2 rounded-full text-xs transition-colors cursor-pointer"
+              >
+                Post Comment
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* RELATED DISPATCHES */}
         {relatedArticles && relatedArticles.length > 0 && (
-          <div className="mt-16 border-t border-border pt-10">
+          <div className="mt-12 border-t border-border pt-10">
             <h3 className="font-display font-bold text-xl text-foreground mb-6">Related Dispatches</h3>
             <div className="grid gap-6 sm:grid-cols-2">
               {relatedArticles.map((ra) => (

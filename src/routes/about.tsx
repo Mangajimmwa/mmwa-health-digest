@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, ShieldCheck, Target, Eye, Award, Phone, Mail, MapPin } from "lucide-react";
+import { Check, Target, Eye, Award, Phone, Mail, MapPin } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 
 export const Route = createFileRoute("/about")({
@@ -197,7 +197,7 @@ function AboutPage() {
       </section>
 
       {/* Contact & Media Desk Section */}
-      <section className="mx-auto max-w-5xl px-4 lg:px-6 py-12 border-b border-border">
+      <section className="mx-auto max-w-5xl px-4 lg:px-6 py-12">
         <div className="rounded-2xl border border-gold/30 p-8 sm:p-10 bg-card relative overflow-hidden"
           style={{
             background: "radial-gradient(ellipse at top left, #261A00 0%, #0A0A0A 100%)",
@@ -246,29 +246,6 @@ function AboutPage() {
                 <span className="text-foreground font-bold">Nairobi, Kenya</span>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Our Editorial Standards */}
-      <section className="mx-auto max-w-5xl px-4 lg:px-6 py-12">
-        <div className="bg-card border border-border rounded-xl p-8 sm:p-10">
-          <div className="flex items-center gap-3 text-gold mb-4">
-            <ShieldCheck className="w-6 h-6" />
-            <h2 className="font-display font-bold text-3xl text-foreground">
-              Our Editorial Standards
-            </h2>
-          </div>
-          <div className="space-y-4 text-text-body text-base font-serif leading-relaxed">
-            <p>
-              At Joseph Mmwa Media Group, accuracy, transparency, fairness, and accountability are the foundation of our journalism.
-            </p>
-            <p>
-              We develop every story using credible and authoritative sources, including peer-reviewed scientific journals, leading medical institutions, government health agencies, international public health organizations, and qualified subject-matter experts. Scientific findings are carefully evaluated and presented in their proper context to ensure our reporting remains accurate, balanced, and free from exaggeration or speculation.
-            </p>
-            <p>
-              We clearly distinguish verified facts from analysis, acknowledge uncertainty where scientific evidence is still evolving, and avoid sensationalism or unsupported medical claims. Our editorial decisions are guided by the public interest and our commitment to responsible health journalism.
-            </p>
           </div>
         </div>
       </section>

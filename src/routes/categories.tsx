@@ -19,6 +19,13 @@ export const Route = createFileRoute("/categories")({
 // ============================================================================
 const CATEGORIES_LIST = [
   {
+    id: "cat-ai-health",
+    slug: "ai-in-healthcare",
+    name: "Artificial Intelligence in Healthcare",
+    description: "As artificial intelligence transforms healthcare at unprecedented speed, we bring you trusted reporting on breakthrough innovations, emerging trends, telemedicine, digital health, and the technologies redefining medicine.",
+    image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=800",
+  },
+  {
     id: "cat-1",
     slug: "disease-outbreaks",
     name: "Disease Outbreaks",

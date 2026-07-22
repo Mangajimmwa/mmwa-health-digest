@@ -28,7 +28,7 @@ export const Route = createFileRoute("/privacy")({
 });
 
 function PrivacyPage() {
-  const updated = "July 21, 2026";
+  const updated = "July 22, 2026";
   return (
     <SiteLayout>
       <article className="mx-auto max-w-3xl px-4 lg:px-6 py-14">
@@ -220,10 +220,19 @@ function PrivacyPage() {
                 <p className="text-text-body">
                   Email:{" "}
                   <a
-                    href="mailto:josephmmwamedia@outlook.com"
+                    href="mailto:contact@josephmmwa.com"
                     className="text-gold hover:text-gold-hover font-mono underline transition-colors"
                   >
-                    josephmmwamedia@outlook.com
+                    contact@josephmmwa.com
+                  </a>
+                </p>
+                <p className="text-text-body">
+                  Phone / WhatsApp:{" "}
+                  <a
+                    href="tel:+254729147765"
+                    className="text-gold hover:text-gold-hover font-mono underline transition-colors"
+                  >
+                    +254 729 147 765
                   </a>
                 </p>
                 <p className="text-text-body">

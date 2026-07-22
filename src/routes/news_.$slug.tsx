@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, ArrowLeft, Copy, Loader2, AlertTriangle, Linkedin, Facebook } from "lucide-react";
+import { Clock, ArrowLeft, Copy, Loader2, AlertTriangle, Linkedin, Facebook, ExternalLink } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { ReadingProgress } from "@/components/site/ReadingProgress";
@@ -20,19 +20,12 @@ export const Route = createFileRoute("/news/$slug")({
   head: ({ loaderData }) => {
     const meta = loaderData?.articleMeta;
     
-    // 1. CLEAN HEADLINE ONLY for social media previews (No site name appended)
     const cleanHeadline = meta?.title || "Global Health News";
-
-    // 2. Browser tab title (with site name)
     const browserTitle = meta?.title ? `${meta.title} — Joseph Mmwa` : "Global Health News — Joseph Mmwa";
-
     const description = meta?.excerpt || "Breaking medical news, verified health reporting, and evidence-based journalism from Joseph Mmwa.";
     
-    // 3. ABSOLUTE IMAGE URL FIX: Guarantees social crawlers find the featured image
     const rawImage = meta?.featured_image || "https://mjvpcfetbvvcnhdwwjrl.supabase.co/storage/v1/object/public/avatars/joseph.jpeg.jpeg";
     const image = rawImage.startsWith("http") ? rawImage : `https://josephmmwa.com${rawImage}`;
-
-    // Canonical link
     const canonicalUrl = `https://josephmmwa.com/news/${meta?.slug || ""}`;
 
     return {
@@ -40,20 +33,14 @@ export const Route = createFileRoute("/news/$slug")({
         { title: browserTitle },
         { name: "description", content: description },
         { property: "og:type", content: "article" },
-
-        /* 🎯 CLEAN SOCIAL HEADLINE */
         { property: "og:title", content: cleanHeadline },
         { name: "twitter:title", content: cleanHeadline },
-
         { property: "og:description", content: description },
         { name: "twitter:description", content: description },
-
-        /* 🎯 FEATURED IMAGE PREVIEW FIX */
         { property: "og:image", content: image },
         { name: "twitter:image", content: image },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
-
         { name: "twitter:card", content: "summary_large_image" },
       ],
       links: [
@@ -175,13 +162,14 @@ function ArticlePage() {
     article.body.includes("<h2")
   );
 
-  // Social Sharing Links
+  // Social Sharing links
   const shareText = encodeURIComponent(`Read this vital health dispatch: ${article.title}`);
   const encodedUrl = encodeURIComponent(articleUrl);
   const whatsappUrl = `https://api.whatsapp.com/send?text=${shareText}%20${encodedUrl}`;
   const twitterUrl = `https://twitter.com/intent/tweet?text=${shareText}&url=${encodedUrl}`;
   const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
   const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+  const instagramUrl = `https://instagram.com`;
 
   return (
     <SiteLayout>
@@ -225,7 +213,7 @@ function ArticlePage() {
           </figure>
         )}
 
-        {/* Content Body Layer */}
+        {/* Content Body */}
         <div className="mt-10 text-foreground font-sans text-base leading-relaxed space-y-6">
           {article.body ? (
             hasHtmlTags ? (
@@ -238,12 +226,13 @@ function ArticlePage() {
           )}
         </div>
 
-        {/* SHARE THIS STORY */}
+        {/* 1. SHARE THIS STORY (GOLDEN TITLE + BRAND COLOR ICONS) */}
         <div className="mt-14 border-t border-border pt-8">
-          <p className="text-xs font-display font-bold uppercase tracking-wider text-text-mute mb-4">
-            Share This Story
+          <p className="text-xs font-display font-bold uppercase tracking-wider text-gold mb-4">
+            SHARE THIS STORY
           </p>
           <div className="flex flex-wrap gap-3 items-center">
+            {/* Copy Link Button */}
             <button 
               onClick={() => { 
                 if (typeof window !== "undefined") { 
@@ -282,6 +271,18 @@ function ArticlePage() {
               <span className="font-extrabold text-sm font-sans">𝕏</span>
             </a>
 
+            {/* Instagram */}
+            <a 
+              href={instagramUrl} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center justify-center bg-surface-2 border border-border w-10 h-10 rounded-full transition-all duration-200 cursor-pointer hover:opacity-90"
+              style={{ color: "#E4405F" }}
+              title="Instagram"
+            >
+              <span className="font-bold text-xs font-sans">IG</span>
+            </a>
+
             {/* LinkedIn */}
             <a 
               href={linkedinUrl} 
@@ -308,72 +309,33 @@ function ArticlePage() {
           </div>
         </div>
 
-        {/* AUTHOR BIO CARD */}
-        <div 
-          className="mt-10 rounded-xl p-6 flex gap-5 items-start" 
-          style={{ 
-            background: "radial-gradient(ellipse at top left, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)", 
-            border: "1px solid rgba(245, 166, 35, 0.15)" 
-          }}
-        >
-          <div className="shrink-0 w-14 h-14 rounded-full overflow-hidden border border-gold/30 bg-surface-1 relative flex items-center justify-center">
-            <img 
-              src="https://mjvpcfetbvvcnhdwwjrl.supabase.co/storage/v1/object/public/avatars/joseph.jpeg.jpeg" 
-              alt="Joseph Mmwa" 
-              className="w-full h-full object-cover relative z-10"
-            />
-          </div>
-          <div>
-            <p className="font-semibold text-foreground">{article.author || "Joseph Mmwa"}</p>
-            <p className="text-xs text-gold mt-0.5">Medical &amp; Health Journalist</p>
-            <p className="mt-2 text-sm text-text-body font-serif leading-relaxed">
-              Joseph Mmwa is an independent medical and health journalist delivering accurate, evidence-based reporting on the stories shaping global public health — with clarity, accuracy, and editorial independence.
-            </p>
-          </div>
-        </div>
-
-        {/* JOSEPH MMWA MEDIA GROUP CONTACT FORM */}
-        <div className="mt-8 rounded-xl p-6 border border-border bg-surface-1/60">
-          <h3 className="font-display font-bold text-lg text-foreground mb-1">
-            Contact Joseph Mmwa Media Group
+        {/* 2. COMMENTS SECTION (APPEARS IMMEDIATELY AFTER SHARE) */}
+        <div className="mt-12 border-t border-border pt-10">
+          <h3 className="font-display font-bold text-xl text-foreground mb-6">
+            Reader Discussion
           </h3>
-          <p className="text-xs text-text-mute font-serif mb-5 leading-relaxed">
-            Have a news tip, media inquiry, or editorial suggestion regarding this dispatch? Send a direct message to our newsroom team.
-          </p>
           <form 
             onSubmit={(e) => {
               e.preventDefault();
-              toast.success("Thank you! Your message has been sent to our newsroom.");
+              toast.success("Comment submitted for moderation.");
               (e.target as HTMLFormElement).reset();
             }}
-            className="space-y-4"
+            className="space-y-3 mb-8"
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input 
-                type="text" 
-                required 
-                placeholder="Your Name" 
-                className="w-full bg-surface-2 border border-border rounded-lg px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:border-gold transition-colors"
-              />
-              <input 
-                type="email" 
-                required 
-                placeholder="Your Email" 
-                className="w-full bg-surface-2 border border-border rounded-lg px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:border-gold transition-colors"
-              />
-            </div>
             <textarea 
               rows={3} 
               required 
-              placeholder="Your Message or Inquiry..." 
-              className="w-full bg-surface-2 border border-border rounded-lg px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:border-gold transition-colors resize-none"
+              placeholder="Join the discussion... Share your perspective." 
+              className="w-full bg-surface-2 border border-border rounded-lg p-3 text-sm font-sans text-foreground focus:outline-none focus:border-gold transition-colors resize-none"
             />
-            <button 
-              type="submit" 
-              className="bg-gold hover:bg-gold-hover text-primary-foreground font-bold px-6 py-2.5 rounded-lg text-sm transition-colors cursor-pointer w-full sm:w-auto"
-            >
-              Send Message
-            </button>
+            <div className="flex justify-end">
+              <button 
+                type="submit" 
+                className="bg-surface-2 border border-border hover:border-gold text-foreground font-sans font-semibold px-5 py-2 rounded-full text-xs transition-colors cursor-pointer"
+              >
+                Post Comment
+              </button>
+            </div>
           </form>
         </div>
 
@@ -406,34 +368,28 @@ function ArticlePage() {
           </div>
         </div>
 
-        {/* COMMENTS SECTION */}
-        <div className="mt-12 border-t border-border pt-10">
-          <h3 className="font-display font-bold text-xl text-foreground mb-6">
-            Reader Discussion
-          </h3>
-          <form 
-            onSubmit={(e) => {
-              e.preventDefault();
-              toast.success("Comment submitted for moderation.");
-              (e.target as HTMLFormElement).reset();
-            }}
-            className="space-y-3 mb-8"
-          >
-            <textarea 
-              rows={3} 
-              required 
-              placeholder="Join the discussion... Share your perspective." 
-              className="w-full bg-surface-2 border border-border rounded-lg p-3 text-sm font-sans text-foreground focus:outline-none focus:border-gold transition-colors resize-none"
+        {/* AUTHOR BIO CARD */}
+        <div 
+          className="mt-10 rounded-xl p-6 flex gap-5 items-start" 
+          style={{ 
+            background: "radial-gradient(ellipse at top left, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)", 
+            border: "1px solid rgba(245, 166, 35, 0.15)" 
+          }}
+        >
+          <div className="shrink-0 w-14 h-14 rounded-full overflow-hidden border border-gold/30 bg-surface-1 relative flex items-center justify-center">
+            <img 
+              src="https://mjvpcfetbvvcnhdwwjrl.supabase.co/storage/v1/object/public/avatars/joseph.jpeg.jpeg" 
+              alt="Joseph Mmwa" 
+              className="w-full h-full object-cover relative z-10"
             />
-            <div className="flex justify-end">
-              <button 
-                type="submit" 
-                className="bg-surface-2 border border-border hover:border-gold text-foreground font-sans font-semibold px-5 py-2 rounded-full text-xs transition-colors cursor-pointer"
-              >
-                Post Comment
-              </button>
-            </div>
-          </form>
+          </div>
+          <div>
+            <p className="font-semibold text-foreground">{article.author || "Joseph Mmwa"}</p>
+            <p className="text-xs text-gold mt-0.5">Medical &amp; Health Journalist</p>
+            <p className="mt-2 text-sm text-text-body font-serif leading-relaxed">
+              Joseph Mmwa is an independent medical and health journalist delivering accurate, evidence-based reporting on the stories shaping global public health — with clarity, accuracy, and editorial independence.
+            </p>
+          </div>
         </div>
 
         {/* RELATED DISPATCHES */}
@@ -455,6 +411,90 @@ function ArticlePage() {
             </div>
           </div>
         )}
+
+        {/* 3. PREMIUM CONTACT MMWA MEDIA GROUP FORM (LAST COMPONENT) */}
+        <div 
+          className="mt-14 rounded-2xl p-6 sm:p-8 border relative overflow-hidden"
+          style={{ 
+            background: "radial-gradient(ellipse at top right, #1F1700 0%, #0F0D0A 50%, #050505 100%)", 
+            borderColor: "rgba(245, 166, 35, 0.3)" 
+          }}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-gold font-bold px-2.5 py-1 rounded bg-gold/10 border border-gold/20">
+                Media Desk
+              </span>
+              <h3 className="font-display font-bold text-xl sm:text-2xl text-foreground mt-2">
+                Joseph Mmwa Media Group Inquiry
+              </h3>
+              <p className="text-xs text-text-mute font-serif mt-1">
+                Direct editorial contact for press, surgical dispatches, and journalism inquiries.
+              </p>
+            </div>
+            
+            {/* Redirect link to main contact page */}
+            <Link 
+              to="/contact" 
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-gold hover:underline shrink-0"
+            >
+              Full Contact Page <ExternalLink className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              toast.success("Message dispatched to Joseph Mmwa Media Group!");
+              (e.target as HTMLFormElement).reset();
+            }}
+            className="space-y-4"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <input 
+                type="text" 
+                required 
+                placeholder="Full Name" 
+                className="w-full bg-surface-2/80 border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-gold transition-all"
+              />
+              <input 
+                type="email" 
+                required 
+                placeholder="Email Address" 
+                className="w-full bg-surface-2/80 border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-gold transition-all"
+              />
+            </div>
+            <textarea 
+              rows={3} 
+              required 
+              placeholder="State your story tip, editorial feedback, or press inquiry..." 
+              className="w-full bg-surface-2/80 border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-gold transition-all resize-none"
+            />
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+              <p className="text-[11px] text-text-mute">
+                For major press credentials or extended partnerships, visit our <Link to="/contact" className="text-gold underline">main contact desk</Link>.
+              </p>
+              <button 
+                type="submit" 
+                className="w-full sm:w-auto bg-gold hover:bg-gold-hover text-primary-foreground font-bold px-8 py-3 rounded-xl text-sm transition-all duration-200 transform hover:scale-[1.01] cursor-pointer shadow-md"
+              >
+                Dispatch Message
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* 4. FOOTER SECTION */}
+        <footer className="mt-16 border-t border-border pt-8 pb-4 text-center text-xs text-text-mute font-sans space-y-3">
+          <div className="flex flex-wrap justify-center gap-6 font-medium">
+            <Link to="/terms" className="hover:text-gold transition-colors">Terms of Service</Link>
+            <Link to="/privacy" className="hover:text-gold transition-colors">Privacy Policy</Link>
+            <Link to="/editorial-policy" className="hover:text-gold transition-colors">Editorial Standards</Link>
+            <Link to="/contact" className="hover:text-gold transition-colors">Contact</Link>
+          </div>
+          <p>© {new Date().getFullYear()} Joseph Mmwa Media Group. All rights reserved.</p>
+        </footer>
+
       </article>
     </SiteLayout>
   );

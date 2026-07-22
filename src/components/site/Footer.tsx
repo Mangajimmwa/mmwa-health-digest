@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Phone, Mail } from "lucide-react";
+import { Phone, Mail, Youtube, Linkedin, Twitter, Facebook } from "lucide-react";
 
 export function Footer() {
   return (
@@ -42,24 +42,71 @@ export function Footer() {
               className="inline-flex items-center gap-2 text-gold hover:text-gold-hover transition-colors"
             >
               <Phone className="w-4 h-4 text-gold shrink-0" aria-hidden="true" />
-              +254 7 291 477 65
+              +254 729 147 765
             </a>
             <a 
-              href="mailto:josephmmwamedia@outlook.com" 
+              href="mailto:contact@josephmmwa.com" 
               className="inline-flex items-center gap-2 hover:text-gold transition-colors"
             >
               <Mail className="w-4 h-4 text-gold shrink-0" aria-hidden="true" />
-              josephmmwamedia@outlook.com
+              contact@josephmmwa.com
             </a>
           </div>
 
-          {/* Links Row */}
-          <div className="mt-8 pt-6 border-t border-gold/20 flex flex-wrap gap-6 text-sm text-text-body">
-            <Link to="/" className="hover:text-gold transition-colors">Home</Link>
-            <Link to="/about" className="hover:text-gold transition-colors">About</Link>
-            <Link to="/contact" className="hover:text-gold transition-colors font-semibold text-gold">Contact</Link>
-            <Link to="/privacy" className="hover:text-gold transition-colors">Privacy Policy</Link>
-            <Link to="/terms" className="hover:text-gold transition-colors">Terms of Service</Link>
+          {/* Follow Us / Social Links */}
+          <div className="mt-8 pt-6 border-t border-gold/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-mono uppercase tracking-widest text-gold font-bold">
+                Follow Us:
+              </span>
+              <div className="flex items-center gap-2">
+                <a
+                  href="https://youtube.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="YouTube Channel"
+                  className="p-2 rounded-lg bg-gold/10 text-gold border border-gold/20 hover:bg-gold hover:text-black transition-all"
+                >
+                  <Youtube className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://linkedin.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="LinkedIn Profile"
+                  className="p-2 rounded-lg bg-gold/10 text-gold border border-gold/20 hover:bg-gold hover:text-black transition-all"
+                >
+                  <Linkedin className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://x.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="X (Twitter) Profile"
+                  className="p-2 rounded-lg bg-gold/10 text-gold border border-gold/20 hover:bg-gold hover:text-black transition-all"
+                >
+                  <Twitter className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://facebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook Page"
+                  className="p-2 rounded-lg bg-gold/10 text-gold border border-gold/20 hover:bg-gold hover:text-black transition-all"
+                >
+                  <Facebook className="w-4 h-4" />
+                </a>
+              </div>
+            </div>
+
+            {/* Nav Links */}
+            <div className="flex flex-wrap gap-6 text-sm text-text-body">
+              <Link to="/" className="hover:text-gold transition-colors">Home</Link>
+              <Link to="/about" className="hover:text-gold transition-colors">About</Link>
+              <Link to="/contact" className="hover:text-gold transition-colors font-semibold text-gold">Contact</Link>
+              <Link to="/privacy" className="hover:text-gold transition-colors">Privacy Policy</Link>
+              <Link to="/terms" className="hover:text-gold transition-colors">Terms of Service</Link>
+            </div>
           </div>
 
           {/* Copyright Row */}

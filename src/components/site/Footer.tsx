@@ -96,11 +96,8 @@ export function Footer() {
           {/* Bottom Legal & Copyright Bar */}
           <div className="mt-8 pt-6 border-t border-gold/20 flex flex-col lg:flex-row lg:items-center justify-between gap-4 text-xs font-mono text-text-mute">
             
-            {/* Copyright Statement */}
-            <span>© {new Date().getFullYear()} Joseph Mmwa Media Group. All rights reserved.</span>
-
-            {/* Legal Links & Modal Trigger */}
-            <div className="flex flex-wrap items-center gap-5 font-sans">
+            {/* Legal Links & Modal Trigger (Renders First on Mobile) */}
+            <div className="flex flex-wrap items-center gap-5 font-sans order-1 lg:order-2">
               <Link to="/terms" className="hover:text-gold transition-colors">
                 Terms of Service
               </Link>
@@ -118,6 +115,11 @@ export function Footer() {
                 <AlertCircle className="w-3.5 h-3.5" /> Medical Disclaimer
               </button>
             </div>
+
+            {/* Copyright Statement (Renders Last at the Very Bottom on Mobile) */}
+            <span className="order-2 lg:order-1 pt-2 lg:pt-0">
+              © {new Date().getFullYear()} Joseph Mmwa Media Group. All rights reserved.
+            </span>
 
           </div>
         </div>

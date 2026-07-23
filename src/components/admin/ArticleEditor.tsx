@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, Loader2, Bold, Italic, Underline, Heading2, Heading3, List, Link2, Image as ImageIcon } from "lucide-react";
+import { Upload, Loader2, Bold, Italic, Underline, Heading2, Heading3, List, Link2, Image as ImageIcon, Sparkles, ShieldCheck } from "lucide-react";
 
 interface ArticleFormProps {
   articleId?: string;
@@ -22,6 +22,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
     image_caption: "",
     category: "Disease Outbreaks",
     is_published: false,
+    is_premium: false,
     author: "Joseph Mmwa",
     read_time_minutes: 3,
   });
@@ -32,6 +33,8 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
     "Medical Research",
     "Treatment and Innovations",
     "Public Health",
+    "Artificial Intelligence",
+    "General News",
     "Healthcare",
     "Explainers"
   ];
@@ -63,6 +66,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
         image_caption: data.image_caption || "",
         category: data.category || "Disease Outbreaks",
         is_published: data.is_published || false,
+        is_premium: data.is_premium || false,
         author: data.author || "Joseph Mmwa",
         read_time_minutes: data.read_time_minutes || 3,
       });
@@ -91,7 +95,6 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
         .getPublicUrl(filePath);
 
       if (isInline) {
-        // Prompt for the inline image credit/caption directly upon upload
         const userCaption = window.prompt("Enter Photo Credit / Caption (e.g. photo credit: UNICEF):", "photo credit: ");
         const captionText = userCaption ? userCaption.trim() : "";
 
@@ -149,6 +152,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
       image_caption: formData.image_caption || null,
       category: formData.category,
       is_published: formData.is_published,
+      is_premium: formData.is_premium,
       published_at: formData.is_published ? new Date().toISOString() : null,
       author: formData.author,
       read_time_minutes: Number(formData.read_time_minutes) || 3,
@@ -184,6 +188,7 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
           image_caption: "",
           category: "Disease Outbreaks",
           is_published: false,
+          is_premium: false,
           author: "Joseph Mmwa",
           read_time_minutes: 3,
         });
@@ -279,6 +284,38 @@ export function ArticleEditor({ articleId, onSaveSuccess }: ArticleFormProps) {
           <label className="block text-sm font-medium mb-2 text-zinc-300">Estimated Read Time (Minutes)</label>
           <input type="number" value={formData.read_time_minutes} onChange={(e) => setFormData({ ...formData, read_time_minutes: parseInt(e.target.value) || 3 })} className="w-full bg-zinc-950 border border-zinc-800 rounded-md p-2.5 text-sm outline-none text-white" />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-amber-500 flex items-center gap-1.5 font-bold">
+          <Sparkles className="w-4 h-4 text-amber-500" /> Access Tier (Premium Content)
+        </label>
+        <label 
+          onClick={() => setFormData({ ...formData, is_premium: !formData.is_premium })}
+          className={`flex items-center justify-between p-3.5 rounded-lg border cursor-pointer transition-all ${
+            formData.is_premium 
+              ? "bg-amber-500/15 border-amber-500 text-amber-400 font-bold" 
+              : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700"
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            <ShieldCheck className={`w-5 h-5 ${formData.is_premium ? "text-amber-400" : "text-zinc-500"}`} />
+            <div>
+              <span className="text-xs font-mono uppercase block">
+                {formData.is_premium ? "⭐ Premium Exclusive Article" : "Free Public Article"}
+              </span>
+              <span className="text-[11px] font-sans font-normal text-zinc-400 block mt-0.5">
+                {formData.is_premium ? "Requires an active premium subscription to view." : "Accessible to all visitors for free."}
+              </span>
+            </div>
+          </div>
+          <input
+            type="checkbox"
+            checked={formData.is_premium}
+            onChange={(e) => setFormData({ ...formData, is_premium: e.target.checked })}
+            className="w-4 h-4 accent-amber-500 cursor-pointer"
+          />
+        </label>
       </div>
 
       <div>

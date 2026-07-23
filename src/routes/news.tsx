@@ -15,18 +15,23 @@ export const Route = createFileRoute("/news")({
   component: NewsPage,
 });
 
+// 🌐 Safe UTC Date Formatter (Never crashes on null/undefined)
 function formatUtcTimestamp(dateString?: string | null): string {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return "";
+  if (!dateString) return "Recently";
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Recently";
 
-  const day = date.getUTCDate();
-  const month = date.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
-  const year = date.getUTCFullYear();
-  const hours = String(date.getUTCHours()).padStart(2, "0");
-  const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+    const day = date.getUTCDate();
+    const month = date.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+    const year = date.getUTCFullYear();
+    const hours = String(date.getUTCHours()).padStart(2, "0");
+    const minutes = String(date.getUTCMinutes()).padStart(2, "0");
 
-  return `${day} ${month} ${year}, ${hours}:${minutes} UTC`;
+    return `${day} ${month} ${year}, ${hours}:${minutes} UTC`;
+  } catch (err) {
+    return "Recently";
+  }
 }
 
 function NewsPage() {
@@ -46,11 +51,11 @@ function NewsPage() {
   ];
 
   const { data: articles = [] } = useQuery({
-    queryKey: ["articles", "all-feed-utc-v2"],
+    queryKey: ["articles", "all-feed-utc-v3"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("articles")
-        .select("*")
+        .select("id,title,slug,excerpt,read_time_minutes,published_at,is_published,featured_image,category")
         .eq("is_published", true)
         .order("published_at", { ascending: false });
 
@@ -63,16 +68,15 @@ function NewsPage() {
     },
   });
 
-  const latestArticles = articles.slice(0, 3);
-  const mostReadArticles = [...articles]
-    .sort((a, b) => (b.views || 0) - (a.views || 0))
-    .slice(0, 4);
+  const latestArticles = (articles || []).slice(0, 3);
+  const mostReadArticles = [...(articles || [])].slice(0, 4);
 
-  const filtered = articles.filter((a) => {
-    const matchesSearch = q ? a.title?.toLowerCase().includes(q.toLowerCase()) : true;
+  const filtered = (articles || []).filter((a) => {
+    if (!a) return false;
+    const matchesSearch = q ? (a.title || "").toLowerCase().includes(q.toLowerCase()) : true;
     const matchesCategory = selectedCategory
-      ? a.category?.toLowerCase().trim().includes(selectedCategory.toLowerCase().trim()) ||
-        selectedCategory.toLowerCase().trim().includes(a.category?.toLowerCase().trim() || "")
+      ? (a.category || "").toLowerCase().trim().includes(selectedCategory.toLowerCase().trim()) ||
+        selectedCategory.toLowerCase().trim().includes((a.category || "").toLowerCase().trim())
       : true;
 
     return matchesSearch && matchesCategory;
@@ -85,9 +89,7 @@ function NewsPage() {
         <p className="label-eyebrow">Newsroom</p>
         <h1 className="mt-2 font-display font-bold text-4xl sm:text-5xl">Latest health & medical news</h1>
 
-        {/* ------------------------------------------------------------------- */}
-        {/* 🏷️ 2️⃣ TOP CATEGORY FILTER PILLS & SEARCH BAR (MOVED TO TOP) */}
-        {/* ------------------------------------------------------------------- */}
+        {/* 🏷️ 2️⃣ CATEGORY FILTER PILLS & SEARCH BAR (AT THE VERY TOP) */}
         <div className="mt-8 flex flex-wrap gap-2 border-b border-border pb-4">
           <button
             onClick={() => setSelectedCategory(null)}
@@ -126,19 +128,16 @@ function NewsPage() {
           </div>
         </div>
 
-        {/* ------------------------------------------------------------------- */}
         {/* 🔥 3️⃣ HERO SECTION: LATEST DISPATCHES & MOST READ SIDEBAR */}
-        {/* ------------------------------------------------------------------- */}
         {!selectedCategory && !q && articles.length > 0 && (
           <div className="mt-12 grid gap-8 lg:grid-cols-12 border-b border-border pb-14">
-            {/* LATEST SECTION (Left 8 Cols) */}
+            {/* LATEST SECTION */}
             <div className="lg:col-span-8 space-y-6">
               <div className="flex items-center gap-2 text-gold font-mono text-xs font-bold uppercase tracking-widest">
                 <Sparkles className="w-4 h-4" />
                 <span>Latest Dispatches</span>
               </div>
 
-              {/* Featured Main Story */}
               {latestArticles[0] && (
                 <Link
                   to="/news/$slug"
@@ -149,7 +148,7 @@ function NewsPage() {
                     {latestArticles[0].featured_image ? (
                       <img
                         src={latestArticles[0].featured_image}
-                        alt={latestArticles[0].title}
+                        alt={latestArticles[0].title || ""}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     ) : (
@@ -185,7 +184,6 @@ function NewsPage() {
                 </Link>
               )}
 
-              {/* Secondary Latest Grid */}
               {latestArticles.length > 1 && (
                 <div className="grid gap-6 sm:grid-cols-2">
                   {latestArticles.slice(1, 3).map((a) => (
@@ -199,7 +197,7 @@ function NewsPage() {
                         {a.featured_image ? (
                           <img
                             src={a.featured_image}
-                            alt={a.title}
+                            alt={a.title || ""}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
@@ -229,7 +227,7 @@ function NewsPage() {
               )}
             </div>
 
-            {/* MOST READ SIDEBAR (Right 4 Cols) */}
+            {/* MOST READ SIDEBAR */}
             <div className="lg:col-span-4 bg-card border border-border rounded-2xl p-6 h-fit space-y-6">
               <div className="flex items-center gap-2 text-gold font-mono text-xs font-bold uppercase tracking-widest border-b border-border pb-4">
                 <TrendingUp className="w-4 h-4" />
@@ -256,11 +254,6 @@ function NewsPage() {
                       </h4>
                       <div className="flex items-center gap-3 text-[11px] font-mono text-text-mute pt-1">
                         <span>{formatUtcTimestamp(item.published_at)}</span>
-                        {item.views !== undefined && item.views > 0 && (
-                          <span className="inline-flex items-center gap-1">
-                            <Eye className="w-3 h-3 text-gold" /> {item.views.toLocaleString()} reads
-                          </span>
-                        )}
                       </div>
                     </div>
                   </Link>
@@ -270,9 +263,7 @@ function NewsPage() {
           </div>
         )}
 
-        {/* ------------------------------------------------------------------- */}
         {/* 📰 4️⃣ MAIN ARTICLES FEED GRID */}
-        {/* ------------------------------------------------------------------- */}
         <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filtered.length === 0 ? (
             <EmptyState />
@@ -288,7 +279,7 @@ function NewsPage() {
                   {a.featured_image ? (
                     <img
                       src={a.featured_image}
-                      alt={a.title}
+                      alt={a.title || ""}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                     />

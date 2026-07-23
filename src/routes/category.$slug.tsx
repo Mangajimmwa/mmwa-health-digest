@@ -39,7 +39,7 @@ const CATEGORY_META: Record<string, CategoryDetails> = {
   "vaccines-immunization": {
     name: "Vaccines and Immunization",
     description: "Vaccine research, approvals, immunization programmes, vaccination campaigns, vaccine policy, vaccine safety, immunology, and global vaccination initiatives.",
-    bannerImage: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=2000&q=90",
+    bannerImage: "https://images.unsplash.com/photo-1605289982774-9a6fef564df8?auto=format&fit=crop&w=2000&q=90",
     groupType: "diseases",
   },
   "medical-research": {
@@ -50,11 +50,17 @@ const CATEGORY_META: Record<string, CategoryDetails> = {
   },
   "treatments-innovation": {
     name: "Treatments and Innovations",
-    description: "New medicines, breakthrough therapies, biotechnology, gene therapy, precision medicine, medical devices, diagnostics, artificial intelligence in healthcare, and healthcare innovation.",
+    description: "New medicines, breakthrough therapies, biotechnology, gene therapy, precision medicine, medical devices, diagnostics, and healthcare innovation.",
     bannerImage: "https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=2000&q=90",
     groupType: "diseases",
   },
   "artificial-intelligence": {
+    name: "Artificial Intelligence in Healthcare",
+    description: "As artificial intelligence transforms healthcare at unprecedented speed, we bring you trusted reporting on breakthrough innovations, emerging trends, telemedicine, and surgical robotics.",
+    bannerImage: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=2000&q=90",
+    groupType: "diseases",
+  },
+  "ai-in-healthcare": {
     name: "Artificial Intelligence in Healthcare",
     description: "As artificial intelligence transforms healthcare at unprecedented speed, we bring you trusted reporting on breakthrough innovations, emerging trends, telemedicine, and surgical robotics.",
     bannerImage: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=2000&q=90",
@@ -75,7 +81,7 @@ const CATEGORY_META: Record<string, CategoryDetails> = {
   "explainers": {
     name: "Healthcare and Explainers",
     description: "Clear, evidence-based articles that simplify complex medical topics, research findings, health myths, medical terminology, and important health issues for everyday readers.",
-    bannerImage: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=2000&q=90",
+    bannerImage: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=2000&q=90",
     groupType: "standard",
   },
   "general-news": {
@@ -90,7 +96,7 @@ function resolveCategoryMeta(rawSlug: string): CategoryDetails {
   const decoded = decodeURIComponent(rawSlug || "").trim().toLowerCase();
   const hyphenated = decoded.replace(/\s+/g, "-");
 
-  if (hyphenated.includes("ai") || hyphenated.includes("artificial-intelligence")) {
+  if (hyphenated.includes("ai") || hyphenated.includes("artificial-intelligence") || hyphenated.includes("ai-in-healthcare")) {
     return CATEGORY_META["artificial-intelligence"];
   }
 
@@ -128,7 +134,7 @@ function getDiseaseGroup(text: string): string {
   if (content.match(/\b(heart|cardio|stroke|vascular|hypertension|cardiac|artery)\b/)) return "Cardiovascular Health";
   if (content.match(/\b(brain|neuro|alzheimer|parkinson|dementia|epilepsy|spinal)\b/)) return "Neurology & Brain Sciences";
   if (content.match(/\b(gene|crispr|dna|rna|biotech|genomic|mrna)\b/)) return "Genetics & Bio-Technology";
-  if (content.match(/\b(immune|autoimmune|lupus|arthritis|allergy|inflammation)\b/)) return "Immune Disorders";
+  if (content.match(/\b(immune|autoimmune|lupus|arthritis|allergy|inflammation)\b/)) return "Immunology Disorders";
   return "General Innovations";
 }
 
@@ -237,6 +243,7 @@ export function CategoryPage() {
 
   return (
     <SiteLayout>
+      {/* 🖼️ Topic Banner */}
       <div className="relative w-full min-h-[380px] lg:min-h-[460px] flex items-end overflow-hidden border-b border-border bg-slate-950">
         <img
           src={meta.bannerImage}

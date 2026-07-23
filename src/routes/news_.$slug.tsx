@@ -61,8 +61,10 @@ function ArticleBodyWithMidBanner({ body }: { body: string }) {
 
   const paragraphs = body.split(/(?<=<\/p>|\n\n)/gi);
   
-  // 🎯 CHANGED: Set split point to position 2 (after 2nd paragraph) so it appears earlier on scroll
-  const splitIndex = Math.min(2, Math.max(1, paragraphs.length - 1));
+  // 🎯 DYNAMIC CENTRAL PLACEMENT: Positions the banner around ~35% into the article
+  // (Safe bounds ensure it's never above paragraph 2 or too close to the end)
+  const targetIndex = Math.floor(paragraphs.length * 0.35);
+  const splitIndex = Math.min(Math.max(2, targetIndex), Math.max(2, paragraphs.length - 2));
 
   const firstHalf = paragraphs.slice(0, splitIndex).join("");
   const secondHalf = paragraphs.slice(splitIndex).join("");

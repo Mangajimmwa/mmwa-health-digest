@@ -14,79 +14,75 @@ export const Route = createFileRoute("/categories")({
   component: CategoriesPage,
 });
 
-// ============================================================================
-// 🖼️ CATEGORIES DATA — ALWAYS RENDERS INSTANTLY WITH IMAGES & DESCRIPTIONS
-// ============================================================================
 const CATEGORIES_LIST = [
   {
     id: "cat-ai-health",
     slug: "ai-in-healthcare",
     name: "Artificial Intelligence in Healthcare",
     description: "As artificial intelligence transforms healthcare at unprecedented speed, we bring you trusted reporting on breakthrough innovations, emerging trends, telemedicine, digital health, and the technologies redefining medicine.",
-    image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=90&w=1600",
   },
   {
     id: "cat-general-news",
     slug: "general-news",
     name: "General News",
     description: "Timely, comprehensive coverage of major global developments, healthcare headlines, policy updates, and pressing news stories shaping public health worldwide.",
-    image: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1504813184591-01572f98c85f?auto=format&fit=crop&q=90&w=1600",
   },
   {
-    id: "cat-1",
+    id: "cat-outbreaks",
     slug: "disease-outbreaks",
     name: "Disease Outbreaks",
     description: "Authoritative reporting on outbreaks, epidemics, pandemics, and emerging infectious diseases—tracking the threats, science, and public health responses shaping lives around the world.",
-    image: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&q=90&w=1600",
   },
   {
-    id: "cat-2",
+    id: "cat-vaccines",
     slug: "vaccines-immunization",
     name: "Vaccines & Immunization",
     description: "Comprehensive coverage of vaccine research, approvals, safety, immunization policies, and the scientific breakthroughs protecting millions from preventable diseases.",
-    image: "https://images.unsplash.com/photo-1618961734760-466979ce35b0?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1605289982774-9a6fef564df8?auto=format&fit=crop&q=90&w=1600",
   },
   {
-    id: "cat-3",
+    id: "cat-research",
     slug: "medical-research",
     name: "Medical Research",
     description: "The latest peer-reviewed discoveries, clinical trials, and scientific breakthroughs driving the future of medicine, healthcare, and life-saving innovation.",
-    image: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&q=90&w=1600",
   },
   {
-    id: "cat-4",
+    id: "cat-treatments",
     slug: "treatments-innovation",
     name: "Treatments & Innovation",
     description: "Breaking news and expert reporting on breakthrough therapies, new medicines, biotechnology, precision medicine, artificial intelligence, and the innovations transforming patient care.",
-    image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&q=90&w=1600",
   },
   {
-    id: "cat-5",
+    id: "cat-public-health",
     slug: "public-health",
     name: "Public Health",
     description: "In-depth coverage of global health policy, disease prevention, environmental health, emergency preparedness, and the public health decisions that affect billions of people.",
-    image: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&q=90&w=1600",
   },
   {
-    id: "cat-6",
+    id: "cat-healthcare",
     slug: "healthcare",
     name: "Healthcare",
     description: "Reporting on hospitals, healthcare systems, pharmaceuticals, digital health, regulation, workforce challenges, and the policies shaping access to quality care worldwide.",
-    image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=90&w=1600",
   },
   {
-    id: "cat-7",
+    id: "cat-explainers",
     slug: "explainers",
     name: "Explainers",
     description: "Clear, evidence-based journalism that breaks down complex diseases, medical research, health policies, and scientific discoveries into reporting everyone can understand.",
-    image: "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&q=90&w=1600",
   },
 ];
 
 function CategoriesPage() {
   return (
     <SiteLayout>
-      {/* Header Banner */}
       <section 
         className="border-b border-border py-16 relative overflow-hidden"
         style={{
@@ -110,7 +106,6 @@ function CategoriesPage() {
         </div>
       </section>
 
-      {/* Grid of Categories */}
       <section className="mx-auto max-w-7xl px-4 lg:px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {CATEGORIES_LIST.map((c) => (
@@ -120,7 +115,6 @@ function CategoriesPage() {
               params={{ slug: c.slug }}
               className="group relative overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:border-gold hover:shadow-[0_0_30px_rgba(245,166,35,0.2)] flex flex-col justify-between min-h-[360px]"
             >
-              {/* Background Image Container */}
               <div className="absolute inset-0 z-0">
                 <img
                   src={c.image}
@@ -128,7 +122,6 @@ function CategoriesPage() {
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   loading="lazy"
                 />
-                {/* Dark Gradient Overlay for High Text Readability */}
                 <div 
                   className="absolute inset-0 transition-opacity duration-300 group-hover:opacity-90"
                   style={{
@@ -137,14 +130,12 @@ function CategoriesPage() {
                 />
               </div>
 
-              {/* Top Badge */}
               <div className="relative z-10 p-6 flex justify-between items-start">
                 <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-gold font-bold bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-gold/30">
                   Topic
                 </span>
               </div>
 
-              {/* Card Content Body */}
               <div className="relative z-10 p-6 pt-0 mt-auto">
                 <h2 className="font-display font-extrabold text-2xl text-foreground group-hover:text-gold transition-colors">
                   {c.name}

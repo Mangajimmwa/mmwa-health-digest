@@ -1,23 +1,21 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, Newspaper, Search, Globe, Stethoscope, Sparkles, Filter } from "lucide-react";
+import { Clock, Newspaper, Search, Globe, Stethoscope, Filter, Sparkles } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/category/$slug")({
   head: ({ params }) => {
-    const slug = params.slug;
-    const meta = getCategoryMeta(slug);
-    const title = `${meta.name} — JOSEPH MMWA`;
-    const description = meta.description;
+    const meta = resolveCategoryMeta(params.slug);
+    const title = meta ? `${meta.name} — JOSEPH MMWA` : "Category — JOSEPH MMWA";
+    const description = meta?.description || "Verified global health reporting.";
     return {
       meta: [
         { title },
         { name: "description", content: description },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
-        { property: "og:image", content: meta.bannerImage },
       ],
     };
   },
@@ -27,86 +25,84 @@ export const Route = createFileRoute("/category/$slug")({
 interface CategoryDetails {
   name: string;
   description: string;
-  bannerImage: string;
+  defaultBanner: string;
   groupType: "diseases" | "continents" | "standard";
 }
 
 const CATEGORY_META: Record<string, CategoryDetails> = {
+  "artificial-intelligence": {
+    name: "Artificial Intelligence",
+    description: "Neural diagnostic models, machine learning in clinical medicine, surgical robotics, and predictive health.",
+    defaultBanner: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=2000&q=90",
+    groupType: "diseases",
+  },
   "treatments-innovation": {
     name: "Treatments and Innovations",
-    description: "Breakthrough pharmaceuticals, precision medicine, gene editing, and novel clinical therapies.",
-    bannerImage: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=2000&q=90",
+    description: "Breakthrough pharmaceuticals, precision medicine, gene editing, and clinical therapies.",
+    defaultBanner: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=2000&q=90",
     groupType: "diseases",
   },
   "disease-outbreaks": {
     name: "Disease Outbreaks",
     description: "Real-time surveillance, outbreak investigations, viral mutations, and emergency field responses.",
-    bannerImage: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&w=2000&q=90",
+    defaultBanner: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&w=2000&q=90",
     groupType: "continents",
-  },
-  "artificial-intelligence": {
-    name: "Artificial Intelligence",
-    description: "Neural diagnostic models, machine learning in clinical medicine, surgical robotics, and predictive health.",
-    bannerImage: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=2000&q=90",
-    groupType: "diseases",
   },
   "vaccines-immunization": {
     name: "Vaccines and Immunization",
     description: "Vaccine trial results, mRNA platforms, global distribution channels, and immunization policy.",
-    bannerImage: "https://images.unsplash.com/photo-1618961734760-466979ce35b0?auto=format&fit=crop&w=2000&q=90",
+    defaultBanner: "https://images.unsplash.com/photo-1618961734760-466979ce35b0?auto=format&fit=crop&w=2000&q=90",
     groupType: "diseases",
   },
   "medical-research": {
     name: "Medical Research",
     description: "Peer-reviewed scientific findings, randomized clinical trial results, and journal dispatches.",
-    bannerImage: "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=2000&q=90",
+    defaultBanner: "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=2000&q=90",
     groupType: "diseases",
   },
   "public-health": {
     name: "Public Health",
     description: "International health regulations, health infrastructure, environmental risks, and preventive care.",
-    bannerImage: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=2000&q=90",
+    defaultBanner: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=2000&q=90",
     groupType: "continents",
   },
   "general-news": {
     name: "General News",
     description: "Breaking global health updates, medical announcements, press briefings, and newsroom alerts.",
-    bannerImage: "https://images.unsplash.com/photo-1504813184591-01572f98c85f?auto=format&fit=crop&w=2000&q=90",
+    defaultBanner: "https://images.unsplash.com/photo-1504813184591-01572f98c85f?auto=format&fit=crop&w=2000&q=90",
     groupType: "standard",
   },
   "healthcare": {
     name: "Healthcare",
     description: "Hospital management, telemedicine, health economics, insurance, and workforce reporting.",
-    bannerImage: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=2000&q=90",
+    defaultBanner: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=2000&q=90",
     groupType: "standard",
   },
   "explainers": {
     name: "Explainers",
     description: "Clear, evidence-backed breakdowns simplifying complex medical research and physiological concepts.",
-    bannerImage: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=2000&q=90",
+    defaultBanner: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=2000&q=90",
     groupType: "standard",
   },
 };
 
-function getCategoryMeta(slug: string): CategoryDetails {
-  const normalizedSlug = slug.toLowerCase().trim();
-  if (CATEGORY_META[normalizedSlug]) {
-    return CATEGORY_META[normalizedSlug];
+// 🛡️ Bulletproof resolver that handles %20, spaces, and all casing formats
+function resolveCategoryMeta(rawSlug: string): CategoryDetails | null {
+  const decoded = decodeURIComponent(rawSlug || "").trim().toLowerCase();
+  const hyphenated = decoded.replace(/\s+/g, "-");
+  
+  if (CATEGORY_META[hyphenated]) {
+    return CATEGORY_META[hyphenated];
   }
 
-  const formattedName = slug
-    .replace(/-/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
+  // Direct match by category title (e.g. "artificial intelligence")
+  const directMatch = Object.values(CATEGORY_META).find(
+    (item) => item.name.toLowerCase() === decoded.replace(/-/g, " ")
+  );
 
-  return {
-    name: formattedName,
-    description: `Verified dispatches and evidence-based reporting under ${formattedName}.`,
-    bannerImage: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=2000&q=90",
-    groupType: "standard",
-  };
+  return directMatch || null;
 }
 
-// 🩺 Simple Disease Groups (Cancer, HIV, Diabetes first)
 function getDiseaseGroup(text: string): string {
   const content = text.toLowerCase();
   if (content.match(/cancer|tumor|oncology|chemo|leukemia|lymphoma|carcinoma|melanoma/)) return "Cancer";
@@ -119,7 +115,6 @@ function getDiseaseGroup(text: string): string {
   return "General Innovations";
 }
 
-// 🌍 Simple Continent Groups
 function getContinentGroup(text: string): string {
   const content = text.toLowerCase();
   if (content.match(/africa|kenya|uganda|nigeria|congo|drc|rwanda|south africa|ethiopia|ghana/)) return "Africa";
@@ -131,24 +126,27 @@ function getContinentGroup(text: string): string {
 
 export function CategoryPage() {
   const { slug } = Route.useParams();
-  const meta = getCategoryMeta(slug);
+  const meta = resolveCategoryMeta(slug);
+
+  if (!meta) {
+    throw notFound();
+  }
+
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: articles, isLoading } = useQuery({
-    queryKey: ["category-articles", slug],
+    queryKey: ["category-articles", meta.name],
     staleTime: 1000,
     queryFn: async () => {
-      const searchTerm = `%${meta.name}%`;
-
       const { data, error } = await supabase
         .from("articles")
         .select("id,title,slug,excerpt,read_time_minutes,published_at,category,featured_image,body")
         .eq("is_published", true)
-        .ilike("category", searchTerm)
+        .ilike("category", `%${meta.name}%`)
         .order("published_at", { ascending: false });
 
       if (error) {
-        console.error("Category query error:", error);
+        console.error("Category fetch error:", error);
         return [];
       }
 
@@ -156,7 +154,9 @@ export function CategoryPage() {
     },
   });
 
-  // 🔍 Live Search Filter
+  // 🖼️ Dynamic Header Banner: Uses latest published article photo or falls back to default banner
+  const activeHeaderImage = articles?.[0]?.featured_image || meta.defaultBanner;
+
   const filteredArticles = (articles || []).filter((a) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
@@ -167,7 +167,6 @@ export function CategoryPage() {
     );
   });
 
-  // 🎯 Auto-Grouping
   const groupedArticles = (() => {
     if (filteredArticles.length === 0) return {};
 
@@ -198,18 +197,18 @@ export function CategoryPage() {
 
   return (
     <SiteLayout>
-      {/* PHOTO-REALISTIC HERO BANNER */}
+      {/* 🖼️ DYNAMIC CATEGORY BANNER HEADER */}
       <div className="relative w-full min-h-[360px] lg:min-h-[420px] flex items-end overflow-hidden border-b border-border bg-black">
         <img
-          src={meta.bannerImage}
+          src={activeHeaderImage}
           alt={meta.name}
-          className="absolute inset-0 w-full h-full object-cover opacity-40 scale-105 filter brightness-90 contrast-110"
+          className="absolute inset-0 w-full h-full object-cover opacity-40 scale-105 filter brightness-90 contrast-110 transition-all duration-700"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
         
         <div className="relative z-10 mx-auto max-w-7xl px-4 lg:px-6 pb-10 pt-24 w-full">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold/15 border border-gold/30 text-gold text-xs font-mono font-bold uppercase tracking-wider mb-3 backdrop-blur-md">
-            <Sparkles className="w-3.5 h-3.5" /> Topic Intelligence Desk
+            <Sparkles className="w-3.5 h-3.5" /> Topic Desk
           </div>
           
           <h1 className="font-display font-black text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight leading-tight max-w-4xl">
@@ -220,7 +219,6 @@ export function CategoryPage() {
             {meta.description}
           </p>
 
-          {/* 🔍 SEARCH BAR */}
           <div className="mt-6 max-w-xl relative">
             <div className="relative flex items-center">
               <Search className="w-4 h-4 text-gold absolute left-4 pointer-events-none" />
@@ -244,7 +242,6 @@ export function CategoryPage() {
         </div>
       </div>
 
-      {/* DISPATCHES & SIMPLE SUBCATEGORY GROUPS */}
       <section className="mx-auto max-w-7xl px-4 lg:px-6 py-12">
         {count === 0 && !isLoading ? (
           <div className="bg-card border border-border rounded-2xl p-12 text-center max-w-xl mx-auto shadow-2xl">
@@ -264,7 +261,6 @@ export function CategoryPage() {
           <div className="space-y-14">
             {Object.entries(groupedArticles).map(([groupTitle, groupArticles]) => (
               <div key={groupTitle} className="space-y-6">
-                {/* Clean Subcategory Heading */}
                 <div className="flex items-center gap-3 border-b border-border/80 pb-3">
                   {meta.groupType === "continents" ? (
                     <Globe className="w-5 h-5 text-gold" />
@@ -281,7 +277,6 @@ export function CategoryPage() {
                   </span>
                 </div>
 
-                {/* Subcategory Grid */}
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                   {groupArticles.map((a) => (
                     <Link

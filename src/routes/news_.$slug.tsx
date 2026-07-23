@@ -60,10 +60,12 @@ function ArticleBodyWithMidBanner({ body }: { body: string }) {
   }
 
   const paragraphs = body.split(/(?<=<\/p>|\n\n)/gi);
-  const midpoint = Math.max(1, Math.floor(paragraphs.length / 2));
+  
+  // 🎯 CHANGED: Set split point to position 2 (after 2nd paragraph) so it appears earlier on scroll
+  const splitIndex = Math.min(2, Math.max(1, paragraphs.length - 1));
 
-  const firstHalf = paragraphs.slice(0, midpoint).join("");
-  const secondHalf = paragraphs.slice(midpoint).join("");
+  const firstHalf = paragraphs.slice(0, splitIndex).join("");
+  const secondHalf = paragraphs.slice(splitIndex).join("");
 
   return (
     <>

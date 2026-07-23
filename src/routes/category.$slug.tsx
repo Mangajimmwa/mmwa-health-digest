@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Clock, Newspaper } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
@@ -7,9 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/category/$slug")({
   head: ({ params }) => {
     const slug = params.slug;
-    const meta = CATEGORY_META[slug];
-    const title = meta ? `${meta.name} — JOSEPH MMWA` : "Category — JOSEPH MMWA";
-    const description = meta?.description ?? "Health and medical reporting by topic.";
+    const meta = getCategoryMeta(slug);
+    const title = `${meta.name} — JOSEPH MMWA`;
+    const description = meta.description;
     return {
       meta: [
         { title },
@@ -34,21 +34,47 @@ const CATEGORY_META: Record<string, { name: string; description: string }> = {
   "explainers": { name: "Explainers", description: "Clear, evidence-based articles that simplify complex medical topics, research findings, health myths, medical terminology, and important health issues for everyday readers." },
 };
 
+// 🛡️ Fallback generator so NO valid category link ever 404s
+function getCategoryMeta(slug: string) {
+  const normalizedSlug = slug.toLowerCase().trim();
+  if (CATEGORY_META[normalizedSlug]) {
+    return CATEGORY_META[normalizedSlug];
+  }
+
+  // Convert slug to Title Case (e.g. "artificial-intelligence" -> "Artificial Intelligence")
+  const formattedName = slug
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+
+  return {
+    name: formattedName,
+    description: `Reporting and verified dispatches under ${formattedName}.`,
+  };
+}
+
 function CategoryPage() {
   const { slug } = Route.useParams();
-  const meta = CATEGORY_META[slug];
-  if (!meta) throw notFound();
+  const meta = getCategoryMeta(slug);
 
-  const { data: articles } = useQuery({
+  const { data: articles, isLoading } = useQuery({
     queryKey: ["category-articles", slug],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase
+      // Create a search term with wildcards for flexible matching (e.g., %Artificial Intelligence%)
+      const searchTerm = `%${meta.name}%`;
+
+      const { data, error } = await supabase
         .from("articles")
         .select("id,title,slug,excerpt,read_time_minutes,published_at,category,featured_image")
         .eq("is_published", true)
-        .ilike("category", meta.name)
+        .ilike("category", searchTerm)
         .order("published_at", { ascending: false });
+
+      if (error) {
+        console.error("Category query error:", error);
+        return [];
+      }
+
       return data ?? [];
     },
   });
@@ -70,7 +96,7 @@ function CategoryPage() {
         </p>
 
         <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {count === 0 ? (
+          {count === 0 && !isLoading ? (
             <div className="col-span-full bg-card border border-border rounded-xl p-12 text-center">
               <div className="mx-auto w-14 h-14 rounded-full bg-gold/15 text-gold flex items-center justify-center">
                 <Newspaper className="w-6 h-6" />
@@ -89,7 +115,7 @@ function CategoryPage() {
               </Link>
             </div>
           ) : (
-            articles!.map((a) => (
+            articles?.map((a) => (
               <Link
                 key={a.id}
                 to="/news/$slug"

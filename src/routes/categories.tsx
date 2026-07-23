@@ -54,7 +54,7 @@ const CATEGORIES_LIST = [
     id: "cat-treatments",
     slug: "treatments-innovation",
     name: "Treatments & Innovation",
-    description: "Breaking news and expert reporting on breakthrough therapies, new medicines, biotechnology, precision medicine, artificial intelligence, and the innovations transforming patient care.",
+    description: "New medicines, breakthrough therapies, biotechnology, gene therapy, precision medicine, medical devices, diagnostics, and healthcare innovation.",
     image: "https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&q=90&w=1600",
   },
   {

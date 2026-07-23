@@ -29,44 +29,41 @@ function NewsPage() {
     "Treatment and Innovations",
     "Public Health",
     "Healthcare",
-    "Explainers"
+    "Explainers",
   ];
 
-  const { data: articles } = useQuery({
-    queryKey: ["articles", "all-feed-clean"],
+  const { data: articles = [] } = useQuery({
+    queryKey: ["articles", "all-feed-v5"],
     queryFn: async () => {
-      const { data: session } = await supabase.auth.getUser();
-      const isAdmin = session?.user?.email === "mmwajoseph@gmail.com";
-
-      let query = supabase
+      // Safe SELECT query that won't break if 'views' is missing
+      const { data, error } = await supabase
         .from("articles")
-        .select("id,title,slug,excerpt,read_time_minutes,published_at,is_published,featured_image,category,views")
+        .select("*")
+        .eq("is_published", true)
         .order("published_at", { ascending: false });
 
-      if (!isAdmin) {
-        query = query.eq("is_published", true);
+      if (error) {
+        console.error("Fetch articles error:", error);
+        return [];
       }
 
-      const { data } = await query;
       return data ?? [];
     },
   });
 
-  const allArticles = articles ?? [];
+  // 1️⃣ LATEST SECTION: Top 3 newest articles
+  const latestArticles = articles.slice(0, 3);
 
-  // 1️⃣ LATEST SECTION: Top 3 newest published dispatches
-  const latestArticles = allArticles.slice(0, 3);
-
-  // 2️⃣ MOST READ SECTION: Top 4 articles ranked by view count (or recent falls back)
-  const mostReadArticles = [...allArticles]
-    .sort((a, b) => (b.views || 0) - (a.views || 0))
+  // 2️⃣ MOST READ SECTION: Sorted by views if available, else recent fallback
+  const mostReadArticles = [...articles]
+    .sort((a, b) => ((b.views || 0) - (a.views || 0)))
     .slice(0, 4);
 
   // 3️⃣ FILTERED MAIN FEED
-  const filtered = allArticles.filter((a) => {
+  const filtered = articles.filter((a) => {
     const matchesSearch = q ? a.title?.toLowerCase().includes(q.toLowerCase()) : true;
-    
-    const matchesCategory = selectedCategory 
+
+    const matchesCategory = selectedCategory
       ? a.category?.toLowerCase().trim().includes(selectedCategory.toLowerCase().trim()) ||
         selectedCategory.toLowerCase().trim().includes(a.category?.toLowerCase().trim() || "")
       : true;
@@ -81,9 +78,9 @@ function NewsPage() {
         <h1 className="mt-2 font-display font-bold text-4xl sm:text-5xl">Latest health & medical news</h1>
 
         {/* ------------------------------------------------------------------- */}
-        {/* 🔥 TOP HERO SECTION: LATEST DISPATCHES & MOST READ SIDEBAR */}
+        {/* 🔥 HERO SECTION: LATEST DISPATCHES & MOST READ SIDEBAR */}
         {/* ------------------------------------------------------------------- */}
-        {!selectedCategory && !q && latestArticles.length > 0 && (
+        {!selectedCategory && !q && articles.length > 0 && (
           <div className="mt-10 grid gap-8 lg:grid-cols-12 border-b border-border pb-14">
             {/* LATEST SECTION (Left 8 Cols) */}
             <div className="lg:col-span-8 space-y-6">
@@ -144,48 +141,50 @@ function NewsPage() {
               )}
 
               {/* Secondary Latest Grid */}
-              <div className="grid gap-6 sm:grid-cols-2">
-                {latestArticles.slice(1, 3).map((a) => (
-                  <Link
-                    key={a.id}
-                    to="/news/$slug"
-                    params={{ slug: a.slug }}
-                    className="group block bg-card border border-border rounded-xl overflow-hidden hover:border-gold/40 transition-all duration-300"
-                  >
-                    <div className="aspect-[16/10] w-full bg-surface-1 relative overflow-hidden border-b border-border">
-                      {a.featured_image ? (
-                        <img
-                          src={a.featured_image}
-                          alt={a.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-surface-2 to-surface-1 flex items-center justify-center text-text-mute font-mono text-xs">
-                          Mmwa Health Digest
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-5">
-                      <span className="label-eyebrow">{a.category || "News"}</span>
-                      <h3 className="mt-2 font-display font-bold text-lg leading-snug group-hover:text-gold transition-colors line-clamp-2">
-                        {a.title}
-                      </h3>
-                      <div className="mt-4 flex items-center gap-3 text-xs text-text-mute font-mono">
-                        <span>
-                          {a.published_at &&
-                            new Date(a.published_at).toLocaleDateString(undefined, {
-                              month: "short",
-                              day: "numeric",
-                            })}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-gold" /> {a.read_time_minutes || 3} min
-                        </span>
+              {latestArticles.length > 1 && (
+                <div className="grid gap-6 sm:grid-cols-2">
+                  {latestArticles.slice(1, 3).map((a) => (
+                    <Link
+                      key={a.id}
+                      to="/news/$slug"
+                      params={{ slug: a.slug }}
+                      className="group block bg-card border border-border rounded-xl overflow-hidden hover:border-gold/40 transition-all duration-300"
+                    >
+                      <div className="aspect-[16/10] w-full bg-surface-1 relative overflow-hidden border-b border-border">
+                        {a.featured_image ? (
+                          <img
+                            src={a.featured_image}
+                            alt={a.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-surface-2 to-surface-1 flex items-center justify-center text-text-mute font-mono text-xs">
+                            Mmwa Health Digest
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+                      <div className="p-5">
+                        <span className="label-eyebrow">{a.category || "News"}</span>
+                        <h3 className="mt-2 font-display font-bold text-lg leading-snug group-hover:text-gold transition-colors line-clamp-2">
+                          {a.title}
+                        </h3>
+                        <div className="mt-4 flex items-center gap-3 text-xs text-text-mute font-mono">
+                          <span>
+                            {a.published_at &&
+                              new Date(a.published_at).toLocaleDateString(undefined, {
+                                month: "short",
+                                day: "numeric",
+                              })}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-gold" /> {a.read_time_minutes || 3} min
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* MOST READ SIDEBAR (Right 4 Cols) */}

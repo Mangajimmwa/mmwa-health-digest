@@ -1,16 +1,15 @@
 import { useState } from "react";
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, Newspaper, Search, Globe, Stethoscope, Filter } from "lucide-react";
+import { Clock, Newspaper, Search, Globe, Stethoscope, Filter, Sparkles } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/category/$slug")({
   head: ({ params }) => {
-    const slug = params.slug;
-    const meta = getCategoryMeta(slug);
-    const title = meta ? `${meta.name} — JOSEPH MMWA` : "Category — JOSEPH MMWA";
-    const description = meta?.description || "Health reporting by topic.";
+    const meta = resolveCategoryMeta(params.slug);
+    const title = `${meta.name} — JOSEPH MMWA`;
+    const description = meta.description;
     return {
       meta: [
         { title },
@@ -26,7 +25,7 @@ export const Route = createFileRoute("/category/$slug")({
 interface CategoryDetails {
   name: string;
   description: string;
-  bannerImage: string;
+  defaultBanner: string;
   groupType: "diseases" | "continents" | "standard";
 }
 
@@ -34,73 +33,85 @@ const CATEGORY_META: Record<string, CategoryDetails> = {
   "artificial-intelligence": {
     name: "Artificial Intelligence",
     description: "Neural diagnostic models, machine learning in clinical medicine, surgical robotics, and predictive health.",
-    bannerImage: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=2000&q=90",
+    defaultBanner: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=2000&q=90",
     groupType: "diseases",
   },
   "treatments-innovation": {
     name: "Treatments and Innovations",
     description: "Breakthrough pharmaceuticals, precision medicine, gene editing, and clinical therapies.",
-    bannerImage: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=2000&q=90",
+    defaultBanner: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=2000&q=90",
     groupType: "diseases",
   },
   "disease-outbreaks": {
     name: "Disease Outbreaks",
     description: "Real-time surveillance, outbreak investigations, viral mutations, and emergency field responses.",
-    bannerImage: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&w=2000&q=90",
+    defaultBanner: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&w=2000&q=90",
     groupType: "continents",
   },
   "vaccines-immunization": {
     name: "Vaccines and Immunization",
     description: "Vaccine trial results, mRNA platforms, global distribution channels, and immunization policy.",
-    bannerImage: "https://images.unsplash.com/photo-1618961734760-466979ce35b0?auto=format&fit=crop&w=2000&q=90",
+    defaultBanner: "https://images.unsplash.com/photo-1618961734760-466979ce35b0?auto=format&fit=crop&w=2000&q=90",
     groupType: "diseases",
   },
   "medical-research": {
     name: "Medical Research",
     description: "Peer-reviewed scientific findings, randomized clinical trial results, and journal dispatches.",
-    bannerImage: "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=2000&q=90",
+    defaultBanner: "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=2000&q=90",
     groupType: "diseases",
   },
   "public-health": {
     name: "Public Health",
     description: "International health regulations, health infrastructure, environmental risks, and preventive care.",
-    bannerImage: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=2000&q=90",
+    defaultBanner: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=2000&q=90",
     groupType: "continents",
   },
   "general-news": {
     name: "General News",
     description: "Breaking global health updates, medical announcements, press briefings, and newsroom alerts.",
-    bannerImage: "https://images.unsplash.com/photo-1504813184591-01572f98c85f?auto=format&fit=crop&w=2000&q=90",
+    defaultBanner: "https://images.unsplash.com/photo-1504813184591-01572f98c85f?auto=format&fit=crop&w=2000&q=90",
     groupType: "standard",
   },
   "healthcare": {
     name: "Healthcare",
     description: "Hospital management, telemedicine, health economics, insurance, and workforce reporting.",
-    bannerImage: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=2000&q=90",
+    defaultBanner: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=2000&q=90",
     groupType: "standard",
   },
   "explainers": {
     name: "Explainers",
     description: "Clear, evidence-backed breakdowns simplifying complex medical research and physiological concepts.",
-    bannerImage: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=2000&q=90",
+    defaultBanner: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=2000&q=90",
     groupType: "standard",
   },
 };
 
-// 🛡️ Safe lookup function so variation in links won't cause 404s
-function getCategoryMeta(slug: string): CategoryDetails | null {
-  const cleanSlug = slug.toLowerCase().replace(/\s+/g, "-").trim();
+// 🛡️ Bulletproof resolver: Decodes URI strings (%20, dashes, spaces) so NO category ever 404s
+function resolveCategoryMeta(rawSlug: string): CategoryDetails {
+  const decoded = decodeURIComponent(rawSlug || "").trim().toLowerCase();
+  const hyphenated = decoded.replace(/\s+/g, "-");
   
-  if (CATEGORY_META[cleanSlug]) {
-    return CATEGORY_META[cleanSlug];
+  if (CATEGORY_META[hyphenated]) {
+    return CATEGORY_META[hyphenated];
   }
 
-  // Check by category title directly (e.g. "Artificial Intelligence")
-  const found = Object.values(CATEGORY_META).find(
-    (c) => c.name.toLowerCase() === slug.toLowerCase().replace(/-/g, " ")
+  const directMatch = Object.values(CATEGORY_META).find(
+    (item) => item.name.toLowerCase() === decoded.replace(/-/g, " ")
   );
 
-  return found || null;
+  if (directMatch) return directMatch;
+
+  // Dynamic fallback name generator for any category name
+  const formattedName = decoded
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+
+  return {
+    name: formattedName,
+    description: `Verified dispatches and expert analysis under ${formattedName}.`,
+    defaultBanner: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=2000&q=90",
+    groupType: "standard",
+  };
 }
 
 function getDiseaseGroup(text: string): string {
@@ -126,36 +137,31 @@ function getContinentGroup(text: string): string {
 
 export function CategoryPage() {
   const { slug } = Route.useParams();
-  const meta = getCategoryMeta(slug);
-
-  // If the slug is not a category, pass to 404 so single articles don't load as categories
-  if (!meta) {
-    throw notFound();
-  }
-
+  const meta = resolveCategoryMeta(slug);
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: articles, isLoading } = useQuery({
-    queryKey: ["category-articles", slug],
+    queryKey: ["category-articles", meta.name],
     staleTime: 1000,
     queryFn: async () => {
-      const searchTerm = `%${meta.name}%`;
-
       const { data, error } = await supabase
         .from("articles")
         .select("id,title,slug,excerpt,read_time_minutes,published_at,category,featured_image,body")
         .eq("is_published", true)
-        .ilike("category", searchTerm)
+        .ilike("category", `%${meta.name}%`)
         .order("published_at", { ascending: false });
 
       if (error) {
-        console.error("Category query error:", error);
+        console.error("Category fetch error:", error);
         return [];
       }
 
       return data ?? [];
     },
   });
+
+  // 🖼️ Dynamic Header Image: Uses the featured image of the newest article in this category
+  const activeHeaderImage = articles?.[0]?.featured_image || meta.defaultBanner;
 
   const filteredArticles = (articles || []).filter((a) => {
     if (!searchQuery.trim()) return true;
@@ -197,15 +203,20 @@ export function CategoryPage() {
 
   return (
     <SiteLayout>
+      {/* 🖼️ DYNAMIC CATEGORY BANNER HEADER */}
       <div className="relative w-full min-h-[360px] lg:min-h-[420px] flex items-end overflow-hidden border-b border-border bg-black">
         <img
-          src={meta.bannerImage}
+          src={activeHeaderImage}
           alt={meta.name}
-          className="absolute inset-0 w-full h-full object-cover opacity-40 scale-105 filter brightness-90 contrast-110"
+          className="absolute inset-0 w-full h-full object-cover opacity-40 scale-105 filter brightness-90 contrast-110 transition-all duration-700"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
         
         <div className="relative z-10 mx-auto max-w-7xl px-4 lg:px-6 pb-10 pt-24 w-full">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold/15 border border-gold/30 text-gold text-xs font-mono font-bold uppercase tracking-wider mb-3 backdrop-blur-md">
+            <Sparkles className="w-3.5 h-3.5" /> Topic Desk
+          </div>
+          
           <h1 className="font-display font-black text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight leading-tight max-w-4xl">
             {meta.name}
           </h1>

@@ -1,197 +1,607 @@
-import { useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { Phone, Mail, Youtube, Linkedin, Facebook, Instagram, AlertCircle, X, ShieldAlert, CheckCircle2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { Clock, ArrowLeft, Copy, Loader2, AlertTriangle, Linkedin, Facebook, ExternalLink, LogIn, X, UserPlus } from "lucide-react";
+import { SiteLayout } from "@/components/site/SiteLayout";
+import { supabase } from "@/integrations/supabase/client";
+import { ReadingProgress } from "@/components/site/ReadingProgress";
+import { toast } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 
-export function Footer() {
-  const [showDisclaimer, setShowDisclaimer] = useState(false);
+export const Route = createFileRoute("/news/$slug")({
+  loader: async ({ params }) => {
+    const targetSlug = String(params.slug).toLowerCase().trim();
+    const { data } = await supabase
+      .from("articles")
+      .select("title, excerpt, featured_image, slug")
+      .ilike("slug", targetSlug)
+      .maybeSingle();
+    return { articleMeta: data };
+  },
+  head: ({ loaderData }) => {
+    const meta = loaderData?.articleMeta;
+    
+    const cleanHeadline = meta?.title || "Global Health News";
+    const browserTitle = meta?.title ? `${meta.title} — Joseph Mmwa` : "Global Health News — Joseph Mmwa";
+    const description = meta?.excerpt || "Breaking medical news, verified health reporting, and evidence-based journalism from Joseph Mmwa.";
+    
+    const rawImage = meta?.featured_image || "https://mjvpcfetbvvcnhdwwjrl.supabase.co/storage/v1/object/public/avatars/joseph.jpeg.jpeg";
+    const image = rawImage.startsWith("http") ? rawImage : `https://josephmmwa.com${rawImage}`;
+    const canonicalUrl = `https://josephmmwa.com/news/${meta?.slug || ""}`;
+
+    return {
+      meta: [
+        { title: browserTitle },
+        { name: "description", content: description },
+        { property: "og:type", content: "article" },
+        { property: "og:title", content: cleanHeadline },
+        { name: "twitter:title", content: cleanHeadline },
+        { property: "og:description", content: description },
+        { name: "twitter:description", content: description },
+        { property: "og:image", content: image },
+        { name: "twitter:image", content: image },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { name: "twitter:card", content: "summary_large_image" },
+      ],
+      links: [
+        { rel: "canonical", href: canonicalUrl }
+      ]
+    };
+  },
+  component: ArticlePage,
+});
+
+function ArticleBodyWithMidBanner({ body }: { body: string }) {
+  const navigate = useNavigate();
+
+  if (!body || body.length < 400) {
+    return <div dangerouslySetInnerHTML={{ __html: body }} className="space-y-6 prose prose-invert max-w-none whitespace-pre-wrap" />;
+  }
+
+  const paragraphs = body.split(/(?<=<\/p>|\n\n)/gi);
+  
+  // 🎯 DYNAMIC CENTRAL PLACEMENT: Positions the banner around ~35% into the article
+  // (Safe bounds ensure it's never above paragraph 2 or too close to the end)
+  const targetIndex = Math.floor(paragraphs.length * 0.35);
+  const splitIndex = Math.min(Math.max(2, targetIndex), Math.max(2, paragraphs.length - 2));
+
+  const firstHalf = paragraphs.slice(0, splitIndex).join("");
+  const secondHalf = paragraphs.slice(splitIndex).join("");
 
   return (
-    <footer className="mt-20 border-t border-border bg-background">
-      <div className="mx-auto max-w-7xl px-4 lg:px-6 py-10">
-        
-        {/* Main Footer Card */}
-        <div 
-          className="relative overflow-hidden rounded-2xl p-8 sm:p-10 border shadow-2xl"
-          style={{ 
-            background: "radial-gradient(ellipse at top left, #3D2800 0%, #251800 45%, #0A0A0A 100%)", 
-            borderColor: "rgba(245, 166, 35, 0.35)" 
-          }}
-        >
-          {/* Eyebrow Badge */}
-          <span 
-            className="inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-[11px] font-sans font-bold uppercase tracking-[0.2em] text-gold mb-4" 
-            style={{ background: "rgba(245, 166, 35, 0.15)", border: "1px solid #F5A623" }}
-          >
-            GLOBAL HEALTH BUREAU
-          </span>
+    <>
+      <div dangerouslySetInnerHTML={{ __html: firstHalf }} className="space-y-6 prose prose-invert max-w-none whitespace-pre-wrap" />
 
-          <h3 className="font-display font-black text-3xl sm:text-4xl text-foreground tracking-tight">
-            Joseph Mmwa <span className="text-gold">Media Group</span>
-          </h3>
-
-          {/* Clean Main Tagline */}
-          <p className="mt-2 text-base sm:text-lg font-serif italic font-medium tracking-wide">
-            <span className="text-white">If it's health, </span>
-            <span className="text-gold font-bold">it's here.</span>
-          </p>
-
-          {/* Direct Contact Details */}
-          <div className="mt-6 flex flex-wrap items-center gap-6 text-sm text-text-body font-mono">
-            <a 
-              href="tel:+254729147765" 
-              className="inline-flex items-center gap-2 text-gold hover:text-gold-hover transition-colors font-bold"
-            >
-              <Phone className="w-4 h-4 text-gold shrink-0" aria-hidden="true" />
-              +254 729 147 765
-            </a>
-            <a 
-              href="mailto:contact@josephmmwa.com" 
-              className="inline-flex items-center gap-2 hover:text-gold transition-colors"
-            >
-              <Mail className="w-4 h-4 text-gold shrink-0" aria-hidden="true" />
-              contact@josephmmwa.com
-            </a>
+      {/* 🎯 BALANCED INLINE MID-ARTICLE CALLOUT */}
+      <div className="my-8 sm:my-10 p-5 sm:p-6 rounded-xl border border-border bg-surface-1/90 backdrop-blur-sm flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md transition-all hover:border-gold/30">
+        <div className="flex items-center gap-3.5 text-left">
+          <div className="shrink-0 w-10 h-10 rounded-full bg-surface-2 text-gold flex items-center justify-center border border-border">
+            <UserPlus className="w-5 h-5" />
           </div>
-
-          {/* Socials & Primary Navigation */}
-          <div className="mt-8 pt-6 border-t border-gold/20 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <span className="text-xs font-mono uppercase tracking-widest text-gold font-bold">
-                Follow Us:
-              </span>
-              <div className="flex flex-wrap items-center gap-2.5">
-                <a href="https://youtube.com/@josephmmwa?si=tBbHCSLP-zTMbZ-J" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="p-2.5 rounded-xl bg-card border border-border text-[#FF0000] hover:bg-[#FF0000] hover:text-white transition-all shadow-sm">
-                  <Youtube className="w-4 h-4" />
-                </a>
-                <a href="https://www.linkedin.com/in/joseph-mmwa-08177a2a0?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="p-2.5 rounded-xl bg-card border border-border text-[#0A66C2] hover:bg-[#0A66C2] hover:text-white transition-all shadow-sm">
-                  <Linkedin className="w-4 h-4" />
-                </a>
-                <a href="https://x.com" target="_blank" rel="noopener noreferrer" aria-label="X" className="p-2.5 rounded-xl bg-card border border-border text-white hover:bg-white hover:text-black transition-all shadow-sm">
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                  </svg>
-                </a>
-                <a href="https://www.facebook.com/share/1EoghPzjKD/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="p-2.5 rounded-xl bg-card border border-border text-[#1877F2] hover:bg-[#1877F2] hover:text-white transition-all shadow-sm">
-                  <Facebook className="w-4 h-4" />
-                </a>
-                <a href="https://www.instagram.com/josephmmwa_mediagroup?igsh=ZmVqdHl4d2ZrcTlv" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="p-2.5 rounded-xl bg-card border border-border text-[#E4405F] hover:bg-[#E4405F] hover:text-white transition-all shadow-sm">
-                  <Instagram className="w-4 h-4" />
-                </a>
-                <a href="https://www.tiktok.com/@mmwajoseph?_r=1&_t=ZS-98BfsKjMwVA" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="p-2.5 rounded-xl bg-card border border-border text-[#25F4EE] hover:bg-white hover:text-black transition-all shadow-sm">
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 003 15.65a6.34 6.34 0 0010.86 4.5 6.26 6.26 0 001.8-4.5V9.11a8.28 8.28 0 004.93 1.59V7.26a4.83 4.83 0 01-1-.57z" />
-                  </svg>
-                </a>
-              </div>
-            </div>
-
-            {/* Clean Section Navigation */}
-            <div className="flex flex-wrap gap-6 text-sm font-sans font-medium text-text-body">
-              <Link to="/" className="hover:text-gold transition-colors">Home</Link>
-              <Link to="/about" className="hover:text-gold transition-colors">About</Link>
-              <Link to="/contact" className="text-gold font-bold hover:underline transition-colors">Contact</Link>
-            </div>
-          </div>
-
-          {/* Bottom Legal & Copyright Bar */}
-          <div className="mt-8 pt-6 border-t border-gold/20 flex flex-col lg:flex-row lg:items-center justify-between gap-4 text-xs font-mono text-text-mute">
-            
-            {/* Legal Links & Modal Trigger (Renders First on Mobile) */}
-            <div className="flex flex-wrap items-center gap-5 font-sans order-1 lg:order-2">
-              <Link to="/terms" className="hover:text-gold transition-colors">
-                Terms of Service
-              </Link>
-              <Link to="/privacy" className="hover:text-gold transition-colors">
-                Privacy Policy
-              </Link>
-              <Link to="/editorial-standards" className="hover:text-gold transition-colors">
-                Editorial Standards
-              </Link>
-              
-              <button
-                onClick={() => setShowDisclaimer(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gold/10 hover:bg-gold/20 text-gold border border-gold/30 transition-all font-sans font-bold cursor-pointer"
+          <div>
+            <h3 className="text-base sm:text-lg font-display font-bold text-foreground tracking-tight leading-snug">
+              Stay ahead on all health and medical news!
+            </h3>
+            <p className="text-xs text-text-mute font-sans mt-1 leading-relaxed">
+              Join{" "}
+              <Link 
+                to="/about" 
+                className="text-gold font-semibold hover:underline transition-colors"
               >
-                <AlertCircle className="w-3.5 h-3.5" /> Medical Disclaimer
-              </button>
-            </div>
-
-            {/* Copyright Statement (Renders Last at the Very Bottom on Mobile) */}
-            <span className="order-2 lg:order-1 pt-2 lg:pt-0">
-              © {new Date().getFullYear()} Joseph Mmwa Media Group. All rights reserved.
-            </span>
-
+                Joseph Mmwa Media Group
+              </Link>{" "}
+              and be the first to know the world’s biggest health and medical news as they happen!
+            </p>
           </div>
         </div>
 
+        <button
+          onClick={() => navigate({ to: "/auth" })}
+          className="w-full sm:w-auto shrink-0 bg-gold hover:bg-gold-hover text-primary-foreground font-sans font-bold px-6 py-2.5 rounded-full text-xs transition-transform transform hover:scale-[1.02] cursor-pointer shadow-sm text-center tracking-wide"
+        >
+          Create free account
+        </button>
       </div>
 
-      {/* 🛑 PREMIUM MEDICAL DISCLAIMER MODAL */}
-      {showDisclaimer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
-          <div className="bg-surface-1 border border-gold/30 rounded-2xl p-6 sm:p-8 max-w-2xl w-full relative shadow-2xl space-y-6 max-h-[85vh] overflow-y-auto">
-            
+      <div dangerouslySetInnerHTML={{ __html: secondHalf }} className="space-y-6 prose prose-invert max-w-none whitespace-pre-wrap" />
+    </>
+  );
+}
+
+function ArticlePage() {
+  const { slug } = Route.useParams();
+  const navigate = useNavigate();
+  const articleUrl = typeof window !== "undefined" ? window.location.href : "";
+
+  const [session, setSession] = useState<any>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [commentText, setCommentText] = useState("");
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleCommentSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session) {
+      setShowAuthModal(true);
+      return;
+    }
+    toast.success("Comment submitted for moderation.");
+    setCommentText("");
+  };
+
+  const isScannerPath = slug.includes("_profiler") || slug.includes("phpinfo") || slug.includes(".env") || slug.includes("wp-admin");
+
+  const { data: article, isLoading, error } = useQuery({
+    queryKey: ["article", slug],
+    queryFn: async () => {
+      if (isScannerPath) return null;
+
+      const targetSlug = String(slug).toLowerCase().trim();
+      
+      const { data, error: fetchError } = await supabase
+        .from("articles")
+        .select(`
+          id,
+          title,
+          slug,
+          excerpt,
+          body,
+          featured_image,
+          image_caption,
+          author,
+          published_at,
+          read_time_minutes,
+          is_premium,
+          is_published,
+          category
+        `)
+        .ilike("slug", targetSlug)
+        .maybeSingle();
+
+      if (fetchError) {
+        console.error("❌ Database query failure:", fetchError);
+        throw fetchError;
+      }
+      
+      return data;
+    },
+    enabled: !isScannerPath,
+    staleTime: 5000,
+  });
+
+  const { data: relatedArticles } = useQuery({
+    queryKey: ["related-articles", article?.id, article?.category],
+    queryFn: async () => {
+      if (!article?.id) return [];
+
+      let query = supabase
+        .from("articles")
+        .select("id, title, slug, excerpt, published_at, featured_image")
+        .eq("is_published", true)
+        .neq("id", article.id);
+
+      if (article.category) {
+        query = query.eq("category", article.category);
+      }
+
+      const { data } = await query.limit(2);
+      return data || [];
+    },
+    enabled: !!article?.id,
+  });
+
+  if (isLoading) {
+    return (
+      <SiteLayout>
+        <div className="flex flex-col items-center justify-center min-h-[50vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-gold" />
+          <p className="text-text-mute text-sm mt-4 font-mono">Loading report...</p>
+        </div>
+      </SiteLayout>
+    );
+  }
+
+  if (error || !article || isScannerPath) {
+    return (
+      <SiteLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 max-w-md mx-auto">
+          <div className="w-16 h-16 bg-gold/10 text-gold rounded-full flex items-center justify-center mb-6">
+            <AlertTriangle className="w-8 h-8" />
+          </div>
+          <h1 className="text-3xl font-display font-black text-foreground mb-3">Report Not Found</h1>
+          <p className="text-text-mute font-serif mb-8 text-sm leading-relaxed">
+            The requested health news dispatch or surgical reporting document cannot be retrieved from our database records.
+          </p>
+          <Link to="/news" className="inline-flex items-center justify-center bg-gold text-primary-foreground font-bold px-6 py-3 rounded-full hover:bg-gold-hover text-sm transition-colors w-full cursor-pointer">
+            Return to Newsroom
+          </Link>
+        </div>
+      </SiteLayout>
+    );
+  }
+
+  const publishedDate = article.published_at
+    ? new Date(article.published_at).toLocaleDateString(undefined, {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : "";
+
+  const shareText = encodeURIComponent(`Read this vital health dispatch: ${article.title}`);
+  const encodedUrl = encodeURIComponent(articleUrl);
+  const whatsappUrl = `https://api.whatsapp.com/send?text=${shareText}%20${encodedUrl}`;
+  const twitterUrl = `https://twitter.com/intent/tweet?text=${shareText}&url=${encodedUrl}`;
+  const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+
+  return (
+    <SiteLayout>
+      <Toaster theme="dark" position="top-right" />
+      <ReadingProgress />
+
+      <article className="mx-auto max-w-3xl px-4 lg:px-6 py-14">
+        
+        {!article.is_published && (
+          <div className="mb-6 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-md text-xs font-mono font-bold uppercase text-center tracking-wide">
+            ⚠️ Workspace Mode: Previewing Unpublished Draft
+          </div>
+        )}
+
+        <Link to="/news" className="inline-flex items-center gap-1.5 text-sm text-text-mute hover:text-gold transition-colors mb-8 cursor-pointer">
+          <ArrowLeft className="w-4 h-4" /> All stories
+        </Link>
+
+        <h1 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl leading-tight text-foreground">
+          {article.title}
+        </h1>
+
+        {article.excerpt && (
+          <p className="mt-5 text-lg text-text-body font-serif leading-relaxed border-l-4 border-gold pl-4 italic">
+            {article.excerpt}
+          </p>
+        )}
+
+        <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-text-mute border-y border-border py-4">
+          <span className="font-semibold text-foreground">By {article.author || "Joseph Mmwa"}</span>
+          {publishedDate && <span>{publishedDate}</span>}
+          {article.read_time_minutes > 0 && (
+            <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{article.read_time_minutes} min read</span>
+          )}
+        </div>
+
+        {article.featured_image && (
+          <figure className="mt-8 -mx-4 lg:-mx-6">
+            <img src={article.featured_image} alt={article.title} className="w-full aspect-[16/9] object-cover rounded-lg" />
+            {article.image_caption && <figcaption className="mt-2 px-4 text-xs text-text-mute italic font-serif text-center">{article.image_caption}</figcaption>}
+          </figure>
+        )}
+
+        {/* Article Body with Mid-Article Callout */}
+        <div className="mt-10 text-foreground font-sans text-base leading-relaxed space-y-6">
+          {article.body ? (
+            <ArticleBodyWithMidBanner body={article.body} />
+          ) : (
+            <p className="text-text-mute font-sans italic">No text content parsed in this document row.</p>
+          )}
+        </div>
+
+        {/* SHARE THIS STORY */}
+        <div className="mt-14 border-t border-border pt-8">
+          <p className="text-xs font-display font-bold uppercase tracking-wider text-gold mb-4">
+            SHARE THIS STORY
+          </p>
+          <div className="flex flex-wrap gap-3 items-center">
             <button 
-              onClick={() => setShowDisclaimer(false)}
-              className="absolute top-5 right-5 text-text-mute hover:text-foreground transition-colors p-1 rounded-full bg-surface-2 cursor-pointer"
+              onClick={() => { 
+                if (typeof window !== "undefined") { 
+                  navigator.clipboard.writeText(articleUrl); 
+                  toast.success("Link copied to clipboard!"); 
+                } 
+              }} 
+              className="flex items-center gap-2 bg-surface-2 border border-border rounded-full px-4 py-2 text-sm font-medium hover:text-gold transition-colors cursor-pointer"
             >
-              <X className="w-5 h-5" />
+              <Copy className="w-4 h-4" /> Copy link
             </button>
 
-            <div className="flex items-center gap-3 border-b border-border pb-4">
-              <div className="w-10 h-10 rounded-full bg-gold/10 text-gold flex items-center justify-center border border-gold/30 shrink-0">
-                <ShieldAlert className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-display font-black text-xl text-foreground uppercase tracking-wider">
-                  Medical Disclaimer
-                </h3>
-                <p className="text-xs text-gold font-mono">Joseph Mmwa Media Group</p>
-              </div>
-            </div>
+            {/* WhatsApp */}
+            <a 
+              href={whatsappUrl} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center justify-center bg-surface-2 border border-border w-10 h-10 rounded-full transition-all duration-300 hover:scale-105 cursor-pointer"
+              style={{
+                color: "#25D366",
+                boxShadow: "0 0 12px rgba(37, 211, 102, 0.35)",
+              }}
+              title="Share on WhatsApp"
+            >
+              <span className="font-bold text-base font-sans">W</span>
+            </a>
 
-            <div className="space-y-4 text-sm font-sans text-text-body leading-relaxed">
-              <div className="flex items-start gap-3 p-3 bg-surface-2/60 rounded-xl border border-border">
-                <CheckCircle2 className="w-5 h-5 text-gold shrink-0 mt-0.5" />
-                <p>
-                  <strong className="text-foreground">Informational Purpose Only:</strong> The information published by Joseph Mmwa Media Group is for news, educational, and informational purposes only. We deliver evidence-based health journalism relying on scientific research, health organizations, and peer-reviewed journals.
-                </p>
-              </div>
+            {/* X */}
+            <a 
+              href={twitterUrl} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center justify-center bg-surface-2 border border-border w-10 h-10 rounded-full hover:bg-neutral-800 text-foreground transition-all duration-200 cursor-pointer"
+              title="Share on X"
+            >
+              <span className="font-extrabold text-sm font-sans">𝕏</span>
+            </a>
 
-              <div className="flex items-start gap-3 p-3 bg-surface-2/60 rounded-xl border border-border">
-                <CheckCircle2 className="w-5 h-5 text-gold shrink-0 mt-0.5" />
-                <p>
-                  <strong className="text-foreground">Not Professional Medical Advice:</strong> Content on this website is not intended to replace professional medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider regarding medical concerns or symptoms.
-                </p>
-              </div>
+            {/* LinkedIn */}
+            <a 
+              href={linkedinUrl} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center justify-center bg-surface-2 border border-border w-10 h-10 rounded-full transition-all duration-200 cursor-pointer hover:opacity-90"
+              style={{ color: "#0A66C2" }}
+              title="Share on LinkedIn"
+            >
+              <Linkedin className="w-4 h-4" />
+            </a>
 
-              <div className="flex items-start gap-3 p-3 bg-surface-2/60 rounded-xl border border-border">
-                <CheckCircle2 className="w-5 h-5 text-gold shrink-0 mt-0.5" />
-                <p>
-                  <strong className="text-foreground">No Commercial Endorsement:</strong> Joseph Mmwa Media Group does not endorse or promote specific medications, treatments, or healthcare providers unless explicitly stated. References to medical studies or products are strictly for journalism.
-                </p>
-              </div>
-
-              <div className="flex items-start gap-3 p-3 bg-surface-2/60 rounded-xl border border-border">
-                <CheckCircle2 className="w-5 h-5 text-gold shrink-0 mt-0.5" />
-                <p>
-                  <strong className="text-foreground">Accuracy &amp; Evolving Science:</strong> Medical knowledge evolves rapidly. While reasonable effort is made to ensure reliability, any reliance on information published on this website is at your own risk.
-                </p>
-              </div>
-            </div>
-
-            <div className="pt-2 border-t border-border flex justify-end">
-              <button
-                onClick={() => setShowDisclaimer(false)}
-                className="bg-gold hover:bg-gold-hover text-primary-foreground font-sans font-bold px-6 py-2.5 rounded-full text-xs transition-colors cursor-pointer"
-              >
-                I Understand
-              </button>
-            </div>
-
+            {/* Facebook */}
+            <a 
+              href={facebookUrl} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center justify-center bg-surface-2 border border-border w-10 h-10 rounded-full transition-all duration-200 cursor-pointer hover:opacity-90"
+              style={{ color: "#1877F2" }}
+              title="Share on Facebook"
+            >
+              <Facebook className="w-4 h-4" />
+            </a>
           </div>
         </div>
-      )}
-    </footer>
+
+        {/* COMMENTS SECTION */}
+        <div className="mt-12 border-t border-border pt-10">
+          <div className="mb-6">
+            <h3 className="font-display font-bold text-xl text-foreground">
+              Comments
+            </h3>
+            <p className="text-xs text-text-mute font-serif mt-1">
+              Share your thoughts
+            </p>
+          </div>
+
+          <form onSubmit={handleCommentSubmit} className="space-y-3 mb-8">
+            <textarea 
+              rows={3} 
+              required 
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Share your thoughts on this story..." 
+              className="w-full bg-surface-2 border border-border rounded-lg p-3 text-sm font-sans text-foreground focus:outline-none focus:border-gold transition-colors resize-none"
+            />
+            <div className="flex justify-end">
+              <button 
+                type="submit" 
+                className="bg-gold hover:bg-gold-hover text-primary-foreground font-sans font-bold px-6 py-2.5 rounded-full text-xs transition-colors cursor-pointer"
+              >
+                Post Comment
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* AUTH MODAL INTERCEPT */}
+        {showAuthModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div className="bg-surface-1 border border-border rounded-2xl p-6 sm:p-8 max-w-md w-full relative shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200">
+              <button 
+                onClick={() => setShowAuthModal(false)}
+                className="absolute top-4 right-4 text-text-mute hover:text-foreground transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="w-12 h-12 bg-gold/10 text-gold rounded-full flex items-center justify-center">
+                <LogIn className="w-6 h-6" />
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-display font-bold text-xl text-foreground">
+                  Sign in / Create Account to Comment
+                </h3>
+                <p className="text-xs text-text-mute font-sans leading-relaxed">
+                  Join the conversation! A registered account with Joseph Mmwa Media Group is required to publish comments on health dispatches.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <button 
+                  onClick={() => setShowAuthModal(false)}
+                  className="flex-1 bg-surface-2 border border-border hover:border-text-mute text-foreground font-sans font-semibold py-2.5 rounded-xl text-xs transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => navigate({ to: "/auth" })}
+                  className="flex-1 bg-gold hover:bg-gold-hover text-primary-foreground font-sans font-bold py-2.5 rounded-xl text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  Continue <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* PREMIUM SUBSCRIPTION BANNER */}
+        <div 
+          className="mt-12 rounded-2xl p-8 sm:p-10 text-center relative overflow-hidden border transition-all duration-300"
+          style={{ 
+            background: "radial-gradient(ellipse at top, #241A02 0%, #120D02 50%, #0A0A0A 100%)", 
+            borderColor: "rgba(245, 166, 35, 0.35)",
+            boxShadow: "0 10px 30px -10px rgba(245, 166, 35, 0.15)"
+          }}
+        >
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-[2px] bg-gradient-to-r from-transparent via-gold to-transparent" />
+
+          <div className="max-w-xl mx-auto space-y-4">
+            <span className="inline-block text-[11px] font-sans font-bold uppercase tracking-widest text-gold bg-gold/10 px-3.5 py-1.5 rounded-full border border-gold/30 shadow-inner">
+              Exclusive Insights
+            </span>
+            
+            <h2 className="font-display font-black text-3xl sm:text-4xl text-foreground tracking-tight leading-tight">
+              Join Premium
+            </h2>
+
+            <p className="font-sans text-sm sm:text-base text-text-mute leading-relaxed font-normal max-w-lg mx-auto">
+              The world’s biggest health and medical stories, <span className="text-foreground font-semibold">ad-free, uncompromised</span> — because they deserve world-class journalism.
+            </p>
+
+            <div className="pt-3">
+              <Link 
+                to="/premium" 
+                className="inline-flex items-center justify-center bg-gold hover:bg-gold-hover text-primary-foreground font-sans font-black px-8 py-3.5 rounded-full text-sm sm:text-base transition-all duration-200 transform hover:scale-[1.03] shadow-lg cursor-pointer tracking-wide"
+              >
+                Subscribe to Premium
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* AUTHOR BIO CARD */}
+        <div 
+          className="mt-10 rounded-xl p-6 flex gap-5 items-start" 
+          style={{ 
+            background: "radial-gradient(ellipse at top left, #2A1F00 0%, #1A1200 40%, #0A0A0A 100%)", 
+            border: "1px solid rgba(245, 166, 35, 0.15)" 
+          }}
+        >
+          <div className="shrink-0 w-14 h-14 rounded-full overflow-hidden border border-gold/30 bg-surface-1 relative flex items-center justify-center">
+            <img 
+              src="https://mjvpcfetbvvcnhdwwjrl.supabase.co/storage/v1/object/public/avatars/joseph.jpeg.jpeg" 
+              alt="Joseph Mmwa" 
+              className="w-full h-full object-cover relative z-10"
+            />
+          </div>
+          <div>
+            <p className="font-semibold text-foreground">{article.author || "Joseph Mmwa"}</p>
+            <p className="text-xs text-gold mt-0.5">Medical &amp; Health Journalist</p>
+            <p className="mt-2 text-sm text-text-body font-serif leading-relaxed">
+              Joseph Mmwa is an independent medical and health journalist delivering accurate, evidence-based reporting on the stories shaping global public health — with clarity, accuracy, and editorial independence.
+            </p>
+          </div>
+        </div>
+
+        {/* RELATED DISPATCHES */}
+        {relatedArticles && relatedArticles.length > 0 && (
+          <div className="mt-12 border-t border-border pt-10">
+            <h3 className="font-display font-bold text-xl text-foreground mb-6">Related Dispatches</h3>
+            <div className="grid gap-6 sm:grid-cols-2">
+              {relatedArticles.map((ra) => (
+                <Link key={ra.id} to="/news/$slug" params={{ slug: ra.slug }} className="group block space-y-3 cursor-pointer">
+                  {ra.featured_image && (
+                    <div className="aspect-[16/9] w-full overflow-hidden rounded-lg bg-surface-1 border border-border">
+                      <img src={ra.featured_image} alt={ra.title} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
+                    </div>
+                  )}
+                  <h4 className="font-display font-bold text-base leading-snug group-hover:text-gold transition-colors line-clamp-2">{ra.title}</h4>
+                  {ra.excerpt && <p className="text-xs text-text-mute line-clamp-2 font-serif">{ra.excerpt}</p>}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ✉️ NEWSROOM EDITORIAL CONTACT FORM */}
+        <div 
+          className="mt-14 rounded-2xl p-6 sm:p-8 border relative overflow-hidden"
+          style={{ 
+            background: "radial-gradient(ellipse at top right, #1F1700 0%, #0F0D0A 50%, #050505 100%)", 
+            borderColor: "rgba(245, 166, 35, 0.3)" 
+          }}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-gold font-bold px-2.5 py-1 rounded bg-gold/10 border border-gold/20">
+                NEWSROOM
+              </span>
+              <h3 className="font-display font-bold text-xl sm:text-2xl text-foreground mt-2">
+                Connect With Our Editorial Team
+              </h3>
+              <p className="text-xs text-text-mute font-serif mt-1 leading-relaxed">
+                Be part of trusted health journalism. Share verified news tips, research updates, expert commentary, press inquiries, or editorial feedback with the Joseph Mmwa newsroom. Every submission is reviewed with accuracy, independence, and journalistic integrity.
+              </p>
+            </div>
+            
+            <Link 
+              to="/contact" 
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-gold hover:underline shrink-0"
+            >
+              Full Contact Page <ExternalLink className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              toast.success("Message dispatched to the newsroom!");
+              (e.target as HTMLFormElement).reset();
+            }}
+            className="space-y-4"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <input 
+                type="text" 
+                required 
+                placeholder="Your Name" 
+                className="w-full bg-surface-2/80 border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-gold transition-all"
+              />
+              <input 
+                type="email" 
+                required 
+                placeholder="Professional Email" 
+                className="w-full bg-surface-2/80 border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-gold transition-all"
+              />
+            </div>
+            <textarea 
+              rows={3} 
+              required 
+              placeholder="Share your news tip, press inquiry, or editorial message..." 
+              className="w-full bg-surface-2/80 border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-gold transition-all resize-none"
+            />
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+              <p className="text-[11px] text-text-mute leading-normal">
+                For interviews, partnerships, sponsorships, press credentials, or corporate media collaborations, please visit our <Link to="/contact" className="text-gold underline">Corporate Contact Desk</Link>.
+              </p>
+              <button 
+                type="submit" 
+                className="w-full sm:w-auto bg-gold hover:bg-gold-hover text-primary-foreground font-bold px-8 py-3 rounded-xl text-sm transition-all duration-200 transform hover:scale-[1.01] cursor-pointer shadow-md shrink-0"
+              >
+                Contact Newsroom
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* FOOTER */}
+        <footer className="mt-16 border-t border-border pt-8 pb-4 text-center text-xs text-text-mute font-sans space-y-3">
+          <div className="flex flex-wrap justify-center gap-6 font-medium">
+            <Link to="/terms" className="hover:text-gold transition-colors">Terms of Service</Link>
+            <Link to="/privacy" className="hover:text-gold transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-gold transition-colors">Editorial Standards</Link>
+            <Link to="/contact" className="hover:text-gold transition-colors">Contact</Link>
+          </div>
+          <p>© {new Date().getFullYear()} Joseph Mmwa Media Group. All rights reserved.</p>
+        </footer>
+
+      </article>
+    </SiteLayout>
   );
 }

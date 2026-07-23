@@ -15,7 +15,6 @@ export const Route = createFileRoute("/news")({
   component: NewsPage,
 });
 
-// 🌐 Helper function to format timestamps into International Standard Time (UTC)
 function formatUtcTimestamp(dateString?: string | null): string {
   if (!dateString) return "";
   const date = new Date(dateString);
@@ -47,7 +46,7 @@ function NewsPage() {
   ];
 
   const { data: articles = [] } = useQuery({
-    queryKey: ["articles", "all-feed-utc-v1"],
+    queryKey: ["articles", "all-feed-utc-v2"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("articles")
@@ -82,15 +81,57 @@ function NewsPage() {
   return (
     <SiteLayout>
       <section className="mx-auto max-w-7xl px-4 lg:px-6 py-14">
+        {/* 1️⃣ HEADLINE HEADER */}
         <p className="label-eyebrow">Newsroom</p>
         <h1 className="mt-2 font-display font-bold text-4xl sm:text-5xl">Latest health & medical news</h1>
 
         {/* ------------------------------------------------------------------- */}
-        {/* 🔥 HERO SECTION: LATEST DISPATCHES & MOST READ SIDEBAR */}
+        {/* 🏷️ 2️⃣ TOP CATEGORY FILTER PILLS & SEARCH BAR (MOVED TO TOP) */}
+        {/* ------------------------------------------------------------------- */}
+        <div className="mt-8 flex flex-wrap gap-2 border-b border-border pb-4">
+          <button
+            onClick={() => setSelectedCategory(null)}
+            className={`px-4 py-2 rounded-full text-xs font-semibold tracking-wide uppercase transition-colors ${
+              !selectedCategory
+                ? "bg-gold text-primary-foreground font-bold shadow-md"
+                : "bg-surface-2 border border-border text-text-mute hover:text-foreground"
+            }`}
+          >
+            All Stories
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-4 py-2 rounded-full text-xs font-semibold tracking-wide uppercase transition-colors ${
+                selectedCategory === cat
+                  ? "bg-gold text-primary-foreground font-bold shadow-md"
+                  : "bg-surface-2 border border-border text-text-mute hover:text-foreground"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="relative w-full lg:w-72">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-mute" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search stories"
+              className="w-full bg-surface-1 border border-border rounded-md pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold"
+            />
+          </div>
+        </div>
+
+        {/* ------------------------------------------------------------------- */}
+        {/* 🔥 3️⃣ HERO SECTION: LATEST DISPATCHES & MOST READ SIDEBAR */}
         {/* ------------------------------------------------------------------- */}
         {!selectedCategory && !q && articles.length > 0 && (
-          <div className="mt-10 grid gap-8 lg:grid-cols-12 border-b border-border pb-14">
-            {/* LATEST SECTION */}
+          <div className="mt-12 grid gap-8 lg:grid-cols-12 border-b border-border pb-14">
+            {/* LATEST SECTION (Left 8 Cols) */}
             <div className="lg:col-span-8 space-y-6">
               <div className="flex items-center gap-2 text-gold font-mono text-xs font-bold uppercase tracking-widest">
                 <Sparkles className="w-4 h-4" />
@@ -188,7 +229,7 @@ function NewsPage() {
               )}
             </div>
 
-            {/* MOST READ SIDEBAR */}
+            {/* MOST READ SIDEBAR (Right 4 Cols) */}
             <div className="lg:col-span-4 bg-card border border-border rounded-2xl p-6 h-fit space-y-6">
               <div className="flex items-center gap-2 text-gold font-mono text-xs font-bold uppercase tracking-widest border-b border-border pb-4">
                 <TrendingUp className="w-4 h-4" />
@@ -230,48 +271,7 @@ function NewsPage() {
         )}
 
         {/* ------------------------------------------------------------------- */}
-        {/* 🏷️ CATEGORY FILTER PILLS & SEARCH BAR */}
-        {/* ------------------------------------------------------------------- */}
-        <div className="mt-10 flex flex-wrap gap-2 border-b border-border pb-4">
-          <button
-            onClick={() => setSelectedCategory(null)}
-            className={`px-4 py-2 rounded-full text-xs font-semibold tracking-wide uppercase transition-colors ${
-              !selectedCategory
-                ? "bg-gold text-primary-foreground font-bold shadow-md"
-                : "bg-surface-2 border border-border text-text-mute hover:text-foreground"
-            }`}
-          >
-            All Stories
-          </button>
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-full text-xs font-semibold tracking-wide uppercase transition-colors ${
-                selectedCategory === cat
-                  ? "bg-gold text-primary-foreground font-bold shadow-md"
-                  : "bg-surface-2 border border-border text-text-mute hover:text-foreground"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative w-full lg:w-72">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-mute" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search stories"
-              className="w-full bg-surface-1 border border-border rounded-md pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold"
-            />
-          </div>
-        </div>
-
-        {/* ------------------------------------------------------------------- */}
-        {/* 📰 MAIN ARTICLES FEED GRID */}
+        {/* 📰 4️⃣ MAIN ARTICLES FEED GRID */}
         {/* ------------------------------------------------------------------- */}
         <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filtered.length === 0 ? (

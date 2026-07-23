@@ -30,67 +30,72 @@ interface CategoryDetails {
 }
 
 const CATEGORY_META: Record<string, CategoryDetails> = {
-  "artificial-intelligence": {
-    name: "Artificial Intelligence",
-    description: "Neural diagnostic models, machine learning in clinical medicine, surgical robotics, and predictive health.",
-    defaultBanner: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=2000&q=90",
-    groupType: "diseases",
-  },
-  "treatments-innovation": {
-    name: "Treatments and Innovations",
-    description: "Breakthrough pharmaceuticals, precision medicine, gene editing, and clinical therapies.",
-    defaultBanner: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=2000&q=90",
-    groupType: "diseases",
-  },
   "disease-outbreaks": {
     name: "Disease Outbreaks",
-    description: "Real-time surveillance, outbreak investigations, viral mutations, and emergency field responses.",
+    description: "Coverage of infectious diseases, epidemics, pandemics, disease surveillance, public health emergencies, outbreak response, emerging pathogens, and global disease alerts.",
     defaultBanner: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&w=2000&q=90",
     groupType: "continents",
   },
   "vaccines-immunization": {
     name: "Vaccines and Immunization",
-    description: "Vaccine trial results, mRNA platforms, global distribution channels, and immunization policy.",
+    description: "Vaccine research, approvals, immunization programmes, vaccination campaigns, vaccine policy, vaccine safety, immunology, and global vaccination initiatives.",
     defaultBanner: "https://images.unsplash.com/photo-1618961734760-466979ce35b0?auto=format&fit=crop&w=2000&q=90",
     groupType: "diseases",
   },
   "medical-research": {
     name: "Medical Research",
-    description: "Peer-reviewed scientific findings, randomized clinical trial results, and journal dispatches.",
+    description: "Peer-reviewed studies, clinical trials, scientific discoveries, laboratory research, academic publications, biomedical science, and evidence-based medical findings.",
     defaultBanner: "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=2000&q=90",
+    groupType: "diseases",
+  },
+  "treatments-innovation": {
+    name: "Treatments and Innovations",
+    description: "New medicines, breakthrough therapies, biotechnology, gene therapy, precision medicine, medical devices, diagnostics, artificial intelligence in healthcare, and healthcare innovation.",
+    defaultBanner: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=2000&q=90",
+    groupType: "diseases",
+  },
+  "artificial-intelligence": {
+    name: "Artificial Intelligence in Healthcare",
+    description: "Coverage of artificial intelligence in medicine, machine learning diagnostics, neural networks in healthcare, predictive medical modeling, surgical robotics, and digital health technology.",
+    defaultBanner: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=2000&q=90",
     groupType: "diseases",
   },
   "public-health": {
     name: "Public Health",
-    description: "International health regulations, health infrastructure, environmental risks, and preventive care.",
+    description: "Global health policy, healthcare systems, disease prevention, environmental health, One Health, mental health, health education, health campaigns, humanitarian health, and international public health initiatives.",
     defaultBanner: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=2000&q=90",
     groupType: "continents",
   },
-  "general-news": {
-    name: "General News",
-    description: "Breaking global health updates, medical announcements, press briefings, and newsroom alerts.",
-    defaultBanner: "https://images.unsplash.com/photo-1504813184591-01572f98c85f?auto=format&fit=crop&w=2000&q=90",
-    groupType: "standard",
-  },
   "healthcare": {
-    name: "Healthcare",
-    description: "Hospital management, telemedicine, health economics, insurance, and workforce reporting.",
+    name: "Healthcare and Explainers",
+    description: "Hospitals, healthcare delivery, pharmaceuticals, digital health, telemedicine, healthcare regulation, healthcare workforce, insurance, medical infrastructure, and health industry developments.",
     defaultBanner: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=2000&q=90",
     groupType: "standard",
   },
   "explainers": {
-    name: "Explainers",
-    description: "Clear, evidence-backed breakdowns simplifying complex medical research and physiological concepts.",
+    name: "Healthcare and Explainers",
+    description: "Clear, evidence-based articles that simplify complex medical topics, research findings, health myths, medical terminology, and important health issues for everyday readers.",
     defaultBanner: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=2000&q=90",
+    groupType: "standard",
+  },
+  "general-news": {
+    name: "General News",
+    description: "General health dispatches, medical updates, press briefings, global health announcements, and breaking news across the healthcare sector.",
+    defaultBanner: "https://images.unsplash.com/photo-1504813184591-01572f98c85f?auto=format&fit=crop&w=2000&q=90",
     groupType: "standard",
   },
 };
 
-// 🛡️ Bulletproof resolver: Decodes URI strings (%20, dashes, spaces) so NO category ever 404s
+// 🛡️ Bulletproof resolver: Normalizes URI slashes, dashes, spaces, and abbreviations
 function resolveCategoryMeta(rawSlug: string): CategoryDetails {
   const decoded = decodeURIComponent(rawSlug || "").trim().toLowerCase();
   const hyphenated = decoded.replace(/\s+/g, "-");
-  
+
+  // Check direct alias matches (e.g. "ai-in-healthcare" or "ai")
+  if (hyphenated.includes("ai") || hyphenated.includes("artificial-intelligence")) {
+    return CATEGORY_META["artificial-intelligence"];
+  }
+
   if (CATEGORY_META[hyphenated]) {
     return CATEGORY_META[hyphenated];
   }
@@ -101,14 +106,14 @@ function resolveCategoryMeta(rawSlug: string): CategoryDetails {
 
   if (directMatch) return directMatch;
 
-  // Dynamic fallback name generator for any category name
+  // Fallback title formatting
   const formattedName = decoded
     .replace(/-/g, " ")
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
   return {
     name: formattedName,
-    description: `Verified dispatches and expert analysis under ${formattedName}.`,
+    description: `Reporting and verified dispatches under ${formattedName}.`,
     defaultBanner: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=2000&q=90",
     groupType: "standard",
   };
@@ -160,7 +165,6 @@ export function CategoryPage() {
     },
   });
 
-  // 🖼️ Dynamic Header Image: Uses the featured image of the newest article in this category
   const activeHeaderImage = articles?.[0]?.featured_image || meta.defaultBanner;
 
   const filteredArticles = (articles || []).filter((a) => {
@@ -203,16 +207,16 @@ export function CategoryPage() {
 
   return (
     <SiteLayout>
-      {/* 🖼️ DYNAMIC CATEGORY BANNER HEADER */}
-      <div className="relative w-full min-h-[360px] lg:min-h-[420px] flex items-end overflow-hidden border-b border-border bg-black">
+      {/* Dynamic Professional Banner Header */}
+      <div className="relative w-full min-h-[380px] lg:min-h-[440px] flex items-end overflow-hidden border-b border-border bg-black">
         <img
           src={activeHeaderImage}
           alt={meta.name}
-          className="absolute inset-0 w-full h-full object-cover opacity-40 scale-105 filter brightness-90 contrast-110 transition-all duration-700"
+          className="absolute inset-0 w-full h-full object-cover opacity-35 scale-105 filter brightness-90 contrast-110 transition-all duration-700"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
         
-        <div className="relative z-10 mx-auto max-w-7xl px-4 lg:px-6 pb-10 pt-24 w-full">
+        <div className="relative z-10 mx-auto max-w-7xl px-4 lg:px-6 pb-12 pt-28 w-full">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold/15 border border-gold/30 text-gold text-xs font-mono font-bold uppercase tracking-wider mb-3 backdrop-blur-md">
             <Sparkles className="w-3.5 h-3.5" /> Topic Desk
           </div>
@@ -221,7 +225,7 @@ export function CategoryPage() {
             {meta.name}
           </h1>
 
-          <p className="mt-3 max-w-3xl font-serif text-base sm:text-lg text-neutral-300 leading-relaxed">
+          <p className="mt-4 max-w-3xl font-serif text-base sm:text-lg text-neutral-300 leading-relaxed">
             {meta.description}
           </p>
 

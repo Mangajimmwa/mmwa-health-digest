@@ -5,7 +5,7 @@ import { Clock, Newspaper, Search, Globe, Stethoscope, Filter, Sparkles } from "
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/category/$slug" as any)({
+export const Route = createFileRoute("/category/$slug")({
   head: ({ params }) => {
     const meta = resolveCategoryMeta(params.slug);
     const title = `${meta.name} — JOSEPH MMWA`;
@@ -128,7 +128,7 @@ function getDiseaseGroup(text: string): string {
   if (content.match(/\b(heart|cardio|stroke|vascular|hypertension|cardiac|artery)\b/)) return "Cardiovascular Health";
   if (content.match(/\b(brain|neuro|alzheimer|parkinson|dementia|epilepsy|spinal)\b/)) return "Neurology & Brain Sciences";
   if (content.match(/\b(gene|crispr|dna|rna|biotech|genomic|mrna)\b/)) return "Genetics & Bio-Technology";
-  if (content.match(/\b(immune|autoimmune|lupus|arthritis|allergy|inflammation)\b/)) return "Immunology Disorders";
+  if (content.match(/\b(immune|autoimmune|lupus|arthritis|allergy|inflammation)\b/)) return "Immune Disorders";
   return "General Innovations";
 }
 

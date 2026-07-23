@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Clock, Newspaper, Search, Globe, Stethoscope, Filter, Sparkles } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/category/$slug")({
+export const Route = createFileRoute("/category/$slug" as any)({
   head: ({ params }) => {
     const meta = resolveCategoryMeta(params.slug);
     const title = `${meta.name} — JOSEPH MMWA`;
@@ -132,18 +132,15 @@ function getDiseaseGroup(text: string): string {
   return "General Innovations";
 }
 
-// 🌍 Subcategory arrangement: Global / World News first, then Africa, Americas, Asia, Europe, Oceania
 function getContinentGroup(text: string): string {
   const content = text.toLowerCase();
 
-  // 1️⃣ Priority Check for Global / World policy dispatches (WHO, UN, Geneva, Multilateral)
   if (
     content.match(/\b(who|world health organization|un|united nations|geneva|global|international|multilateral|worldwide|pandemic agreement|pandemic treaty|global health|world)\b/)
   ) {
     return "Global / World News";
   }
 
-  // 2️⃣ Continent Location Checks
   if (content.match(/\b(africa|kenya|uganda|nigeria|congo|drc|rwanda|south africa|ethiopia|ghana|tanzania|zambia|egypt|morocco|senegal)\b/)) {
     return "Africa";
   }
@@ -240,7 +237,6 @@ export function CategoryPage() {
 
   return (
     <SiteLayout>
-      {/* 🖼️ Original Hero Banner */}
       <div className="relative w-full min-h-[380px] lg:min-h-[460px] flex items-end overflow-hidden border-b border-border bg-slate-950">
         <img
           src={meta.bannerImage}

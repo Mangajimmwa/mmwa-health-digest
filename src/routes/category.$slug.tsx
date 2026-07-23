@@ -25,7 +25,7 @@ export const Route = createFileRoute("/category/$slug")({
 interface CategoryDetails {
   name: string;
   description: string;
-  defaultBanner: string;
+  bannerImage: string;
   groupType: "diseases" | "continents" | "standard";
 }
 
@@ -33,67 +33,69 @@ const CATEGORY_META: Record<string, CategoryDetails> = {
   "disease-outbreaks": {
     name: "Disease Outbreaks",
     description: "Coverage of infectious diseases, epidemics, pandemics, disease surveillance, public health emergencies, outbreak response, emerging pathogens, and global disease alerts.",
-    defaultBanner: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&w=2000&q=90",
+    bannerImage: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&w=2000&q=90",
     groupType: "continents",
   },
   "vaccines-immunization": {
     name: "Vaccines and Immunization",
     description: "Vaccine research, approvals, immunization programmes, vaccination campaigns, vaccine policy, vaccine safety, immunology, and global vaccination initiatives.",
-    defaultBanner: "https://images.unsplash.com/photo-1618961734760-466979ce35b0?auto=format&fit=crop&w=2000&q=90",
+    bannerImage: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=2000&q=90",
     groupType: "diseases",
   },
   "medical-research": {
     name: "Medical Research",
     description: "Peer-reviewed studies, clinical trials, scientific discoveries, laboratory research, academic publications, biomedical science, and evidence-based medical findings.",
-    defaultBanner: "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=2000&q=90",
+    bannerImage: "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=2000&q=90",
     groupType: "diseases",
   },
   "treatments-innovation": {
     name: "Treatments and Innovations",
     description: "New medicines, breakthrough therapies, biotechnology, gene therapy, precision medicine, medical devices, diagnostics, artificial intelligence in healthcare, and healthcare innovation.",
-    defaultBanner: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=2000&q=90",
+    bannerImage: "https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=2000&q=90",
     groupType: "diseases",
   },
   "artificial-intelligence": {
     name: "Artificial Intelligence in Healthcare",
     description: "Coverage of artificial intelligence in medicine, machine learning diagnostics, neural networks in healthcare, predictive medical modeling, surgical robotics, and digital health technology.",
-    defaultBanner: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=2000&q=90",
+    bannerImage: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=2000&q=90",
     groupType: "diseases",
   },
   "public-health": {
     name: "Public Health",
     description: "Global health policy, healthcare systems, disease prevention, environmental health, One Health, mental health, health education, health campaigns, humanitarian health, and international public health initiatives.",
-    defaultBanner: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=2000&q=90",
+    bannerImage: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=2000&q=90",
     groupType: "continents",
   },
   "healthcare": {
     name: "Healthcare and Explainers",
     description: "Hospitals, healthcare delivery, pharmaceuticals, digital health, telemedicine, healthcare regulation, healthcare workforce, insurance, medical infrastructure, and health industry developments.",
-    defaultBanner: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=2000&q=90",
+    bannerImage: "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=2000&q=90",
     groupType: "standard",
   },
   "explainers": {
     name: "Healthcare and Explainers",
     description: "Clear, evidence-based articles that simplify complex medical topics, research findings, health myths, medical terminology, and important health issues for everyday readers.",
-    defaultBanner: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=2000&q=90",
+    bannerImage: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=2000&q=90",
     groupType: "standard",
   },
   "general-news": {
     name: "General News",
     description: "General health dispatches, medical updates, press briefings, global health announcements, and breaking news across the healthcare sector.",
-    defaultBanner: "https://images.unsplash.com/photo-1504813184591-01572f98c85f?auto=format&fit=crop&w=2000&q=90",
+    bannerImage: "https://images.unsplash.com/photo-1504813184591-01572f98c85f?auto=format&fit=crop&w=2000&q=90",
     groupType: "standard",
   },
 };
 
-// 🛡️ Bulletproof resolver: Normalizes URI slashes, dashes, spaces, and abbreviations
 function resolveCategoryMeta(rawSlug: string): CategoryDetails {
   const decoded = decodeURIComponent(rawSlug || "").trim().toLowerCase();
   const hyphenated = decoded.replace(/\s+/g, "-");
 
-  // Check direct alias matches (e.g. "ai-in-healthcare" or "ai")
   if (hyphenated.includes("ai") || hyphenated.includes("artificial-intelligence")) {
     return CATEGORY_META["artificial-intelligence"];
+  }
+
+  if (hyphenated.includes("outbreak") || hyphenated.includes("disease-outbreaks")) {
+    return CATEGORY_META["disease-outbreaks"];
   }
 
   if (CATEGORY_META[hyphenated]) {
@@ -106,7 +108,6 @@ function resolveCategoryMeta(rawSlug: string): CategoryDetails {
 
   if (directMatch) return directMatch;
 
-  // Fallback title formatting
   const formattedName = decoded
     .replace(/-/g, " ")
     .replace(/\b\w/g, (char) => char.toUpperCase());
@@ -114,30 +115,52 @@ function resolveCategoryMeta(rawSlug: string): CategoryDetails {
   return {
     name: formattedName,
     description: `Reporting and verified dispatches under ${formattedName}.`,
-    defaultBanner: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=2000&q=90",
+    bannerImage: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=2000&q=90",
     groupType: "standard",
   };
 }
 
 function getDiseaseGroup(text: string): string {
   const content = text.toLowerCase();
-  if (content.match(/cancer|tumor|oncology|chemo|leukemia|lymphoma|carcinoma|melanoma/)) return "Cancer";
-  if (content.match(/hiv|aids|virus|viral|covid|mpox|influenza|ebola|hepatitis|tb|tuberculosis|malaria|dengue/)) return "HIV & Viral Infections";
-  if (content.match(/diabetes|insulin|metabolism|kidney|renal|pancreas|thyroid/)) return "Diabetes & Metabolism";
-  if (content.match(/heart|cardio|stroke|vascular|hypertension|cardiac|artery/)) return "Heart & Cardiovascular";
-  if (content.match(/brain|neuro|alzheimer|parkinson|dementia|epilepsy|spinal/)) return "Brain & Neurological";
-  if (content.match(/gene|crispr|dna|rna|biotech|genomic|mrna/)) return "Genetics & Gene Therapy";
-  if (content.match(/immune|autoimmune|lupus|arthritis|allergy|inflammation/)) return "Immune Disorders";
+  if (content.match(/\b(cancer|tumor|oncology|chemo|leukemia|lymphoma|carcinoma|melanoma)\b/)) return "Cancer & Oncology";
+  if (content.match(/\b(hiv|aids|virus|viral|covid|mpox|influenza|ebola|hepatitis|tb|tuberculosis|malaria|dengue)\b/)) return "Virology & Infectious Diseases";
+  if (content.match(/\b(diabetes|insulin|metabolism|kidney|renal|pancreas|thyroid)\b/)) return "Metabolic & Renal Health";
+  if (content.match(/\b(heart|cardio|stroke|vascular|hypertension|cardiac|artery)\b/)) return "Cardiovascular Health";
+  if (content.match(/\b(brain|neuro|alzheimer|parkinson|dementia|epilepsy|spinal)\b/)) return "Neurology & Brain Sciences";
+  if (content.match(/\b(gene|crispr|dna|rna|biotech|genomic|mrna)\b/)) return "Genetics & Bio-Technology";
+  if (content.match(/\b(immune|autoimmune|lupus|arthritis|allergy|inflammation)\b/)) return "Immunology Disorders";
   return "General Innovations";
 }
 
+// 🌍 Group by World / Global first, followed by the 5 main continents
 function getContinentGroup(text: string): string {
   const content = text.toLowerCase();
-  if (content.match(/africa|kenya|uganda|nigeria|congo|drc|rwanda|south africa|ethiopia|ghana/)) return "Africa";
-  if (content.match(/asia|china|india|japan|vietnam|indonesia|thailand|korea/)) return "Asia & Pacific";
-  if (content.match(/europe|uk|britain|germany|france|italy|spain/)) return "Europe";
-  if (content.match(/america|usa|united states|canada|brazil|mexico/)) return "Americas";
-  return "Global";
+
+  // 1️⃣ Global / World Priority Check
+  if (
+    content.match(/\b(who|world health organization|un|united nations|geneva|global|international|multilateral|worldwide|pandemic agreement|pandemic treaty|global health|world)\b/)
+  ) {
+    return "Global / World News";
+  }
+
+  // 2️⃣ Continent Checks
+  if (content.match(/\b(africa|kenya|uganda|nigeria|congo|drc|rwanda|south africa|ethiopia|ghana|tanzania|zambia|egypt|morocco|senegal)\b/)) {
+    return "Africa";
+  }
+  if (content.match(/\b(united states|usa|us|canada|brazil|mexico|colombia|argentina|caribbean|latin america|americas)\b/)) {
+    return "Americas";
+  }
+  if (content.match(/\b(asia|china|india|japan|vietnam|indonesia|thailand|korea|singapore|malaysia|pakistan|philippines)\b/)) {
+    return "Asia";
+  }
+  if (content.match(/\b(europe|uk|britain|germany|france|italy|spain|switzerland|poland|netherlands)\b/)) {
+    return "Europe";
+  }
+  if (content.match(/\b(australia|new zealand|fiji|oceania|pacific|papua new guinea)\b/)) {
+    return "Oceania";
+  }
+
+  return "Global / World News";
 }
 
 export function CategoryPage() {
@@ -165,8 +188,6 @@ export function CategoryPage() {
     },
   });
 
-  const activeHeaderImage = articles?.[0]?.featured_image || meta.defaultBanner;
-
   const filteredArticles = (articles || []).filter((a) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
@@ -183,11 +204,26 @@ export function CategoryPage() {
     const groups: Record<string, typeof filteredArticles> = {};
 
     if (meta.groupType === "continents") {
+      // 🎯 Strict sorting order: Global / World News first, then Africa, Americas, Asia, Europe, Oceania
+      const orderedKeys = ["Global / World News", "Africa", "Americas", "Asia", "Europe", "Oceania"];
+      
+      // Initialize ordered buckets
+      orderedKeys.forEach((key) => {
+        groups[key] = [];
+      });
+
       filteredArticles.forEach((art) => {
         const fullText = `${art.title} ${art.excerpt || ""} ${art.body || ""}`;
         const group = getContinentGroup(fullText);
         if (!groups[group]) groups[group] = [];
         groups[group].push(art);
+      });
+
+      // Remove empty buckets
+      Object.keys(groups).forEach((key) => {
+        if (groups[key].length === 0) {
+          delete groups[key];
+        }
       });
     } else if (meta.groupType === "diseases") {
       filteredArticles.forEach((art) => {
@@ -207,29 +243,29 @@ export function CategoryPage() {
 
   return (
     <SiteLayout>
-      {/* Dynamic Professional Banner Header */}
-      <div className="relative w-full min-h-[380px] lg:min-h-[440px] flex items-end overflow-hidden border-b border-border bg-black">
+      {/* 🖼️ Dedicated Category Hero Banner */}
+      <div className="relative w-full min-h-[380px] lg:min-h-[460px] flex items-end overflow-hidden border-b border-border bg-slate-950">
         <img
-          src={activeHeaderImage}
+          src={meta.bannerImage}
           alt={meta.name}
-          className="absolute inset-0 w-full h-full object-cover opacity-35 scale-105 filter brightness-90 contrast-110 transition-all duration-700"
+          className="absolute inset-0 w-full h-full object-cover object-center opacity-45 filter brightness-95 contrast-105 transition-all duration-700"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-black/30" />
         
         <div className="relative z-10 mx-auto max-w-7xl px-4 lg:px-6 pb-12 pt-28 w-full">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold/15 border border-gold/30 text-gold text-xs font-mono font-bold uppercase tracking-wider mb-3 backdrop-blur-md">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-gold/20 border border-gold/40 text-gold text-xs font-mono font-bold uppercase tracking-widest mb-4 backdrop-blur-md shadow-sm">
             <Sparkles className="w-3.5 h-3.5" /> Topic Desk
           </div>
           
-          <h1 className="font-display font-black text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight leading-tight max-w-4xl">
+          <h1 className="font-display font-black text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight leading-tight max-w-4xl drop-shadow-md">
             {meta.name}
           </h1>
 
-          <p className="mt-4 max-w-3xl font-serif text-base sm:text-lg text-neutral-300 leading-relaxed">
+          <p className="mt-4 max-w-3xl font-serif text-base sm:text-lg text-neutral-200 leading-relaxed drop-shadow">
             {meta.description}
           </p>
 
-          <div className="mt-6 max-w-xl relative">
+          <div className="mt-7 max-w-xl relative">
             <div className="relative flex items-center">
               <Search className="w-4 h-4 text-gold absolute left-4 pointer-events-none" />
               <input
@@ -237,7 +273,7 @@ export function CategoryPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={`Search dispatches in ${meta.name}...`}
-                className="w-full bg-surface-1/90 border border-gold/30 rounded-full pl-11 pr-4 py-3 text-sm text-foreground placeholder:text-text-mute focus:outline-none focus:border-gold backdrop-blur-md shadow-lg font-sans"
+                className="w-full bg-surface-1/90 border border-gold/30 rounded-full pl-11 pr-4 py-3 text-sm text-foreground placeholder:text-text-mute focus:outline-none focus:border-gold backdrop-blur-md shadow-lg font-sans transition-all"
               />
               {searchQuery && (
                 <button
@@ -312,9 +348,6 @@ export function CategoryPage() {
                         </div>
 
                         <div className="p-6">
-                          <span className="text-[10px] font-mono uppercase tracking-widest text-gold font-bold px-2 py-0.5 rounded bg-gold/10 border border-gold/20 inline-block mb-3">
-                            {a.category || meta.name}
-                          </span>
                           <h3 className="font-display font-bold text-lg leading-snug text-foreground group-hover:text-gold transition-colors">
                             {a.title}
                           </h3>

@@ -24,12 +24,14 @@ export const Route = createFileRoute("/category/$slug")({
 
 const CATEGORY_META: Record<string, { name: string; description: string }> = {
   "disease-outbreaks": { name: "Disease Outbreaks", description: "Coverage of infectious diseases, epidemics, pandemics, disease surveillance, public health emergencies, outbreak response, emerging pathogens, and global disease alerts." },
-  "vaccines-immunization": { name: "Vaccines and Immunizations", description: "Vaccine research, approvals, immunization programmes, vaccination campaigns, vaccine policy, vaccine safety, immunology, and global vaccination initiatives." },
+  "vaccines-immunization": { name: "Vaccines and Immunization", description: "Vaccine research, approvals, immunization programmes, vaccination campaigns, vaccine policy, vaccine safety, immunology, and global vaccination initiatives." },
   "medical-research": { name: "Medical Research", description: "Peer-reviewed studies, clinical trials, scientific discoveries, laboratory research, academic publications, biomedical science, and evidence-based medical findings." },
   "treatments-innovation": { name: "Treatments and Innovations", description: "New medicines, breakthrough therapies, biotechnology, gene therapy, precision medicine, medical devices, diagnostics, artificial intelligence in healthcare, and healthcare innovation." },
   "public-health": { name: "Public Health", description: "Global health policy, healthcare systems, disease prevention, environmental health, One Health, mental health, health education, health campaigns, humanitarian health, and international public health initiatives." },
-  "healthcare": { name: "Healthcare and Explainers", description: "Hospitals, healthcare delivery, pharmaceuticals, digital health, telemedicine, healthcare regulation, healthcare workforce, insurance, medical infrastructure, and health industry developments." },
-  "explainers": { name: "Healthcare and Explainers", description: "Clear, evidence-based articles that simplify complex medical topics, research findings, health myths, medical terminology, and important health issues for everyday readers." },
+  "artificial-intelligence": { name: "Artificial Intelligence", description: "Coverage of artificial intelligence in medicine, machine learning diagnostics, neural networks in healthcare, predictive medical modeling, and digital health technology." },
+  "general-news": { name: "General News", description: "General health dispatches, medical updates, press briefings, global health announcements, and breaking news across the healthcare sector." },
+  "healthcare": { name: "Healthcare", description: "Hospitals, healthcare delivery, pharmaceuticals, digital health, telemedicine, healthcare regulation, healthcare workforce, insurance, medical infrastructure, and health industry developments." },
+  "explainers": { name: "Explainers", description: "Clear, evidence-based articles that simplify complex medical topics, research findings, health myths, medical terminology, and important health issues for everyday readers." },
 };
 
 function CategoryPage() {
@@ -41,7 +43,6 @@ function CategoryPage() {
     queryKey: ["category-articles", slug],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      /* 🎯 THE BUG FIX: Querying your actual text column on the articles table, ignoring the ghost table join */
       const { data } = await supabase
         .from("articles")
         .select("id,title,slug,excerpt,read_time_minutes,published_at,category,featured_image")
@@ -95,7 +96,6 @@ function CategoryPage() {
                 params={{ slug: a.slug }}
                 className="group block bg-card border border-border rounded-lg overflow-hidden card-lift cursor-pointer"
               >
-                {/* 🎯 BONUS FIX: Rendering the actual article layout picture instead of a blank box */}
                 <div className="aspect-[16/10] bg-surface-1 relative overflow-hidden border-b border-border">
                   {a.featured_image ? (
                     <img 

@@ -64,23 +64,22 @@ function Hero() {
 }
 
 function Latest() {
-  const { data: articles } = useQuery({
+  const { data: articles, isLoading } = useQuery({
     queryKey: ["articles", "latest-home-feed"],
+    staleTime: 1000,
     queryFn: async () => {
-      const { data: session } = await supabase.auth.getUser();
-      const isAdmin = session?.user?.email === "mmwajoseph@gmail.com";
-
-      let query = supabase
+      const { data, error } = await supabase
         .from("articles")
         .select("id,title,slug,excerpt,read_time_minutes,published_at,is_published,featured_image,author,category")
+        .eq("is_published", true)
         .order("published_at", { ascending: false })
         .limit(6);
 
-      if (!isAdmin) {
-        query = query.eq("is_published", true);
+      if (error) {
+        console.error("Home feed fetch error:", error);
+        return [];
       }
 
-      const { data } = await query;
       return data ?? [];
     },
   });
@@ -99,7 +98,7 @@ function Latest() {
           year: "numeric",
         })
       : "",
-    read: `${a.read_time_minutes} min read`,
+    read: `${a.read_time_minutes || 3} min read`,
   }));
 
   return (
@@ -110,9 +109,15 @@ function Latest() {
           <h2 className="mt-2 font-display font-bold text-3xl sm:text-4xl">From the newsroom</h2>
         </div>
       </div>
-      {items.length === 0 ? (
-        <div className="col-span-full bg-card border border-border rounded-xl p-12 text-center">
-          <h3 className="font-display font-bold text-2xl">Updating news feed...</h3>
+
+      {isLoading ? (
+        <div className="bg-card border border-border rounded-xl p-12 text-center">
+          <h3 className="font-display font-bold text-2xl animate-pulse">Loading latest dispatches...</h3>
+        </div>
+      ) : items.length === 0 ? (
+        <div className="bg-card border border-border rounded-xl p-12 text-center">
+          <h3 className="font-display font-bold text-2xl">No stories published yet</h3>
+          <p className="mt-2 text-text-mute font-serif text-sm">Check back soon for newsroom updates.</p>
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -135,45 +140,57 @@ function ArticleCard(props: {
   date: string;
   read: string;
 }) {
+  // Convert category string to url-friendly slug for tag clicks
+  const categorySlug = props.category.toLowerCase().replace(/\s+/g, "-");
+
   return (
-    <Link
-      to="/news/$slug"
-      params={{ slug: props.slug }}
-      className="group block bg-card border border-border rounded-lg overflow-hidden card-lift cursor-pointer"
-    >
-      <div className="aspect-[16/10] bg-surface-1 relative overflow-hidden border-b border-border">
-        {props.featured_image ? (
-          <img 
-            src={props.featured_image} 
-            alt={props.title} 
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-surface-2 to-surface-1 flex items-center justify-center text-text-mute font-mono text-xs">
-            Joseph Mmwa Media Group
-          </div>
-        )}
-      </div>
+    <div className="group block bg-card border border-border rounded-lg overflow-hidden card-lift cursor-pointer flex flex-col justify-between">
+      <Link to="/news/$slug" params={{ slug: props.slug }} className="block">
+        <div className="aspect-[16/10] bg-surface-1 relative overflow-hidden border-b border-border">
+          {props.featured_image ? (
+            <img 
+              src={props.featured_image} 
+              alt={props.title} 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-surface-2 to-surface-1 flex items-center justify-center text-text-mute font-mono text-xs">
+              Joseph Mmwa Media Group
+            </div>
+          )}
+        </div>
+      </Link>
+
       <div className="p-6">
-        <div className="flex items-center justify-between text-xs text-text-mute">
-          <span className="label-eyebrow">{props.category}</span>
+        <div className="flex items-center justify-between text-xs text-text-mute mb-2">
+          <Link 
+            to="/category/$slug" 
+            params={{ slug: categorySlug }}
+            className="label-eyebrow hover:text-gold transition-colors"
+          >
+            {props.category}
+          </Link>
           <span className="font-semibold text-gold">By {props.author}</span>
         </div>
-        <h3 className="mt-3 font-display font-bold text-xl leading-snug text-foreground group-hover:text-gold transition-colors">
-          {props.title}
-        </h3>
-        <p className="mt-3 text-sm text-text-body line-clamp-3 font-serif">
-          {props.excerpt}
-        </p>
-        <div className="mt-5 flex items-center gap-4 text-xs text-text-mute">
-          <span>{props.date}</span>
-          <span className="flex items-center gap-1">
-            <Clock className="w-3 h-3" /> {props.read}
-          </span>
-        </div>
+
+        <Link to="/news/$slug" params={{ slug: props.slug }}>
+          <h3 className="font-display font-bold text-xl leading-snug text-foreground group-hover:text-gold transition-colors">
+            {props.title}
+          </h3>
+          <p className="mt-3 text-sm text-text-body line-clamp-3 font-serif">
+            {props.excerpt}
+          </p>
+        </Link>
       </div>
-    </Link>
+
+      <div className="px-6 pb-6 pt-2 flex items-center gap-4 text-xs text-text-mute font-mono border-t border-border/40">
+        <span>{props.date}</span>
+        <span className="flex items-center gap-1">
+          <Clock className="w-3 h-3 text-gold" /> {props.read}
+        </span>
+      </div>
+    </div>
   );
 }
 

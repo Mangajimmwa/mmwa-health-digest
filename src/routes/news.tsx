@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Clock, Search, Newspaper, TrendingUp, Sparkles, Eye } from "lucide-react";
+import { Clock, Search, Newspaper, TrendingUp, Sparkles, Eye, Globe } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -15,11 +15,25 @@ export const Route = createFileRoute("/news")({
   component: NewsPage,
 });
 
+// 🌐 Helper function to format timestamps into International Standard Time (UTC)
+function formatUtcTimestamp(dateString?: string | null): string {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "";
+
+  const day = date.getUTCDate();
+  const month = date.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+  const year = date.getUTCFullYear();
+  const hours = String(date.getUTCHours()).padStart(2, "0");
+  const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+
+  return `${day} ${month} ${year}, ${hours}:${minutes} UTC`;
+}
+
 function NewsPage() {
   const [q, setQ] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Synchronized with all 9 newsroom categories
   const categories = [
     "Artificial Intelligence in Healthcare",
     "General News",
@@ -33,9 +47,8 @@ function NewsPage() {
   ];
 
   const { data: articles = [] } = useQuery({
-    queryKey: ["articles", "all-feed-v5"],
+    queryKey: ["articles", "all-feed-utc-v1"],
     queryFn: async () => {
-      // Safe SELECT query that won't break if 'views' is missing
       const { data, error } = await supabase
         .from("articles")
         .select("*")
@@ -51,18 +64,13 @@ function NewsPage() {
     },
   });
 
-  // 1️⃣ LATEST SECTION: Top 3 newest articles
   const latestArticles = articles.slice(0, 3);
-
-  // 2️⃣ MOST READ SECTION: Sorted by views if available, else recent fallback
   const mostReadArticles = [...articles]
-    .sort((a, b) => ((b.views || 0) - (a.views || 0)))
+    .sort((a, b) => (b.views || 0) - (a.views || 0))
     .slice(0, 4);
 
-  // 3️⃣ FILTERED MAIN FEED
   const filtered = articles.filter((a) => {
     const matchesSearch = q ? a.title?.toLowerCase().includes(q.toLowerCase()) : true;
-
     const matchesCategory = selectedCategory
       ? a.category?.toLowerCase().trim().includes(selectedCategory.toLowerCase().trim()) ||
         selectedCategory.toLowerCase().trim().includes(a.category?.toLowerCase().trim() || "")
@@ -82,7 +90,7 @@ function NewsPage() {
         {/* ------------------------------------------------------------------- */}
         {!selectedCategory && !q && articles.length > 0 && (
           <div className="mt-10 grid gap-8 lg:grid-cols-12 border-b border-border pb-14">
-            {/* LATEST SECTION (Left 8 Cols) */}
+            {/* LATEST SECTION */}
             <div className="lg:col-span-8 space-y-6">
               <div className="flex items-center gap-2 text-gold font-mono text-xs font-bold uppercase tracking-widest">
                 <Sparkles className="w-4 h-4" />
@@ -123,14 +131,10 @@ function NewsPage() {
                         {latestArticles[0].excerpt}
                       </p>
                     )}
-                    <div className="mt-6 flex items-center gap-4 text-xs text-text-mute font-mono">
-                      <span>
-                        {latestArticles[0].published_at &&
-                          new Date(latestArticles[0].published_at).toLocaleDateString(undefined, {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
+                    <div className="mt-6 flex flex-wrap items-center gap-4 text-xs text-text-mute font-mono">
+                      <span className="flex items-center gap-1.5 text-foreground font-semibold">
+                        <Globe className="w-3.5 h-3.5 text-gold" />
+                        {formatUtcTimestamp(latestArticles[0].published_at)}
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5 text-gold" /> {latestArticles[0].read_time_minutes || 3} min read
@@ -168,13 +172,10 @@ function NewsPage() {
                         <h3 className="mt-2 font-display font-bold text-lg leading-snug group-hover:text-gold transition-colors line-clamp-2">
                           {a.title}
                         </h3>
-                        <div className="mt-4 flex items-center gap-3 text-xs text-text-mute font-mono">
-                          <span>
-                            {a.published_at &&
-                              new Date(a.published_at).toLocaleDateString(undefined, {
-                                month: "short",
-                                day: "numeric",
-                              })}
+                        <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-text-mute font-mono">
+                          <span className="flex items-center gap-1 text-foreground font-medium">
+                            <Globe className="w-3 h-3 text-gold" />
+                            {formatUtcTimestamp(a.published_at)}
                           </span>
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3 text-gold" /> {a.read_time_minutes || 3} min
@@ -187,7 +188,7 @@ function NewsPage() {
               )}
             </div>
 
-            {/* MOST READ SIDEBAR (Right 4 Cols) */}
+            {/* MOST READ SIDEBAR */}
             <div className="lg:col-span-4 bg-card border border-border rounded-2xl p-6 h-fit space-y-6">
               <div className="flex items-center gap-2 text-gold font-mono text-xs font-bold uppercase tracking-widest border-b border-border pb-4">
                 <TrendingUp className="w-4 h-4" />
@@ -212,11 +213,14 @@ function NewsPage() {
                       <h4 className="font-display font-bold text-sm leading-snug group-hover:text-gold transition-colors text-foreground line-clamp-2">
                         {item.title}
                       </h4>
-                      {item.views !== undefined && item.views > 0 && (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-mono text-text-mute pt-1">
-                          <Eye className="w-3 h-3 text-gold" /> {item.views.toLocaleString()} reads
-                        </span>
-                      )}
+                      <div className="flex items-center gap-3 text-[11px] font-mono text-text-mute pt-1">
+                        <span>{formatUtcTimestamp(item.published_at)}</span>
+                        {item.views !== undefined && item.views > 0 && (
+                          <span className="inline-flex items-center gap-1">
+                            <Eye className="w-3 h-3 text-gold" /> {item.views.toLocaleString()} reads
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </Link>
                 ))}
@@ -301,16 +305,12 @@ function NewsPage() {
                     {a.title}
                   </h3>
                   {a.excerpt && <p className="mt-3 text-sm text-text-body font-serif line-clamp-3">{a.excerpt}</p>}
-                  <div className="mt-5 flex items-center gap-4 text-xs text-text-mute">
-                    <span>
-                      {a.published_at &&
-                        new Date(a.published_at).toLocaleDateString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
+                  <div className="mt-5 flex flex-wrap items-center gap-4 text-xs text-text-mute">
+                    <span className="flex items-center gap-1.5 text-foreground font-medium">
+                      <Globe className="w-3.5 h-3.5 text-gold" />
+                      {formatUtcTimestamp(a.published_at)}
                     </span>
-                    <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-1 font-mono">
                       <Clock className="w-3 h-3 text-gold" /> {a.read_time_minutes || 3} min read
                     </span>
                   </div>

@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/category/$slug")({
   head: ({ params }) => {
     const slug = params.slug;
-    const meta = CATEGORY_META[slug];
+    const meta = getCategoryMeta(slug);
     const title = meta ? `${meta.name} — JOSEPH MMWA` : "Category — JOSEPH MMWA";
     const description = meta?.description || "Health reporting by topic.";
     return {
@@ -31,6 +31,12 @@ interface CategoryDetails {
 }
 
 const CATEGORY_META: Record<string, CategoryDetails> = {
+  "artificial-intelligence": {
+    name: "Artificial Intelligence",
+    description: "Neural diagnostic models, machine learning in clinical medicine, surgical robotics, and predictive health.",
+    bannerImage: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=2000&q=90",
+    groupType: "diseases",
+  },
   "treatments-innovation": {
     name: "Treatments and Innovations",
     description: "Breakthrough pharmaceuticals, precision medicine, gene editing, and clinical therapies.",
@@ -42,12 +48,6 @@ const CATEGORY_META: Record<string, CategoryDetails> = {
     description: "Real-time surveillance, outbreak investigations, viral mutations, and emergency field responses.",
     bannerImage: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&w=2000&q=90",
     groupType: "continents",
-  },
-  "artificial-intelligence": {
-    name: "Artificial Intelligence",
-    description: "Neural diagnostic models, machine learning in clinical medicine, surgical robotics, and predictive health.",
-    bannerImage: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=2000&q=90",
-    groupType: "diseases",
   },
   "vaccines-immunization": {
     name: "Vaccines and Immunization",
@@ -87,6 +87,22 @@ const CATEGORY_META: Record<string, CategoryDetails> = {
   },
 };
 
+// 🛡️ Safe lookup function so variation in links won't cause 404s
+function getCategoryMeta(slug: string): CategoryDetails | null {
+  const cleanSlug = slug.toLowerCase().replace(/\s+/g, "-").trim();
+  
+  if (CATEGORY_META[cleanSlug]) {
+    return CATEGORY_META[cleanSlug];
+  }
+
+  // Check by category title directly (e.g. "Artificial Intelligence")
+  const found = Object.values(CATEGORY_META).find(
+    (c) => c.name.toLowerCase() === slug.toLowerCase().replace(/-/g, " ")
+  );
+
+  return found || null;
+}
+
 function getDiseaseGroup(text: string): string {
   const content = text.toLowerCase();
   if (content.match(/cancer|tumor|oncology|chemo|leukemia|lymphoma|carcinoma|melanoma/)) return "Cancer";
@@ -110,9 +126,9 @@ function getContinentGroup(text: string): string {
 
 export function CategoryPage() {
   const { slug } = Route.useParams();
-  const meta = CATEGORY_META[slug];
+  const meta = getCategoryMeta(slug);
 
-  // 🚨 Throws 404 if the slug isn't a REAL category, preventing articles from hijacking category layouts
+  // If the slug is not a category, pass to 404 so single articles don't load as categories
   if (!meta) {
     throw notFound();
   }
